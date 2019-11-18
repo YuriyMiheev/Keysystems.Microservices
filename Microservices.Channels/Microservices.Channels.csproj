@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\DTO\**" />
+    <EmbeddedResource Remove="src\DTO\**" />
+    <None Remove="src\DTO\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ChannelServiceBase.cs" />
+    <Compile Remove="CommonHubClient.cs" />
+    <Compile Remove="src\ChannelServiceBase.cs" />
+    <Compile Remove="src\Configuration\ServiceSettingsChangedEventArgs.cs" />
+    <Compile Remove="src\Configuration\ServiceSettingsChangeType.cs" />
+    <Compile Remove="src\Configuration\XmlConfigFileException.cs" />
+    <Compile Remove="src\Controllers\ChannelControllerBase.cs" />
+    <Compile Remove="src\DAO\MessagePost.cs" />
+    <Compile Remove="src\Data\Mappings\MessagePostMapping.cs" />
+    <Compile Remove="src\Data\MessageBodyAsyncReader.cs" />
+    <Compile Remove="src\Data\MessageContentAsyncReader.cs" />
+    <Compile Remove="src\Data\MessageTables.cs" />
+    <Compile Remove="src\Hubs\ChannelHubBase.cs" />
+    <Compile Remove="src\Hubs\CommonHubClient.cs" />
+    <Compile Remove="src\Hubs\IChannelHubClient.cs" />
+    <Compile Remove="src\Hubs\IHubClient.cs" />
+    <Compile Remove="IHubClient.cs" />
+    <Compile Remove="src\MessageSender.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="FluentNHibernate" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.0.0" />
+    <PackageReference Include="NHibernate" Version="5.2.6" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Controllers\" />
+    <Folder Include="src\DAO\" />
+  </ItemGroup>
+
+</Project>
