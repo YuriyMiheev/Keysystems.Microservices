@@ -43,7 +43,7 @@ namespace Microservices.Channels.MSSQL
 		{
 			lifetime.ApplicationStarted.Register(() =>
 				{
-					var channelService = app.ApplicationServices.GetRequiredService<IChannelService>();
+					//var channelService = app.ApplicationServices.GetRequiredService<IChannelService>();
 					//var autostart = this.Configuration.GetValue<bool>("autostart");
 					//if (autostart)
 					//	channelService.Open();
