@@ -23,24 +23,16 @@ namespace Microservices.Channels.MSSQL
 		public static void Main(string[] args)
 		{
 			IConfigurationRoot appConfig = new ConfigurationBuilder()
-				//.SetBasePath(Directory.GetCurrentDirectory())
 				.AddJsonFile("appsettings.json", true, false)
 				.AddCommandLine(args)
 				.Build();
-
 			IConfigurationRoot channelConfig = new ConfigurationBuilder()
-				//.SetBasePath(Directory.GetCurrentDirectory())
 				.AddXmlConfigFile("channel.config")
 				.Build();
-			var channelConfigProvider = channelConfig.Providers.Cast<XmlConfigFileConfigurationProvider>().Single();
-
 			IConfigurationRoot serviceConfig = new ConfigurationBuilder()
-				//.SetBasePath(Directory.GetCurrentDirectory())
 				.AddXmlConfigFile("service.config")
 				.Build();
-			var serviceConfigProvider = serviceConfig.Providers.Cast<XmlConfigFileConfigurationProvider>().Single();
 
-			//IHostBuilder hostBuilder = new HostBuilder()
 			IHostBuilder hostBuilder = Host.CreateDefaultBuilder()
 				.ConfigureHostConfiguration(configBuilder => configBuilder.AddConfiguration(appConfig))
 				.ConfigureWebHostDefaults(webBuilder =>
@@ -52,8 +44,16 @@ namespace Microservices.Channels.MSSQL
 					})
 				.ConfigureServices(services =>
 					{
-						var service = new ChannelService(null, new ChannelConfigFileSettings(channelConfigProvider), new ServiceConfigFileSettings(serviceConfigProvider));
-						services.AddSingleton<IChannelService>(service);
+						services.AddSingleton<IChannelService>(serviceProvider =>
+							{
+								var channelConfigProvider = channelConfig.Providers.Single() as XmlConfigFileConfigurationProvider;
+								var serviceConfigProvider = serviceConfig.Providers.Single() as XmlConfigFileConfigurationProvider;
+								return new ChannelService(serviceProvider, new ChannelConfigFileSettings(channelConfigProvider), new ServiceConfigFileSettings(serviceConfigProvider));
+							});
+						services.AddHostedService<IChannelService>(serviceProvider =>
+							{
+								return serviceProvider.GetRequiredService<IChannelService>();
+							});
 					});
 
 			_host = hostBuilder.Build();

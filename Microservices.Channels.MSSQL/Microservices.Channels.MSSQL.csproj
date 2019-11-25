@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Remove="CommonHub.cs" />
+    <Compile Remove="src\Configuration\ChannelServiceDependencyInjectionExtensions.cs" />
     <Compile Remove="src\Configuration\IChannelConfigFileSettings.cs" />
     <Compile Remove="src\Configuration\IServiceConfig.cs" />
     <Compile Remove="src\Configuration\IServiceConfigFileSettings.cs" />

@@ -41,18 +41,18 @@ namespace Microservices.Channels.MSSQL
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IHostApplicationLifetime lifetime)
 		{
-			lifetime.ApplicationStarted.Register(() =>
-				{
-					//var channelService = app.ApplicationServices.GetRequiredService<IChannelService>();
-					//var autostart = this.Configuration.GetValue<bool>("autostart");
-					//if (autostart)
-					//	channelService.Open();
-				});
-			lifetime.ApplicationStopping.Register(() =>
-				{
-					var channelService = app.ApplicationServices.GetRequiredService<IChannelService>();
-					channelService.Close();
-				});
+			//lifetime.ApplicationStarted.Register(() =>
+			//	{
+			//		var channelService = app.ApplicationServices.GetRequiredService<IChannelService>();
+			//		//var autostart = this.Configuration.GetValue<bool>("autostart");
+			//		//if (autostart)
+			//		//	channelService.Open();
+			//	});
+			//lifetime.ApplicationStopping.Register(() =>
+			//	{
+			//		var channelService = app.ApplicationServices.GetRequiredService<IChannelService>();
+			//		channelService.Close();
+			//	});
 
 			app.UseDeveloperExceptionPage();
 			app.UseStaticFiles();

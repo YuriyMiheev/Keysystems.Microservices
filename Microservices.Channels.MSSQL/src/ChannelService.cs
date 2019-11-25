@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+
+using Microsoft.Extensions.Hosting;
+
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
@@ -15,7 +18,7 @@ namespace Microservices.Channels.MSSQL
 {
 	public class ChannelService : IChannelService, IDisposable
 	{
-		private IServiceProvider serviceProvider;
+		private IServiceProvider _serviceProvider;
 		private bool _initialized;
 		private ChannelDatabase _database;
 		private MessageReceiver _receiver;
@@ -28,7 +31,7 @@ namespace Microservices.Channels.MSSQL
 		#region Ctor
 		public ChannelService(IServiceProvider serviceProvider, ChannelConfigFileSettings channelSettings, ServiceConfigFileSettings serviceSettings)
 		{
-			serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 			_infoSettings = channelSettings ?? throw new ArgumentNullException(nameof(channelSettings));
 			_serviceSettings = serviceSettings ?? throw new ArgumentNullException(nameof(serviceSettings));
 
@@ -166,7 +169,7 @@ namespace Microservices.Channels.MSSQL
 					string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
 					int count = _dataAdapter.ExecuteUpdate(sql);
 
-					LogTrace($"Удалено удаленных сообщений: {count}");
+					LogTrace($"Удалено сообщений: {count}");
 				}
 				catch (Exception ex)
 				{
@@ -180,7 +183,7 @@ namespace Microservices.Channels.MSSQL
 				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
 				int count = _dataAdapter.ExecuteUpdate(sql);
 
-				LogTrace($"Найдено отправленных недоставленных сообщений: {count}");
+				LogTrace($"Найдено недоставленных сообщений: {count}");
 			}
 			catch (Exception ex)
 			{
@@ -193,7 +196,7 @@ namespace Microservices.Channels.MSSQL
 				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.SENDING}'";
 				int count = _dataAdapter.ExecuteUpdate(sql);
 
-				LogTrace($"Найдено непринятых входящих сообщений: {count}");
+				LogTrace($"Найдено непринятых сообщений: {count}");
 			}
 			catch (Exception ex)
 			{
@@ -696,6 +699,26 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
+		#region IHostedService  
+		Task IHostedService.StartAsync(CancellationToken cancellationToken)
+		{
+			return Task.Run(() =>
+				{
+					Open();
+					Run();
+				}, cancellationToken);
+		}
+
+		Task IHostedService.StopAsync(CancellationToken cancellationToken)
+		{
+			return Task.Run(() =>
+				{
+					Close();
+				}, cancellationToken);
+		}
+		#endregion
+
+
 		#region Helper
 		private void Initialize()
 		{
@@ -717,7 +740,8 @@ namespace Microservices.Channels.MSSQL
 							_database.Schema = _databaseSettings.Schema;
 							_database.ConnectionString = _infoSettings.RealAddress;
 
-							DbContext dbContext = _database.ValidateSchema();
+							DbContext dbContext = _database.CreateOrUpdateSchema();
+							//DbContext dbContext = _database.ValidateSchema();
 							dbContext.ConnectionChanged += (s, e) => { };
 
 							_dataAdapter = new MessageDataAdapter(dbContext);

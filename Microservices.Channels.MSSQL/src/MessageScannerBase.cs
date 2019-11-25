@@ -22,7 +22,7 @@ namespace Microservices.Channels.MSSQL
 	/// </summary>
 	public abstract class MessageScannerBase : IDisposable
 	{
-		private MessageDataAdapterBase dataAdapter;
+		private MessageDataAdapterBase _dataAdapter;
 		private System.Threading.CancellationToken _cancellationToken;
 		private Timer _queryTimer;
 		private bool _started;
@@ -38,8 +38,6 @@ namespace Microservices.Channels.MSSQL
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channel));
 			this.Recipient = recipient ?? throw new ArgumentException("Пустой адрес получателя сообщений.", nameof(recipient));
-
-			this.dataAdapter = channelService.MessageDataAdapter;
 
 			_queryTimer = new Timer() { AutoReset = false };
 			_queryTimer.Elapsed += new ElapsedEventHandler(queryTimer_Elapsed);
@@ -77,6 +75,7 @@ namespace Microservices.Channels.MSSQL
 				return;
 
 			_started = true;
+			_dataAdapter = _channelService.MessageDataAdapter;
 
 			_cancellationToken = cancellationToken;
 			_cancellationToken.Register(() =>
@@ -98,7 +97,7 @@ namespace Microservices.Channels.MSSQL
 			{
 				try
 				{
-					using IDataQuery dataQuery = this.dataAdapter.OpenQuery();
+					using IDataQuery dataQuery = _dataAdapter.OpenQuery();
 					var query = CreateOfflineSelectMessagesQuery();
 					List<Message> messages = query.GetExecutableQueryOver(dataQuery.Session)
 						 .Take(_channelService.MessageSettings.ScanPortion).List()
