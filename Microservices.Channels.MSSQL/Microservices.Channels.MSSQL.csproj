@@ -38,6 +38,10 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="src\Configuration\" />
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties channel_1json__JsonSchema="http://json-schema.org/draft-04/schema" /></VisualStudio></ProjectExtensions>
 
 </Project>

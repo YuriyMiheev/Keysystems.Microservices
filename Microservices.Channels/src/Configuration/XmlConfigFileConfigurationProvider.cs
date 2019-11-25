@@ -21,7 +21,6 @@ namespace Microservices.Channels.Configuration
 			: base(new XmlConfigFileConfigurationSource(configFile))
 		{
 			_appSettings = new Dictionary<string, ConfigFileSetting>();
-			//_connectionStrings = new Dictionary<string, string>();
 		}
 
 
@@ -33,17 +32,6 @@ namespace Microservices.Channels.Configuration
 		{
 			get { return _appSettings; }
 		}
-
-
-		//private IDictionary<string, string> _connectionStrings;
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//public IDictionary<string, string> ConnectionStrings
-		//{
-		//	get { return _connectionStrings; }
-		//}
-
 
 		/// <summary>
 		/// 
@@ -65,16 +53,6 @@ namespace Microservices.Channels.Configuration
 			var xmldoc = new XmlDocument();
 			xmldoc.Load(stream);
 
-			//XmlNodeList nodes = xmldoc.SelectNodes("configuration/connectionStrings/add");
-			//foreach (XmlNode node in nodes)
-			//{
-			//	string providerName = node.Attributes["providerName"]?.Value;
-			//	string name = node.Attributes["name"].Value;
-			//	string value = node.Attributes["connectionString"].Value;
-
-			//	_connectionStrings.Add(name, value);
-			//}
-
 			XmlNodeList nodes = xmldoc.SelectNodes("configuration/appSettings/add");
 			foreach (XmlNode node in nodes)
 			{
@@ -93,33 +71,5 @@ namespace Microservices.Channels.Configuration
 				this.Data.Add(key, value);
 			}
 		}
-
-		//public override bool TryGet(string key, out string value)
-		//{
-		//	if (_appSettings.TryGetValue(key, out ConfigFileSetting setting))
-		//	{
-		//		value = setting.Value;
-		//		return true;
-		//	}
-		//	else
-		//	{
-		//		value = null;
-		//		return false;
-		//	}
-		//}
-
-		//public override void Set(string key, string value)
-		//{
-		//	if (_appSettings.ContainsKey(key))
-		//		_appSettings[key].Value = value;
-		//}
-
-
-		//private bool IsValueTrue(string value)
-		//{
-		//	value = value?.ToUpper();
-		//	return (value == "TRUE" || value == "ИСТИНА" || value == "YES" || value == "ДА" || value == "ON" || value == "1");
-		//}
-
 	}
 }

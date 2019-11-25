@@ -12,7 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using Microservices.Channels.Configuration;
-using Microservices.Channels.MSSQL.Configuration;
+//using Microservices.Channels.MSSQL.Configuration;
 
 namespace Microservices.Channels.MSSQL
 {
@@ -52,7 +52,7 @@ namespace Microservices.Channels.MSSQL
 					})
 				.ConfigureServices(services =>
 					{
-						var service = new ChannelService(new ChannelConfigFileSettings(channelConfigProvider), new ServiceConfigFileSettings(serviceConfigProvider));
+						var service = new ChannelService(null, new ChannelConfigFileSettings(channelConfigProvider), new ServiceConfigFileSettings(serviceConfigProvider));
 						services.AddSingleton<IChannelService>(service);
 					});
 

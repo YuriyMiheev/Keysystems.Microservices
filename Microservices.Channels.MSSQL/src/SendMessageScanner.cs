@@ -22,19 +22,19 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="recipient"></param>
-		public SendMessageScanner(IChannelService channel, string recipient)
-			: base(channel, recipient)
+		public SendMessageScanner(IChannelService channelService, string recipient)
+			: base(channelService, recipient)
 		{ }
 		#endregion
 
 
-		#region Protected
+		#region Override
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="exceptLinks"></param>
 		/// <returns></returns>
-		protected override QueryOver<DAO.Message, DAO.Message> CreateOfflineSelectMessagesQuery(IEnumerable<int> exceptLinks)
+		protected override QueryOver<DAO.Message, DAO.Message> CreateOfflineSelectMessagesQuery()
 		{
 			var query = QueryOver.Of<DAO.Message>();
 			//	query = query.Where(msg => msg.Channel == this.channel.VirtAddress);

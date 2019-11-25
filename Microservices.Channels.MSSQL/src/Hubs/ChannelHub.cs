@@ -153,12 +153,12 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Settings
 		public IDictionary<string, ConfigFileSetting> GetSettings()
 		{
-			return _service.ChannelSettings.GetAppSettings();
+			return _service.InfoSettings.GetAppSettings();
 		}
 
 		public void SetSettings(IDictionary<string, string> settings)
 		{
-			_service.ChannelSettings.SetAppSettings(settings);
+			_service.InfoSettings.SetAppSettings(settings);
 		}
 
 		//public void SaveSettings()

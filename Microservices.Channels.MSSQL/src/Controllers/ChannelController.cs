@@ -27,7 +27,7 @@ namespace Microservices.Channels.MSSQL.Controllers
 
 		public IActionResult Info()
 		{
-			var settings = _service.ChannelSettings.GetAppSettings().Values;
+			var settings = _service.InfoSettings.GetAppSettings().Values;
 			//_hubContext.Clients.All.ReceiveLog();
 			return Json(settings);
 		}

@@ -23,38 +23,32 @@ namespace Microservices.Channels.MSSQL
 	public abstract class MessageScannerBase : IDisposable
 	{
 		private MessageDataAdapterBase dataAdapter;
-		private Timer queryTimer;
-		private TimeSpan queryTimerInterval;
-		private Timer readTimer;
-		private OrderableMessageQueue messageQueue;
-		private int messagePortion = 0;
-		private ITargetBlock<Message> target;
-		System.Threading.CancellationToken cancellationToken;
-		private bool started;
+		private System.Threading.CancellationToken _cancellationToken;
+		private Timer _queryTimer;
+		private bool _started;
 
 
 		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channel"></param>
+		/// <param name="channelService"></param>
 		/// <param name="recipient"></param>
-		protected MessageScannerBase(IChannelService channel, string recipient)
+		protected MessageScannerBase(IChannelService channelService, string recipient)
 		{
-			this.channel = channel ?? throw new ArgumentNullException(nameof(channel));
+			_channelService = channelService ?? throw new ArgumentNullException(nameof(channel));
 			this.Recipient = recipient ?? throw new ArgumentException("Пустой адрес получателя сообщений.", nameof(recipient));
 
-			this.messagePortion = channel.MessageSettings.ScanPortion;
+			this.dataAdapter = channelService.MessageDataAdapter;
 
-			this.dataAdapter = channel.MessageDataAdapter;
-			this.messageQueue = new OrderableMessageQueue();
-
-			this.queryTimer = new Timer() { AutoReset = false };
-			this.queryTimer.Elapsed += new ElapsedEventHandler(queryTimer_Elapsed);
-
-			this.readTimer = new Timer() { AutoReset = false, Interval = 1 };
-			this.readTimer.Elapsed += new ElapsedEventHandler(readTimer_Elapsed);
+			_queryTimer = new Timer() { AutoReset = false };
+			_queryTimer.Elapsed += new ElapsedEventHandler(queryTimer_Elapsed);
 		}
+		#endregion
+
+
+		#region Events
+		public event Func<Message[], bool> NewMessages;
 		#endregion
 
 
@@ -62,7 +56,7 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		protected IChannelService channel;
+		protected IChannelService _channelService;
 
 		/// <summary>
 		/// {Get}
@@ -75,37 +69,23 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="scanInterval"></param>
-		/// <param name="target"></param>
+		/// <param name="channelService"></param>
 		/// <param name="cancellationToken"></param>
-		public virtual void Start(TimeSpan scanInterval, ITargetBlock<Message> target, System.Threading.CancellationToken cancellationToken = default)
+		public virtual void Start(System.Threading.CancellationToken cancellationToken = default)
 		{
-			if ( this.started )
+			if (_started)
 				return;
 
-			lock ( this )
-			{
-				if ( this.started )
-					return;
+			_started = true;
 
-				this.started = true;
+			_cancellationToken = cancellationToken;
+			_cancellationToken.Register(() =>
+				 {
+					 OnCancel();
+				 });
 
-				this.cancellationToken = cancellationToken;
-				this.cancellationToken.Register(() =>
-					{
-						OnCancel();
-					});
-
-				this.messageQueue.Enabled = true;
-
-				this.target = target ?? throw new ArgumentNullException("target");
-
-				this.queryTimerInterval = scanInterval;
-				this.queryTimer.Interval = scanInterval.TotalMilliseconds;
-
-				this.queryTimer.Start();
-				this.readTimer.Start();
-			}
+			_queryTimer.Interval = _channelService.MessageSettings.ScanInterval.TotalMilliseconds;
+			_queryTimer.Start();
 		}
 		#endregion
 
@@ -114,70 +94,38 @@ namespace Microservices.Channels.MSSQL
 		#region Event Handlers
 		void queryTimer_Elapsed(object sender, ElapsedEventArgs e)
 		{
-			Timer thisTimer = (Timer)sender;
-
-			if ( this.started )
+			if (_started)
 			{
 				try
 				{
-					IDataQuery dataQuery = null;
-					try
+					using IDataQuery dataQuery = this.dataAdapter.OpenQuery();
+					var query = CreateOfflineSelectMessagesQuery();
+					List<Message> messages = query.GetExecutableQueryOver(dataQuery.Session)
+						 .Take(_channelService.MessageSettings.ScanPortion).List()
+						 .Select(msg => msg.ToObj()).ToList();
+
+					LogTrace($"Найдено {messages.Count} новых сообщений.");
+
+					if (messages.Count > 0)
 					{
-						dataQuery = this.dataAdapter.OpenQuery();
-						var query = CreateOfflineSelectMessagesQuery(this.messageQueue.LastLinks);
-						List<Message> messages = query.GetExecutableQueryOver(dataQuery.Session).List().Select(msg => msg.ToObj()).ToList();
-						if ( messages.Count > 0 )
+						PreProcessSelectedMessages(messages, _cancellationToken);
+
+						if (this.NewMessages.Invoke(messages.ToArray()))
 						{
-							LogTrace(String.Format("Найдено {1} новых сообщений для {0}", this.Recipient, messages.Count));
-
-							PreProcessSelectedMessages(messages, this.cancellationToken);
-
-							this.messageQueue.Enqueue(messages, this.messagePortion);
 						}
 					}
-					catch ( Exception ex )
-					{
-						throw new InvalidOperationException("Ошибка сканирования новых сообщений.", ex);
-					}
-					finally
-					{
-						if ( dataQuery != null )
-							dataQuery.Dispose();
-					}
 				}
-				catch ( Exception ex )
+				catch (Exception ex)
 				{
+					var error = new InvalidOperationException("Ошибка сканирования новых сообщений.", ex);
 					SetError(ex);
 					LogError(ex);
 				}
 				finally
 				{
-					thisTimer.Interval = this.queryTimerInterval.TotalMilliseconds;
-
-					if ( this.started )
-						thisTimer.Start();
+					if (_started)
+						_queryTimer.Start();
 				}
-			}
-		}
-
-		void readTimer_Elapsed(object sender, ElapsedEventArgs e)
-		{
-			Timer thisTimer = (Timer)sender;
-
-			if ( this.started )
-			{
-				Message msg;
-				if ( this.messageQueue.TryPeek(out msg) )
-				{
-					//this.target.SendAsync(msg);
-					//this.messageQueue.Remove(msg);
-
-					if ( this.target.Post(msg) )
-						this.messageQueue.Remove(msg);
-				}
-
-				if ( this.started )
-					thisTimer.Start();
 			}
 		}
 		#endregion
@@ -187,9 +135,8 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="exceptLinks"></param>
 		/// <returns></returns>
-		protected abstract QueryOver<DAO.Message, DAO.Message> CreateOfflineSelectMessagesQuery(IEnumerable<int> exceptLinks);
+		protected abstract QueryOver<DAO.Message, DAO.Message> CreateOfflineSelectMessagesQuery();
 
 		/// <summary>
 		/// 
@@ -198,20 +145,20 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="cancellationToken"></param>
 		protected virtual void PreProcessSelectedMessages(List<Message> messages, System.Threading.CancellationToken cancellationToken)
 		{
-			foreach ( Message msg in messages.ToList() )
-			{
-				if ( msg.TTL != null && msg.TTL >= DateTime.Now )
-				{
-					messages.Remove(msg);
+			//foreach (Message msg in messages.ToList())
+			//{
+			//	if (msg.TTL != null && msg.TTL >= DateTime.Now)
+			//	{
+			//		messages.Remove(msg);
 
-					try
-					{
-						msg.SetStatus(MessageStatus.DELETED, "Сообщение устарело.");
-						this.dataAdapter.SaveMessage(msg);
-					}
-					catch { }
-				}
-			}
+			//		try
+			//		{
+			//			msg.SetStatus(MessageStatus.DELETED, "Сообщение устарело.");
+			//			this.dataAdapter.SaveMessage(msg);
+			//		}
+			//		catch { }
+			//	}
+			//}
 		}
 
 		/// <summary>
@@ -219,13 +166,8 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		protected virtual void OnCancel()
 		{
-			this.messageQueue.Enabled = false;
-
-			this.readTimer.Stop();
-			this.queryTimer.Stop();
-
-			this.messageQueue.Clear();
-			this.started = false;
+			_queryTimer.Stop();
+			_started = false;
 		}
 
 		/// <summary>
@@ -234,8 +176,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="error"></param>
 		protected virtual void LogError(Exception error)
 		{
-			if ( this.channel != null )
-				this.channel.LogError(error);
+			_channelService?.LogError(error);
 		}
 
 		/// <summary>
@@ -244,7 +185,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="text"></param>
 		protected virtual void LogTrace(string text)
 		{
-				this.channel.LogTrace(text);
+			_channelService?.LogTrace(text);
 		}
 
 		/// <summary>
@@ -253,7 +194,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="error"></param>
 		protected virtual void SetError(Exception error)
 		{
-				this.channel.SetError(error);
+			_channelService?.SetError(error);
 		}
 		#endregion
 
@@ -276,16 +217,13 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="disposing"></param>
 		protected virtual void Dispose(bool disposing)
 		{
-			if ( disposed )
+			if (disposed)
 				return;
 
-			if ( disposing )
+			if (disposing)
 			{
-				this.queryTimer.Dispose();
-				this.readTimer.Dispose();
-
-				this.target = null;
-				this.channel = null;
+				_queryTimer.Dispose();
+				_channelService = null;
 			}
 
 			disposed = true;

@@ -123,21 +123,21 @@ namespace Microservices.Channels
 		/// </summary>
 		public const string TAG_PREFIX = "DATABASE.";
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public const string DEFAULT_PROPERTIES =
-			"{ Name: 'DATABASE.SCHEMA', Type: 'String', Value: 'dbo', DefaultValue: 'dbo', Comment: 'Имя схемы БД' }, " +
-			"{ Name: 'DATABASE.TIMEOUT', Type: 'Time', Value: '00:00:00', DefaultValue: '00:00:00', Format: '{чч:мм:сс}', Comment: 'Таймаут выполнения' }, " +
-			"{ Name: 'DATABASE.PING_SP', Type: 'String', Value: 'rms_Ping', DefaultValue: 'rms_Ping', Comment: 'Имя хранимой процедуры пинга сообщений' }, " +
-			"{ Name: 'DATABASE.PING_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
-			"{ Name: 'DATABASE.REPAIR_SP', Type: 'String', Value: 'rms_Repair', DefaultValue: 'rms_Repair', Comment: 'Имя хранимой процедуры восстановления БД' }, " +
-			"{ Name: 'DATABASE.REPAIR_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
-			"{ Name: 'DATABASE.STATUS_SP', Type: 'String', Value: 'rms_MessageStatusChanged', DefaultValue: 'rms_MessageStatusChanged', Comment: 'Имя хранимой процедуры уведомления об изменении статуса сообщени' }, " +
-			"{ Name: 'DATABASE.STATUS_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
-			"{ Name: 'DATABASE.RECEIVE_SP', Type: 'String', Value: 'rms_ReceiveMessage', DefaultValue: 'rms_ReceiveMessage', Comment: 'Имя хранимой процедуры обработки входящего сообщения' }, " +
-			"{ Name: 'DATABASE.RECEIVE_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
-			"{ Name: 'DATABASE.RECEIVE_SP.OUTPUT', Type: 'Bool', Value: 'No', DefaultValue: 'No', Comment: 'Хранимая процедура возвращает значение' }";
+		///// <summary>
+		///// 
+		///// </summary>
+		//public const string DEFAULT_PROPERTIES =
+		//	"{ Name: 'DATABASE.SCHEMA', Type: 'String', Value: 'dbo', DefaultValue: 'dbo', Comment: 'Имя схемы БД' }, " +
+		//	"{ Name: 'DATABASE.TIMEOUT', Type: 'Time', Value: '00:00:00', DefaultValue: '00:00:00', Format: '{чч:мм:сс}', Comment: 'Таймаут выполнения' }, " +
+		//	"{ Name: 'DATABASE.PING_SP', Type: 'String', Value: 'rms_Ping', DefaultValue: 'rms_Ping', Comment: 'Имя хранимой процедуры пинга сообщений' }, " +
+		//	"{ Name: 'DATABASE.PING_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
+		//	"{ Name: 'DATABASE.REPAIR_SP', Type: 'String', Value: 'rms_Repair', DefaultValue: 'rms_Repair', Comment: 'Имя хранимой процедуры восстановления БД' }, " +
+		//	"{ Name: 'DATABASE.REPAIR_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
+		//	"{ Name: 'DATABASE.STATUS_SP', Type: 'String', Value: 'rms_MessageStatusChanged', DefaultValue: 'rms_MessageStatusChanged', Comment: 'Имя хранимой процедуры уведомления об изменении статуса сообщени' }, " +
+		//	"{ Name: 'DATABASE.STATUS_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
+		//	"{ Name: 'DATABASE.RECEIVE_SP', Type: 'String', Value: 'rms_ReceiveMessage', DefaultValue: 'rms_ReceiveMessage', Comment: 'Имя хранимой процедуры обработки входящего сообщения' }, " +
+		//	"{ Name: 'DATABASE.RECEIVE_SP.ENABLED', Type: 'Bool', Value: 'Yes', DefaultValue: 'Yes', Comment: 'Вызывать хранимую процедуру' }, " +
+		//	"{ Name: 'DATABASE.RECEIVE_SP.OUTPUT', Type: 'Bool', Value: 'No', DefaultValue: 'No', Comment: 'Хранимая процедура возвращает значение' }";
 		#endregion
 
 	}

@@ -8,43 +8,46 @@ using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Channels.MSSQL.Adapters;
-using Microservices.Channels.MSSQL.Configuration;
+//using Microservices.Channels.MSSQL.Configuration;
 using Microservices.Channels.MSSQL.Data;
 
 namespace Microservices.Channels.MSSQL
 {
 	public class ChannelService : IChannelService, IDisposable
 	{
+		private IServiceProvider serviceProvider;
+		private bool _initialized;
 		private ChannelDatabase _database;
 		private MessageReceiver _receiver;
 		//private MessageSender _sender;
 		//private MessagePublisher _publisher;
-		private List<SendMessageScanner> _scanSenders;
 		private CancellationTokenSource _cancellationSource;
+		private SendMessageScanner _sender;
 
 
 		#region Ctor
-		public ChannelService(ChannelConfigFileSettings channelSettings, ServiceConfigFileSettings serviceSettings)
+		public ChannelService(IServiceProvider serviceProvider, ChannelConfigFileSettings channelSettings, ServiceConfigFileSettings serviceSettings)
 		{
-			_channelSettings = channelSettings ?? throw new ArgumentNullException(nameof(channelSettings));
+			serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+			_infoSettings = channelSettings ?? throw new ArgumentNullException(nameof(channelSettings));
 			_serviceSettings = serviceSettings ?? throw new ArgumentNullException(nameof(serviceSettings));
 
 			_cancellationSource = new CancellationTokenSource();
 
 			_receiver = new MessageReceiver(this);
-			_scanSenders = new List<SendMessageScanner>();
+			_sender = new SendMessageScanner(this, "*");
 		}
 		#endregion
 
 
 		#region Settings
-		private ChannelConfigFileSettings _channelSettings;
+		private ChannelConfigFileSettings _infoSettings;
 		/// <summary>
-		/// {Get} Настройки канала.
+		/// {Get} Общие настройки канала.
 		/// </summary>
-		public ChannelConfigFileSettings ChannelSettings
+		public ChannelConfigFileSettings InfoSettings
 		{
-			get { return _channelSettings; }
+			get { return _infoSettings; }
 		}
 
 		private ServiceConfigFileSettings _serviceSettings;
@@ -82,7 +85,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		public string VirtAddress
 		{
-			get { return _channelSettings.VirtAddress; }
+			get { return _infoSettings.VirtAddress; }
 		}
 
 		private MessageDataAdapter _dataAdapter;
@@ -158,79 +161,49 @@ namespace Microservices.Channels.MSSQL
 
 			if (_messageSettings.DeleteDeleted)
 			{
-				Task.Factory.StartNew(() =>
-					{
-						try
-						{
-							string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
-							int count = _dataAdapter.ExecuteUpdate(sql);
+				try
+				{
+					string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
+					int count = _dataAdapter.ExecuteUpdate(sql);
 
-							LogTrace($"Удалено удаленных сообщений: {count}");
-						}
-						catch (Exception ex)
-						{
-							LogError(ex);
-						}
-					}, TaskCreationOptions.LongRunning);
+					LogTrace($"Удалено удаленных сообщений: {count}");
+				}
+				catch (Exception ex)
+				{
+					LogError(ex);
+				}
 			}
 
-			Task.Factory.StartNew(() =>
-				{
-					try
-					{
-						string statusInfo = new ChannelException(this, "Отправка сообщения была прервана.").ToString();
-						string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
-						int count = _dataAdapter.ExecuteUpdate(sql);
+			try
+			{
+				string statusInfo = new ChannelException(this, "Отправка сообщения была прервана.").ToString();
+				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
+				int count = _dataAdapter.ExecuteUpdate(sql);
 
-						LogTrace($"Найдено отправленных недоставленных сообщений: {count}");
-					}
-					catch (Exception ex)
-					{
-						LogError(ex);
-					}
-				}, TaskCreationOptions.LongRunning);
+				LogTrace($"Найдено отправленных недоставленных сообщений: {count}");
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+			}
 
-			Task.Factory.StartNew(() =>
-				{
-					try
-					{
-						string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
-						string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.SENDING}'";
-						int count = _dataAdapter.ExecuteUpdate(sql);
+			try
+			{
+				string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
+				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.SENDING}'";
+				int count = _dataAdapter.ExecuteUpdate(sql);
 
-						LogTrace($"Найдено непринятых входящих сообщений: {count}");
-					}
-					catch (Exception ex)
-					{
-						LogError(ex);
-					}
-				}, TaskCreationOptions.LongRunning);
+				LogTrace($"Найдено непринятых входящих сообщений: {count}");
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+			}
 
 
 			if (_messageSettings.ScanEnabled)
 			{
-				List<string> recipients = _dataAdapter.GetAllRecipients()
-					.Where(address => MessageValidator.IsAddressValid(address)).ToList();
-
-				if (recipients.Count > 0)
-					LogTrace(String.Format("Среди сообщений найдено уникальных получателей {0}: {1}.", recipients.Count, String.Join(", ", recipients)));
-
-				//	if (recipients.Count == 0)
-				//		recipients.Add("*");
-
-				List<string> existRecipients = _scanSenders.Select(scanner => scanner.Recipient).ToList();
-				List<string> newRecipients = recipients.Except(existRecipients).ToList();
-
-				newRecipients.ForEach(recipient =>
-					{
-						var scanner = new SendMessageScanner(this, recipient);
-						_scanSenders.Add(scanner);
-					});
-
-				_scanSenders.ForEach(sender =>
-					{
-						sender.Start(this.MessageSettings.ScanInterval, new ActionBlock<Message>(null), _cancellationSource.Token);
-					});
+				_sender.Start(_cancellationSource.Token);
 
 				//	if (this.MessageService.ChannelManager.GetSubscribers(this.LINK).Count > 0)
 				//		this.scanPublisher.Start(this.MessageSettings.ScanThreads, this.cancelToken);
@@ -724,7 +697,6 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region Helper
-		private bool _initialized;
 		private void Initialize()
 		{
 			if (!_initialized)
@@ -737,13 +709,13 @@ namespace Microservices.Channels.MSSQL
 
 						try
 						{
-							IDictionary<string, ConfigFileSetting> appSettings = _channelSettings.GetAppSettings();
+							IDictionary<string, ConfigFileSetting> appSettings = _infoSettings.GetAppSettings();
 							_databaseSettings = new DatabaseSettings(appSettings);
 							_messageSettings = new MessageSettings(appSettings);
 
 							_database = new ChannelDatabase();
 							_database.Schema = _databaseSettings.Schema;
-							_database.ConnectionString = _channelSettings.RealAddress;
+							_database.ConnectionString = _infoSettings.RealAddress;
 
 							DbContext dbContext = _database.ValidateSchema();
 							dbContext.ConnectionChanged += (s, e) => { };

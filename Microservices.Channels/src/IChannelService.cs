@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 
@@ -20,11 +21,18 @@ namespace Microservices.Channels
 		bool Running { get; }
 
 		bool? Online { get; }
-		#endregion
+        #endregion
+
+        #region Settings
+        #endregion
 
 
-		#region Settings
-		DatabaseSettings DatabaseSettings { get; }
+        #region Settings
+        ChannelConfigFileSettings InfoSettings { get; }
+
+        ServiceConfigFileSettings ServiceSettings { get; }
+
+        DatabaseSettings DatabaseSettings { get; }
 
 		MessageSettings MessageSettings { get; }
 		#endregion

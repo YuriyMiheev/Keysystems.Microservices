@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 
-using Microservices.Channels.Configuration;
+//using Microservices.Channels.Configuration;
 using Microsoft.Extensions.Configuration;
 
-namespace Microservices.Channels.MSSQL.Configuration
+namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// 
