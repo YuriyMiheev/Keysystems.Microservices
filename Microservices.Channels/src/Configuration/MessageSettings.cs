@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microservices.Channels.Configuration;
-
-namespace Microservices.Channels
+namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// Настройки обработки сообщений.
@@ -13,9 +11,6 @@ namespace Microservices.Channels
 	{
 
 		#region Ctor
-		private MessageSettings()
-		{ }
-
 		/// <summary>
 		/// Конструктор.
 		/// </summary>

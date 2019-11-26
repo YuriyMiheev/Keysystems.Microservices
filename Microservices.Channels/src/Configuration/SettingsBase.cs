@@ -2,28 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microservices.Channels.Configuration;
-
-namespace Microservices.Channels
+namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// Дополнительные настройки канала.
 	/// </summary>
-	public abstract class SettingsBase// : MarshalByRefObject
+	public abstract class SettingsBase
 	{
-		/// <summary>
-		/// 
-		/// </summary>
-		protected IDictionary<string, ConfigFileSetting> _settings;
+		private IDictionary<string, ConfigFileSetting> _settings;
 
 
 		#region Ctor
-		/// <summary>
-		/// 
-		/// </summary>
-		protected SettingsBase()
-		{ }
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -37,14 +26,14 @@ namespace Microservices.Channels
 
 
 		#region Methods
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public bool HasProperties()
-		{
-			return (_settings.Count > 0);
-		}
+		//public void Update(IDictionary<string, string> settings)
+		//{
+		//	foreach (string key in settings.Keys)
+		//	{
+		//		if (_settings.ContainsKey(key))
+		//			_settings[key].Value = settings[key];
+		//	}
+		//}
 
 		/// <summary>
 		/// 
@@ -59,18 +48,6 @@ namespace Microservices.Channels
 			return null;
 		}
 		#endregion
-
-
-		//#region MarshalByRefObject
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <returns></returns>
-		//public override object InitializeLifetimeService()
-		//{
-		//	return null;
-		//}
-		//#endregion
 
 	}
 }

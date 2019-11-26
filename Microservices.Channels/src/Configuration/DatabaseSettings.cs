@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Microservices.Channels.Configuration;
-
-namespace Microservices.Channels
+namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// Настройки для работы с БД.
@@ -13,9 +11,6 @@ namespace Microservices.Channels
 	{
 
 		#region Ctor
-		private DatabaseSettings()
-		{ }
-
 		/// <summary>
 		/// Конструктор.
 		/// </summary>

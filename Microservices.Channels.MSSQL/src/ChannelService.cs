@@ -13,12 +13,14 @@ using Microservices.Channels.Logging;
 using Microservices.Channels.MSSQL.Adapters;
 //using Microservices.Channels.MSSQL.Configuration;
 using Microservices.Channels.MSSQL.Data;
+using Microservices.Channels.Adapters;
 
 namespace Microservices.Channels.MSSQL
 {
 	public class ChannelService : IChannelService, IDisposable
 	{
 		private IServiceProvider _serviceProvider;
+		private XmlConfigFileConfigurationProvider _appConfig;
 		private bool _initialized;
 		private ChannelDatabase _database;
 		private MessageReceiver _receiver;
@@ -29,13 +31,19 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region Ctor
-		public ChannelService(IServiceProvider serviceProvider, ChannelConfigFileSettings channelSettings, ServiceConfigFileSettings serviceSettings)
+		public ChannelService(IServiceProvider serviceProvider, XmlConfigFileConfigurationProvider appConfig)
 		{
-			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-			_infoSettings = channelSettings ?? throw new ArgumentNullException(nameof(channelSettings));
-			_serviceSettings = serviceSettings ?? throw new ArgumentNullException(nameof(serviceSettings));
+			_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
 
 			_cancellationSource = new CancellationTokenSource();
+
+			IDictionary<string, ConfigFileSetting> appSettings = appConfig.AppSettings;
+			_infoSettings = new InfoSettings(appSettings);
+			_channelSettings = new ChannelSettings(appSettings);
+			_databaseSettings = new DatabaseSettings(appSettings);
+			_messageSettings = new MessageSettings(appSettings);
+			_serviceSettings = new ServiceSettings(appSettings);
 
 			_receiver = new MessageReceiver(this);
 			_sender = new SendMessageScanner(this, "*");
@@ -43,23 +51,33 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
+		private MessageDataAdapter _dataAdapter;
+		/// <summary>
+		/// {Get} Адаптер БД сообщений.
+		/// </summary>
+		public MessageDataAdapterBase MessageDataAdapter
+		{
+			get { return _dataAdapter; }
+		}
+
+
 		#region Settings
-		private ChannelConfigFileSettings _infoSettings;
+		private InfoSettings _infoSettings;
 		/// <summary>
 		/// {Get} Общие настройки канала.
 		/// </summary>
-		public ChannelConfigFileSettings InfoSettings
+		public InfoSettings InfoSettings
 		{
 			get { return _infoSettings; }
 		}
 
-		private ServiceConfigFileSettings _serviceSettings;
+		private ChannelSettings _channelSettings;
 		/// <summary>
-		/// {Get} Настройки сервиса.
+		/// {Get}
 		/// </summary>
-		public ServiceConfigFileSettings ServiceSettings
+		public ChannelSettings ChannelSettings
 		{
-			get { return _serviceSettings; }
+			get { return _channelSettings; }
 		}
 
 		private DatabaseSettings _databaseSettings;
@@ -79,6 +97,33 @@ namespace Microservices.Channels.MSSQL
 		{
 			get { return _messageSettings; }
 		}
+
+		private ServiceSettings _serviceSettings;
+		/// <summary>
+		/// {Get} Настройки сервиса.
+		/// </summary>
+		public ServiceSettings ServiceSettings
+		{
+			get { return _serviceSettings; }
+		}
+
+		public IDictionary<string, ConfigFileSetting> GetAppSettings()
+		{
+			return _appConfig.AppSettings;
+		}
+
+		public void SetAppSettings(IDictionary<string, string> settings)
+		{
+			foreach (string key in settings.Keys)
+			{
+				if (_appConfig.AppSettings.ContainsKey(key))
+					_appConfig.AppSettings[key].Value = settings[key];
+			}
+		}
+
+		public void SaveAppSettings()
+		{
+		}
 		#endregion
 
 
@@ -89,15 +134,6 @@ namespace Microservices.Channels.MSSQL
 		public string VirtAddress
 		{
 			get { return _infoSettings.VirtAddress; }
-		}
-
-		private MessageDataAdapter _dataAdapter;
-		/// <summary>
-		/// {Get} Адаптер БД сообщений.
-		/// </summary>
-		public MessageDataAdapter MessageDataAdapter
-		{
-			get { return _dataAdapter; }
 		}
 
 		public bool Opened { get; private set; }
@@ -568,45 +604,6 @@ namespace Microservices.Channels.MSSQL
 
 		#region Messages
 		///// <summary>
-		///// Отправить сообщение.
-		///// </summary>
-		///// <param name="msgLink"></param>
-		///// <returns></returns>
-		//public int? SendMessage(int msgLink)
-		//{
-		//	Message outMsg = GetMessage(msgLink);
-		//	Message resMsg = _sender.SendMessage(outMsg);
-		//	int? resLink = (resMsg != null ? resMsg.LINK : new Nullable<int>());
-
-		//	if (_messageSettings.DeleteAfterSend)
-		//	{
-		//		if (outMsg.TTL == null)
-		//			outMsg.TTL = DateTime.Now;
-
-		//		outMsg.SetStatus(MessageStatus.DELETED, "Удалено после отправки.");
-		//		SaveMessage(outMsg);
-		//	}
-
-		//	return resLink;
-		//}
-
-		///// <summary>
-		///// Отправить сообщение асинхронно.
-		///// </summary>
-		///// <param name="msgLink"></param>
-		//public void SendMessageAsync(int msgLink)
-		//{
-		//	Message msg = GetMessage(msgLink);
-		//	//_sender.SendMessageAsync(msg);
-		//}
-
-		//public Message PreSendMessage(int msgLink)
-		//{
-		//	Message msg = GetMessage(msgLink);
-		//	return msg;
-		//}
-
-		///// <summary>
 		///// Опубликовать сообщение.
 		///// </summary>
 		///// <param name="msgLink"></param>
@@ -630,9 +627,6 @@ namespace Microservices.Channels.MSSQL
 			{
 				try
 				{
-					//if (resMsg.TTL == null)
-					//	resMsg.TTL = DateTime.Now;
-
 					resMsg.SetStatus(MessageStatus.DELETED, "Удалено после приема.");
 					SaveMessage(resMsg);
 				}
@@ -643,6 +637,29 @@ namespace Microservices.Channels.MSSQL
 			}
 
 			return (resMsg != null ? resMsg.LINK : new Nullable<int>());
+		}
+
+		/// <summary>
+		/// Отправить сообщение.
+		/// </summary>
+		/// <param name="msgLink"></param>
+		/// <returns></returns>
+		public void SendMessage(int msgLink)
+		{
+			Message outMsg = GetMessage(msgLink);
+			//Message resMsg = _sender.SendMessage(outMsg);
+			//int? resLink = (resMsg != null ? resMsg.LINK : new Nullable<int>());
+
+			//if (_messageSettings.DeleteAfterSend)
+			//{
+			//	if (outMsg.TTL == null)
+			//		outMsg.TTL = DateTime.Now;
+
+			//	outMsg.SetStatus(MessageStatus.DELETED, "Удалено после отправки.");
+			//	SaveMessage(outMsg);
+			//}
+
+			//return resLink;
 		}
 		#endregion
 
@@ -732,16 +749,17 @@ namespace Microservices.Channels.MSSQL
 
 						try
 						{
-							IDictionary<string, ConfigFileSetting> appSettings = _infoSettings.GetAppSettings();
-							_databaseSettings = new DatabaseSettings(appSettings);
-							_messageSettings = new MessageSettings(appSettings);
+							//IDictionary<string, ConfigFileSetting> appSettings = _infoSettings.GetAppSettings();
+							//_databaseSettings = new DatabaseSettings(appSettings);
+							//_messageSettings = new MessageSettings(appSettings);
+							//_channelSettings = new ChannelSettings(appSettings);
 
 							_database = new ChannelDatabase();
 							_database.Schema = _databaseSettings.Schema;
 							_database.ConnectionString = _infoSettings.RealAddress;
 
-							DbContext dbContext = _database.CreateOrUpdateSchema();
-							//DbContext dbContext = _database.ValidateSchema();
+							//DbContext dbContext = _database.CreateOrUpdateSchema();
+							DbContext dbContext = _database.ValidateSchema();
 							dbContext.ConnectionChanged += (s, e) => { };
 
 							_dataAdapter = new MessageDataAdapter(dbContext);

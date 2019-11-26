@@ -22,6 +22,7 @@ namespace Microservices.Channels.MSSQL
 	/// </summary>
 	public abstract class MessageScannerBase : IDisposable
 	{
+		private IChannelService _channelService;
 		private MessageDataAdapterBase _dataAdapter;
 		private System.Threading.CancellationToken _cancellationToken;
 		private Timer _queryTimer;
@@ -36,7 +37,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="recipient"></param>
 		protected MessageScannerBase(IChannelService channelService, string recipient)
 		{
-			_channelService = channelService ?? throw new ArgumentNullException(nameof(channel));
+			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			this.Recipient = recipient ?? throw new ArgumentException("Пустой адрес получателя сообщений.", nameof(recipient));
 
 			_queryTimer = new Timer() { AutoReset = false };
@@ -51,11 +52,6 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region Properties
-		/// <summary>
-		/// 
-		/// </summary>
-		protected IChannelService _channelService;
-
 		/// <summary>
 		/// {Get}
 		/// </summary>
@@ -87,7 +83,6 @@ namespace Microservices.Channels.MSSQL
 			_queryTimer.Start();
 		}
 		#endregion
-
 
 
 		#region Event Handlers
@@ -130,7 +125,7 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
-		#region Protected
+		#region Override
 		/// <summary>
 		/// 
 		/// </summary>

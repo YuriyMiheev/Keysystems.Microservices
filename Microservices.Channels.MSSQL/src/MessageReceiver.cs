@@ -10,7 +10,7 @@ namespace Microservices.Channels.MSSQL
 	/// <summary>
 	/// 
 	/// </summary>
-	public class MessageReceiver : MessageReceiverBase//<IChannelService>
+	public class MessageReceiver : MessageReceiverBase
 	{
 		private MessageDataAdapter _dataAdapter;
 
@@ -19,11 +19,11 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channel"></param>
-		public MessageReceiver(IChannelService channel)
-			: base(channel)
+		/// <param name="channelService"></param>
+		public MessageReceiver(IChannelService channelService)
+			: base(channelService)
 		{
-			_dataAdapter = channel.MessageDataAdapter;
+			_dataAdapter = (MessageDataAdapter)this.Channel.MessageDataAdapter;
 		}
 		#endregion
 
@@ -79,8 +79,6 @@ namespace Microservices.Channels.MSSQL
 
 		private int? CallReceiveMessageSP(Message msg)
 		{
-			//System.Threading.Thread.Sleep(1000);
-			//throw new Exception("Error!");
 			int? resLink = null;
 
 			DatabaseSettings databaseSettings = this.Channel.DatabaseSettings;

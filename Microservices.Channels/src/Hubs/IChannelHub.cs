@@ -43,7 +43,7 @@ namespace Microservices.Channels.Hubs
 
 		void SetSettings(IDictionary<string, string> settings);
 
-		//void SaveSettings();
+		void SaveSettings();
 		#endregion
 
 
@@ -122,6 +122,8 @@ namespace Microservices.Channels.Hubs
 
 
 		int? ReceiveMessage(int msgLink);
+
+		void SendMessage(int msgLink);
 		#endregion
 
 	}

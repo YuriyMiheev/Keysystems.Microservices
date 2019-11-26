@@ -20,14 +20,9 @@ namespace Microservices.Channels
 		/// 
 		/// </summary>
 		/// <param name="channel"></param>
-		protected MessageReceiverBase(IChannelService channel)
+		protected MessageReceiverBase(IChannelService channelService)
 		{
-			#region Validate parameters
-			if ( channel == null )
-				throw new ArgumentNullException("channel");
-			#endregion
-
-			this.Channel = channel;
+			this.Channel = channelService ?? throw new ArgumentNullException("channelService");
 		}
 		#endregion
 

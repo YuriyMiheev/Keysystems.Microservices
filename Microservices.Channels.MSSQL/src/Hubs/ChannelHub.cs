@@ -153,18 +153,18 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Settings
 		public IDictionary<string, ConfigFileSetting> GetSettings()
 		{
-			return _service.InfoSettings.GetAppSettings();
+			return _service.GetAppSettings();
 		}
 
 		public void SetSettings(IDictionary<string, string> settings)
 		{
-			_service.InfoSettings.SetAppSettings(settings);
+			_service.SetAppSettings(settings);
 		}
 
-		//public void SaveSettings()
-		//{
-		//	_service.Settings.Save();
-		//}
+		public void SaveSettings()
+		{
+			_service.SaveAppSettings();
+		}
 		#endregion
 
 
@@ -329,6 +329,19 @@ namespace Microservices.Channels.MSSQL.Hubs
 			try
 			{
 				return _service.ReceiveMessage(msgLink);
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+				throw;
+			}
+		}
+
+		public void SendMessage(int msgLink)
+		{
+			try
+			{
+				_service.SendMessage(msgLink);
 			}
 			catch (Exception ex)
 			{

@@ -22,33 +22,29 @@ namespace Microservices.Channels.MSSQL
 
 		public static void Main(string[] args)
 		{
-			IConfigurationRoot appConfig = new ConfigurationBuilder()
+			IConfigurationRoot hostConfiguration = new ConfigurationBuilder()
 				.AddJsonFile("appsettings.json", true, false)
 				.AddCommandLine(args)
 				.Build();
-			IConfigurationRoot channelConfig = new ConfigurationBuilder()
-				.AddXmlConfigFile("channel.config")
-				.Build();
-			IConfigurationRoot serviceConfig = new ConfigurationBuilder()
-				.AddXmlConfigFile("service.config")
+			IConfigurationRoot appConfiguration = new ConfigurationBuilder()
+				.AddXmlConfigFile("appsettings.config")
 				.Build();
 
 			IHostBuilder hostBuilder = Host.CreateDefaultBuilder()
-				.ConfigureHostConfiguration(configBuilder => configBuilder.AddConfiguration(appConfig))
+				.ConfigureHostConfiguration(configBuilder => configBuilder.AddConfiguration(hostConfiguration))
 				.ConfigureWebHostDefaults(webBuilder =>
 					{
 						// Несколько вызовов ConfigureServices добавляются друг к другу.
 						//При наличии нескольких вызовов метода Configure используется последний вызов Configure.
-						webBuilder.UseConfiguration(appConfig)
+						webBuilder.UseConfiguration(hostConfiguration)
 							.UseStartup<Startup>();
 					})
 				.ConfigureServices(services =>
 					{
 						services.AddSingleton<IChannelService>(serviceProvider =>
 							{
-								var channelConfigProvider = channelConfig.Providers.Single() as XmlConfigFileConfigurationProvider;
-								var serviceConfigProvider = serviceConfig.Providers.Single() as XmlConfigFileConfigurationProvider;
-								return new ChannelService(serviceProvider, new ChannelConfigFileSettings(channelConfigProvider), new ServiceConfigFileSettings(serviceConfigProvider));
+								var appConfig = appConfiguration.Providers.Single() as XmlConfigFileConfigurationProvider;
+								return new ChannelService(serviceProvider, appConfig);
 							});
 						services.AddHostedService<IChannelService>(serviceProvider =>
 							{

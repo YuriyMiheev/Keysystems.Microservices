@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
+using Microservices.Channels.Adapters;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 
+using Microsoft.Extensions.Hosting;
+
 namespace Microservices.Channels
 {
-	public interface IChannelService : IMessageRepository, ILogger
+	public interface IChannelService : IHostedService, IMessageRepository, ILogger
 	{
+
+		MessageDataAdapterBase MessageDataAdapter { get; }
+
 
 		#region Properties
 		string VirtAddress { get; }
@@ -21,20 +24,25 @@ namespace Microservices.Channels
 		bool Running { get; }
 
 		bool? Online { get; }
-        #endregion
-
-        #region Settings
-        #endregion
+		#endregion
 
 
-        #region Settings
-        ChannelConfigFileSettings InfoSettings { get; }
+		#region Settings
+		InfoSettings InfoSettings { get; }
 
-        ServiceConfigFileSettings ServiceSettings { get; }
+		ChannelSettings ChannelSettings { get; }
 
-        DatabaseSettings DatabaseSettings { get; }
+		DatabaseSettings DatabaseSettings { get; }
 
 		MessageSettings MessageSettings { get; }
+
+		ServiceSettings ServiceSettings { get; }
+
+		IDictionary<string, ConfigFileSetting> GetAppSettings();
+
+		void SetAppSettings(IDictionary<string, string> settings);
+
+		void SaveAppSettings();
 		#endregion
 
 
@@ -82,25 +90,6 @@ namespace Microservices.Channels
 
 
 		#region Messages
-		//IAsyncEnumerable<Message> ScanSendMessages(CancellationToken cancellationToken = default(CancellationToken));
-
-		//IAsyncEnumerable<Message> ScanPublishMessages(CancellationToken cancellationToken = default(CancellationToken));
-
-		///// <summary>
-		///// Отправить сообщение.
-		///// </summary>
-		///// <param name="msgLink"></param>
-		///// <returns></returns>
-		//int? SendMessage(int msgLink);
-
-		///// <summary>
-		///// Отправить сообщение асинхронно.
-		///// </summary>
-		///// <param name="msgLink"></param>
-		//void SendMessageAsync(int msgLink);
-
-		//Message PreSendMessage(int msgLink);
-
 		///// <summary>
 		///// Опубликовать сообщение.
 		///// </summary>
@@ -113,6 +102,13 @@ namespace Microservices.Channels
 		/// <param name="msgLink"></param>
 		/// <returns></returns>
 		int? ReceiveMessage(int msgLink);
+
+		/// <summary>
+		/// Отправить сообщение.
+		/// </summary>
+		/// <param name="msgLink"></param>
+		/// <returns></returns>
+		void SendMessage(int msgLink);
 		#endregion
 
 	}

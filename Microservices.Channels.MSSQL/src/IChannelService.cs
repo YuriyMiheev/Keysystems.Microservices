@@ -13,9 +13,6 @@ namespace Microservices.Channels.MSSQL
 	public interface IChannelService : Microservices.Channels.IChannelService, IHostedService
 	{
 
-		#region Properties
-		MessageDataAdapter MessageDataAdapter { get; }
-		#endregion
 
 	}
 }

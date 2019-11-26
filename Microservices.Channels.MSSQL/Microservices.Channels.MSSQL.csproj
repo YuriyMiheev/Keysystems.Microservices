@@ -12,7 +12,12 @@
     <Compile Remove="src\Configuration\IServiceConfigFileSettings.cs" />
     <Compile Remove="src\Configuration\ServiceConfig.cs" />
     <Compile Remove="src\Controllers\CommonHub.cs" />
+    <Compile Remove="src\IChannelService.cs" />
     <Compile Remove="src\SendMessageProcessor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="service.config" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,17 +30,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="channel.Designer.cs">
+    <Compile Update="appsetiings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
-      <DependentUpon>channel.config</DependentUpon>
+      <DependentUpon>appsetiings.config</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="channel.config">
+    <Content Update="appsetiings.config">
       <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>channel.Designer.cs</LastGenOutput>
+      <LastGenOutput>appsetiings.Designer.cs</LastGenOutput>
     </Content>
   </ItemGroup>
 
@@ -43,6 +48,6 @@
     <Folder Include="src\Configuration\" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties channel_1json__JsonSchema="http://json-schema.org/draft-04/schema" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>
