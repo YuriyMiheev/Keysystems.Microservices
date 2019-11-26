@@ -131,7 +131,7 @@ namespace Microservices.Channels.Client
 		Task IChannelHub_v1.CloseAsync(CancellationToken cancellationToken)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("CloseAsync", cancellationToken);
+			return _hubConnection.InvokeAsync("Close", cancellationToken);
 		}
 
 		Task IChannelHub_v1.RunAsync(CancellationToken cancellationToken)

@@ -1,32 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Hosting;
-
-using Microservices.Channels.Hubs;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
+using Microservices.Channels.Hubs;
+
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels.MSSQL.Hubs
 {
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
 		private IChannelService _channelService;
-		private IHostApplicationLifetime _lifetime;
 
 
 		#region Ctor
-		public ChannelHub(IChannelService service, IHostApplicationLifetime lifetime)
+		public ChannelHub(IChannelService channelService)
 		{
-			_channelService = service ?? throw new ArgumentNullException(nameof(service));
-			_lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
+			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 		}
 		#endregion
 
@@ -43,60 +39,59 @@ namespace Microservices.Channels.MSSQL.Hubs
 
 		#region Control
 		//[Authorize]
-		public void Open()
+		public async Task Open()
 		{
 			try
 			{
-				LogTrace("Opening");
+				await LogTrace("Opening");
 				_channelService.Open();
-				LogTrace("Opened");
+				await LogTrace("Opened");
 			}
 			catch (Exception ex)
 			{
-				LogError(ex);
+				await LogError(ex);
 			}
 		}
 
-		public async Task CloseAsync()
+		public async Task Close()
 		{
 			try
 			{
-				LogTrace("Closing");
-				//_lifetime.StopApplication();
+				await LogTrace("Closing");
 				await ((IHostedService)_channelService).StopAsync(CancellationToken.None);
-				LogTrace("Closed");
+				await LogTrace("Closed");
 			}
 			catch (Exception ex)
 			{
-				LogError(ex);
+				await LogError(ex);
 			}
 		}
 
-		public void Run()
+		public async Task Run()
 		{
 			try
 			{
-				LogTrace("Running");
+				await LogTrace("Running");
 				_channelService.Run();
-				LogTrace("Runned");
+				await LogTrace("Runned");
 			}
 			catch (Exception ex)
 			{
-				LogError(ex);
+				await LogError(ex);
 			}
 		}
 
-		public void Stop()
+		public async Task Stop()
 		{
 			try
 			{
-				LogTrace("Stopping");
+				await LogTrace("Stopping");
 				_channelService.Stop();
-				LogTrace("Stopped");
+				await LogTrace("Stopped");
 			}
 			catch (Exception ex)
 			{
-				LogError(ex);
+				await LogError(ex);
 			}
 		}
 		#endregion

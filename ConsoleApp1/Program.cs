@@ -59,19 +59,22 @@ namespace ConsoleApp1
 					await api.OpenAsync();
 					await api.RunAsync();
 					(List<Message>, int) messages = await api.GetMessagesAsync(null, null, null);
-					Message msg = await api.GetMessageAsync(messages.Item1.First().LINK.Value);
-					//int? resMsg = await api.ReceiveMessage(msg.LINK.Value);
-					using (TextReader bodyReader = await api.ReadMessageBodyAsync(msg.LINK.Value))
+					if (messages.Item1.Count > 0)
 					{
-						string body = await bodyReader.ReadToEndAsync();
-					}
+						Message msg = await api.GetMessageAsync(messages.Item1.First().LINK.Value);
+						//int? resMsg = await api.ReceiveMessage(msg.LINK.Value);
+						using (TextReader bodyReader = await api.ReadMessageBodyAsync(msg.LINK.Value))
+						{
+							string body = await bodyReader.ReadToEndAsync();
+						}
 
-					MessageContentInfo contentInfo = msg.Contents[0];
-					using (TextReader contentReader = await api.ReadMessageContentAsync(contentInfo.LINK))
-					{
-						string content = await contentReader.ReadToEndAsync();
-						byte[] data = Convert.FromBase64String(content);
-						File.WriteAllBytes(contentInfo.Name, data);
+						MessageContentInfo contentInfo = msg.Contents[0];
+						using (TextReader contentReader = await api.ReadMessageContentAsync(contentInfo.LINK))
+						{
+							string content = await contentReader.ReadToEndAsync();
+							byte[] data = Convert.FromBase64String(content);
+							File.WriteAllBytes(contentInfo.Name, data);
+						}
 					}
 
 
@@ -121,8 +124,8 @@ namespace ConsoleApp1
 			string virtAddress = logRecord["VirtAddress"];
 			string logLevel = logRecord["LogLevel"];
 			string text = logRecord["Text"];
-			Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] [{machineName}] [{processId}] [{connectionId}] [{virtAddress}] [{logLevel}]");
-			Console.WriteLine($"\t{text}");
+			Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] [{machineName}] [{processId}] [{connectionId}] [{virtAddress}]");
+			Console.WriteLine($"[{logLevel}] {text}");
 		}
 	}
 }

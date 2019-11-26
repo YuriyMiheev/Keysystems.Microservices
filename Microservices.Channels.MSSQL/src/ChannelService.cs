@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
-using Microsoft.Extensions.Hosting;
-
+using Microservices.Channels.Adapters;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Channels.MSSQL.Adapters;
-//using Microservices.Channels.MSSQL.Configuration;
 using Microservices.Channels.MSSQL.Data;
-using Microservices.Channels.Adapters;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.SignalR;
+using Microservices.Channels.MSSQL.Hubs;
 
 namespace Microservices.Channels.MSSQL
 {
@@ -30,14 +32,14 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region Ctor
-		public ChannelService(IServiceProvider serviceProvider, XmlConfigFileConfigurationProvider appConfig)
+		public ChannelService(IServiceProvider serviceProvider, IConfigurationRoot appConfiguration)
 		{
 			_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
+			_appConfig = (appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration))).Providers.Single() as XmlConfigFileConfigurationProvider;
 
 			_cancellationSource = new CancellationTokenSource();
 
-			IDictionary<string, ConfigFileSetting> appSettings = appConfig.AppSettings;
+			IDictionary<string, ConfigFileSetting> appSettings = _appConfig.AppSettings;
 			_infoSettings = new InfoSettings(appSettings);
 			_channelSettings = new ChannelSettings(appSettings);
 			_databaseSettings = new DatabaseSettings(appSettings);
@@ -46,9 +48,16 @@ namespace Microservices.Channels.MSSQL
 
 			_receiver = new MessageReceiver(this);
 			_sender = new SendMessageScanner(this, "*");
+			_sender.NewMessages += sender_NewMessages;
 			//_publisher = new MessagePublisher(this);
 
 			_processId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+		}
+
+		private bool sender_NewMessages(Message[] messages)
+		{
+			var hubContext = _serviceProvider.GetRequiredService<IHubContext<ChannelHub, IChannelHubClient>>();
+			hubContext.Clients.All.NewMessages(messages);
 		}
 		#endregion
 
@@ -66,7 +75,7 @@ namespace Microservices.Channels.MSSQL
 		#region Settings
 		private InfoSettings _infoSettings;
 		/// <summary>
-		/// {Get} Общие настройки канала.
+		/// {Get} Общие настройки.
 		/// </summary>
 		public InfoSettings InfoSettings
 		{
@@ -75,7 +84,7 @@ namespace Microservices.Channels.MSSQL
 
 		private ChannelSettings _channelSettings;
 		/// <summary>
-		/// {Get}
+		/// {Get} Настройки канала.
 		/// </summary>
 		public ChannelSettings ChannelSettings
 		{
@@ -84,7 +93,7 @@ namespace Microservices.Channels.MSSQL
 
 		private DatabaseSettings _databaseSettings;
 		/// <summary>
-		/// {Get} Настройки для работы с БД.
+		/// {Get} Настройки БД.
 		/// </summary>
 		public DatabaseSettings DatabaseSettings
 		{
@@ -93,7 +102,7 @@ namespace Microservices.Channels.MSSQL
 
 		private MessageSettings _messageSettings;
 		/// <summary>
-		/// {Get} Настройки обработки сообщений.
+		/// {Get} Настройки сообщений.
 		/// </summary>
 		public MessageSettings MessageSettings
 		{
@@ -131,6 +140,9 @@ namespace Microservices.Channels.MSSQL
 
 		#region Properties
 		private string _processId;
+		/// <summary>
+		/// {Get}
+		/// </summary>
 		public string ProcessId
 		{
 			get { return _processId; }
@@ -144,10 +156,19 @@ namespace Microservices.Channels.MSSQL
 			get { return _infoSettings.VirtAddress; }
 		}
 
+		/// <summary>
+		/// {Get}
+		/// </summary>
 		public bool Opened { get; private set; }
 
+		/// <summary>
+		/// {Get}
+		/// </summary>
 		public bool Running { get; private set; }
 
+		/// <summary>
+		/// {Get}
+		/// </summary>
 		public bool? Online { get; private set; }
 		#endregion
 
@@ -193,6 +214,11 @@ namespace Microservices.Channels.MSSQL
 
 		public void Run()
 		{
+			CheckOpened();
+
+			if (_cancellationSource.IsCancellationRequested)
+				_cancellationSource = new CancellationTokenSource();
+
 			Exception error;
 			if (!TryConnect(out error))
 				throw error;
@@ -228,7 +254,7 @@ namespace Microservices.Channels.MSSQL
 			try
 			{
 				string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
-				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.SENDING}'";
+				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
 				int count = _dataAdapter.ExecuteUpdate(sql);
 
 				LogTrace($"Найдено непринятых сообщений: {count}");
@@ -257,6 +283,12 @@ namespace Microservices.Channels.MSSQL
 
 		public void Stop()
 		{
+			_cancellationSource.Token.Register(() =>
+				{
+					this.Running = false;
+					this.Online = null;
+				});
+			_cancellationSource.Cancel();
 			//OnStopping();
 
 			//try
@@ -272,8 +304,6 @@ namespace Microservices.Channels.MSSQL
 			//{ }
 			//finally
 			//{
-			//	//this.Running = false;
-			//	//this.Online = null;
 			//}
 
 			//UpdateMyselfContact(this.Info);
@@ -281,13 +311,22 @@ namespace Microservices.Channels.MSSQL
 
 		public void Close()
 		{
-			this.Opened = false;
-			this.Running = false;
-			this.Online = null;
+			_cancellationSource.Token.Register(() =>
+				{
+					this.Opened = false;
+					//this.Running = false;
+					//this.Online = null;
+				});
 
-			//UpdateMyselfContact(myInfo);
-
-			Dispose();
+			try
+			{
+				Stop();
+				//UpdateMyselfContact(myInfo);
+			}
+			finally
+			{
+				Dispose();
+			}
 		}
 		#endregion
 
@@ -337,7 +376,7 @@ namespace Microservices.Channels.MSSQL
 					if (String.IsNullOrWhiteSpace(repairSP))
 						throw new InvalidOperationException("Не указано имя хранимой процедуры восстановления БД.");
 
-					LogTrace(String.Format("Вызов хранимой процедуры \"{0}\".", repairSP));
+					LogTrace($"Вызов хранимой процедуры \"{repairSP}\".");
 					_dataAdapter.CallRepairSP(repairSP);
 				}
 				catch (Exception ex)
@@ -365,9 +404,9 @@ namespace Microservices.Channels.MSSQL
 			{
 				string pingSP = _databaseSettings.PingSP;
 				if (String.IsNullOrWhiteSpace(pingSP))
-					throw new ConfigSettingsException("Не указано имя хранимой процедуры пинга БД.", "DATABASE.PING_SP");
+					throw new InvalidOperationException("Не указано имя хранимой процедуры пинга БД.");
 
-				LogTrace(String.Format("Вызов хранимой процедуры \"{0}\".", pingSP));
+				LogTrace($"Вызов хранимой процедуры \"{pingSP}\".");
 				_dataAdapter.CallPingSP(pingSP);
 			}
 		}
@@ -415,7 +454,14 @@ namespace Microservices.Channels.MSSQL
 				throw new ArgumentNullException("queryParams");
 			#endregion
 
+			CheckOpened();
 			return _dataAdapter.SelectMessages(queryParams);
+		}
+
+		private void CheckOpened()
+		{
+			if (!this.Opened)
+				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
 
 		/// <summary>
@@ -428,6 +474,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public List<Message> GetMessages(string status, int? skip, int? take, out int totalCount)
 		{
+			CheckOpened();
 			return _dataAdapter.GetMessages("*", status, skip, take, out totalCount);
 		}
 
@@ -441,6 +488,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public List<Message> GetLastMessages(string status, int? skip, int? take, out int totalCount)
 		{
+			CheckOpened();
 			return _dataAdapter.GetLastMessages("*", status, skip, take, out totalCount);
 		}
 
@@ -451,6 +499,8 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public Message GetMessage(int msgLink)
 		{
+			CheckOpened();
+
 			Message msg = _dataAdapter.GetMessage(msgLink);
 			if (msg == null)
 				throw new MessageNotFoundException(msgLink);
@@ -465,6 +515,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public Message FindMessage(int msgLink)
 		{
+			CheckOpened();
 			return _dataAdapter.GetMessage(msgLink);
 		}
 
@@ -476,6 +527,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public Message FindMessage(string msgGuid, string direction)
 		{
+			CheckOpened();
 			return _dataAdapter.FindMessage("*", msgGuid, direction);
 		}
 
@@ -485,6 +537,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="msg"></param>
 		public void SaveMessage(Message msg)
 		{
+			CheckOpened();
 			PrepareSaveMessage(msg);
 			_dataAdapter.SaveMessage(msg);
 		}
@@ -495,6 +548,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="msgLink"></param>
 		public void DeleteMessage(int msgLink)
 		{
+			CheckOpened();
 			_dataAdapter.DeleteMessage(msgLink);
 		}
 
@@ -505,6 +559,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="statuses"></param>
 		public void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses)
 		{
+			CheckOpened();
 			_dataAdapter.DeleteExpiredMessages("*", expiredDate, statuses);
 		}
 
@@ -514,6 +569,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="msgLinks"></param>
 		public void DeleteMessages(IEnumerable<int> msgLinks)
 		{
+			CheckOpened();
 			_dataAdapter.DeleteMessages(msgLinks);
 		}
 
@@ -525,6 +581,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end)
 		{
+			CheckOpened();
 			return _dataAdapter.GetMessagesByDate("*", begin, end);
 		}
 
@@ -537,6 +594,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public MessageBody GetMessageBody(int msgLink)
 		{
+			CheckOpened();
 			MessageBody body = _dataAdapter.GetMessageBody(msgLink);
 			if (body == null)
 				throw new MessageBodyNotFoundException(msgLink);
@@ -550,6 +608,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="body"></param>
 		public virtual void SaveMessageBody(MessageBody body)
 		{
+			CheckOpened();
 			_dataAdapter.SaveMessageBody(body);
 		}
 
@@ -559,6 +618,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="msgLink"></param>
 		public virtual void DeleteMessageBody(int msgLink)
 		{
+			CheckOpened();
 			_dataAdapter.DeleteMessageBody(msgLink);
 		}
 		#endregion
@@ -572,6 +632,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public virtual MessageContent GetMessageContent(int contentLink)
 		{
+			CheckOpened();
 			MessageContent content = _dataAdapter.GetMessageContent(contentLink);
 			if (content == null)
 				throw new MessageContentNotFoundException(contentLink, contentLink);
@@ -585,6 +646,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="content"></param>
 		public virtual void SaveMessageContent(MessageContent content)
 		{
+			CheckOpened();
 			_dataAdapter.SaveMessageContent(content);
 		}
 
@@ -594,6 +656,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="contentLink"></param>
 		public virtual void DeleteMessageContent(int contentLink)
 		{
+			CheckOpened();
 			_dataAdapter.DeleteMessageContent(contentLink);
 		}
 		#endregion
@@ -616,6 +679,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public int? ReceiveMessage(int msgLink)
 		{
+			CheckOpened();
 			Message inMsg = GetMessage(msgLink);
 			Message resMsg = _receiver.ReceiveMessage(inMsg);
 
@@ -642,6 +706,7 @@ namespace Microservices.Channels.MSSQL
 		/// <returns></returns>
 		public void SendMessage(int msgLink)
 		{
+			CheckOpened();
 			Message outMsg = GetMessage(msgLink);
 			//Message resMsg = _sender.SendMessage(outMsg);
 			//int? resLink = (resMsg != null ? resMsg.LINK : new Nullable<int>());
@@ -747,6 +812,9 @@ namespace Microservices.Channels.MSSQL
 					{
 						_initialized = true;
 
+						if (_cancellationSource.IsCancellationRequested)
+							_cancellationSource = new CancellationTokenSource();
+
 						try
 						{
 							_database = new ChannelDatabase();
@@ -808,8 +876,8 @@ namespace Microservices.Channels.MSSQL
 					if (_dataAdapter != null)
 						_dataAdapter.DbContext.Dispose();
 
-					//if (_sender != null)
-					//	_sender.Dispose();
+					if (_sender != null)
+						_sender.Dispose();
 
 					//if (_publisher != null)
 					//	_publisher.Dispose();
