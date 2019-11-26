@@ -58,7 +58,7 @@ namespace ConsoleApp1
 					IDictionary<string, SettingItem> settings = await api.GetSettingsAsync();
 					await api.OpenAsync();
 					await api.RunAsync();
-					(List<Message>, int) messages = await api.GetLastMessagesAsync(null, null, null);
+					(List<Message>, int) messages = await api.GetMessagesAsync(null, null, null);
 					Message msg = await api.GetMessageAsync(messages.Item1.First().LINK.Value);
 					//int? resMsg = await api.ReceiveMessage(msg.LINK.Value);
 					using (TextReader bodyReader = await api.ReadMessageBodyAsync(msg.LINK.Value))
@@ -83,6 +83,8 @@ namespace ConsoleApp1
 					//var contentStream = new StringReader("Hello, World!");
 					//await api.SaveMessageContent(contentInfo, contentStream);
 
+					Console.ReadLine();
+					await api.CloseAsync();
 					await api.LogoutAsync();
 				}
 
@@ -100,20 +102,27 @@ namespace ConsoleApp1
 				Console.ReadLine();
 			}
 		}
+		private static void hubClient_Connected(IChannelHubClient hubClient)
+		{
+			Console.WriteLine("Connected");
+		}
+
 		private static Task hubClient_Disconnected(IChannelHubClient hubClient, Exception error)
 		{
 			Console.WriteLine("Disconnected");
 			return Task.CompletedTask;
 		}
 
-		private static void hubClient_Connected(IChannelHubClient hubClient)
+		private static void hubClient_ServiceLog(IChannelHubClient hubClient, IDictionary<string, string> logRecord)
 		{
-			Console.WriteLine("Connected");
-		}
-
-		private static void hubClient_ServiceLog(IChannelHubClient hubClient, string traceId, string channel, string logLevel, string text)
-		{
-			Console.WriteLine($@"[{DateTime.Now:yyyy-MM-dd HH\:mm\:ss}] [{traceId}] [{channel}] [{logLevel}] {text}");
+			string machineName = logRecord["MachineName"];
+			string processId = logRecord["ProcessId"];
+			string connectionId = logRecord["ConnectionId"];
+			string virtAddress = logRecord["VirtAddress"];
+			string logLevel = logRecord["LogLevel"];
+			string text = logRecord["Text"];
+			Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] [{machineName}] [{processId}] [{connectionId}] [{virtAddress}] [{logLevel}]");
+			Console.WriteLine($"\t{text}");
 		}
 	}
 }

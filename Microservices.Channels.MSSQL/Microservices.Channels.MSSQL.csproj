@@ -30,22 +30,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="appsetiings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>appsetiings.config</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="appsetiings.config">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>appsetiings.Designer.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="src\Configuration\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.config">
+      <Generator></Generator>
+    </Content>
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

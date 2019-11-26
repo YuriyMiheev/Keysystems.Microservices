@@ -11,7 +11,7 @@ namespace Microservices.Channels.Client
 	{
 
 		#region Callbacks
-		void ServiceLogEventHandler(Action<IChannelHubClient, string, string, string, string> eventHandler);
+		void ServiceLogEventHandler(Action<IChannelHubClient, IDictionary<string, string>> eventHandler);
 		#endregion
 
 

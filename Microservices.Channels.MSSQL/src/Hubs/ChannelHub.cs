@@ -18,14 +18,14 @@ namespace Microservices.Channels.MSSQL.Hubs
 {
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
-		private IChannelService _service;
+		private IChannelService _channelService;
 		private IHostApplicationLifetime _lifetime;
 
 
 		#region Ctor
 		public ChannelHub(IChannelService service, IHostApplicationLifetime lifetime)
 		{
-			_service = service ?? throw new ArgumentNullException(nameof(service));
+			_channelService = service ?? throw new ArgumentNullException(nameof(service));
 			_lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
 		}
 		#endregion
@@ -48,7 +48,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			try
 			{
 				LogTrace("Opening");
-				_service.Open();
+				_channelService.Open();
 				LogTrace("Opened");
 			}
 			catch (Exception ex)
@@ -57,12 +57,13 @@ namespace Microservices.Channels.MSSQL.Hubs
 			}
 		}
 
-		public void Close()
+		public async Task CloseAsync()
 		{
 			try
 			{
 				LogTrace("Closing");
-				_lifetime.StopApplication();
+				//_lifetime.StopApplication();
+				await ((IHostedService)_channelService).StopAsync(CancellationToken.None);
 				LogTrace("Closed");
 			}
 			catch (Exception ex)
@@ -76,7 +77,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			try
 			{
 				LogTrace("Running");
-				_service.Run();
+				_channelService.Run();
 				LogTrace("Runned");
 			}
 			catch (Exception ex)
@@ -90,7 +91,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			try
 			{
 				LogTrace("Stopping");
-				_service.Stop();
+				_channelService.Stop();
 				LogTrace("Stopped");
 			}
 			catch (Exception ex)
@@ -104,7 +105,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Diagnostic
 		public Exception TryConnect()
 		{
-			if (_service.TryConnect(out Exception error))
+			if (_channelService.TryConnect(out Exception error))
 				return null;
 			else
 				return error;
@@ -114,7 +115,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				_service.CheckState();
+				_channelService.CheckState();
 				return null;
 			}
 			catch (Exception ex)
@@ -128,7 +129,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				_service.Repair();
+				_channelService.Repair();
 			}
 			catch (Exception ex)
 			{
@@ -140,7 +141,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				_service.Ping();
+				_channelService.Ping();
 			}
 			catch (Exception ex)
 			{
@@ -153,17 +154,17 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Settings
 		public IDictionary<string, ConfigFileSetting> GetSettings()
 		{
-			return _service.GetAppSettings();
+			return _channelService.GetAppSettings();
 		}
 
 		public void SetSettings(IDictionary<string, string> settings)
 		{
-			_service.SetAppSettings(settings);
+			_channelService.SetAppSettings(settings);
 		}
 
 		public void SaveSettings()
 		{
-			_service.SaveAppSettings();
+			_channelService.SaveAppSettings();
 		}
 		#endregion
 
@@ -171,52 +172,52 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Messages
 		public List<Message> SelectMessages(QueryParams queryParams)
 		{
-			return _service.SelectMessages(queryParams);
+			return _channelService.SelectMessages(queryParams);
 		}
 
 		public (List<Message>, int) GetMessages(string status, int? skip, int? take)
 		{
-			return (_service.GetMessages(status, skip, take, out int totalCount), totalCount);
+			return (_channelService.GetMessages(status, skip, take, out int totalCount), totalCount);
 		}
 
 		public (List<Message>, int) GetLastMessages(string status, int? skip, int? take)
 		{
-			return (_service.GetLastMessages(status, skip, take, out int totalCount), totalCount);
+			return (_channelService.GetLastMessages(status, skip, take, out int totalCount), totalCount);
 		}
 
 		public Message GetMessage(int msgLink)
 		{
-			return _service.GetMessage(msgLink);
+			return _channelService.GetMessage(msgLink);
 		}
 
 		public Message FindMessage(int msgLink)
 		{
-			return _service.FindMessage(msgLink);
+			return _channelService.FindMessage(msgLink);
 		}
 
 		public Message FindMessageByGuid(string msgGuid, string direction)
 		{
-			return _service.FindMessage(msgGuid, direction);
+			return _channelService.FindMessage(msgGuid, direction);
 		}
 
 		public void SaveMessage(Message msg)
 		{
-			_service.SaveMessage(msg);
+			_channelService.SaveMessage(msg);
 		}
 
 		public void DeleteMessage(int msgLink)
 		{
-			_service.DeleteMessage(msgLink);
+			_channelService.DeleteMessage(msgLink);
 		}
 
 		public void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses)
 		{
-			_service.DeleteExpiredMessages(expiredDate, statuses);
+			_channelService.DeleteExpiredMessages(expiredDate, statuses);
 		}
 
 		public void DeleteMessages(IEnumerable<int> msgLinks)
 		{
-			_service.DeleteMessages(msgLinks);
+			_channelService.DeleteMessages(msgLinks);
 		}
 
 
@@ -229,9 +230,9 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <returns></returns>
 		public async IAsyncEnumerable<char[]> ReadMessageBody(int msgLink, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			using (MessageBody body = _service.GetMessageBody(msgLink))
+			using (MessageBody body = _channelService.GetMessageBody(msgLink))
 			{
-				int bufferSize = _service.ServiceSettings.BufferSize;
+				int bufferSize = _channelService.ServiceSettings.BufferSize;
 				var buffer = new char[bufferSize];
 				int charsReaded;
 				do
@@ -252,11 +253,11 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			return Task.Run(() =>
 				{
-					using (MessageBody body = _service.GetMessageBody(bodyInfo.MessageLINK))
+					using (MessageBody body = _channelService.GetMessageBody(bodyInfo.MessageLINK))
 					{
 						body.ApplyInfo(bodyInfo);
 						body.Value = new AsyncStreamTextReader(bodyStream);
-						_service.SaveMessageBody(body);
+						_channelService.SaveMessageBody(body);
 					}
 				});
 		}
@@ -267,7 +268,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <param name="msgLink"></param>
 		public void DeleteMessageBody(int msgLink)
 		{
-			_service.DeleteMessageBody(msgLink);
+			_channelService.DeleteMessageBody(msgLink);
 		}
 		#endregion
 
@@ -280,9 +281,9 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <returns></returns>
 		public async IAsyncEnumerable<char[]> ReadMessageContent(int contentLink, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			using (MessageContent content = _service.GetMessageContent(contentLink))
+			using (MessageContent content = _channelService.GetMessageContent(contentLink))
 			{
-				int bufferSize = _service.ServiceSettings.BufferSize;
+				int bufferSize = _channelService.ServiceSettings.BufferSize;
 				var buffer = new char[bufferSize];
 				int charsReaded;
 				do
@@ -308,7 +309,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 					{
 						content.ApplyInfo(contentInfo);
 						content.Value = new AsyncStreamTextReader(stream);
-						_service.SaveMessageContent(content);
+						_channelService.SaveMessageContent(content);
 					}
 				});
 		}
@@ -319,7 +320,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <param name="contentLink"></param>
 		public void DeleteMessageContent(int contentLink)
 		{
-			_service.DeleteMessageContent(contentLink);
+			_channelService.DeleteMessageContent(contentLink);
 		}
 		#endregion
 
@@ -328,7 +329,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				return _service.ReceiveMessage(msgLink);
+				return _channelService.ReceiveMessage(msgLink);
 			}
 			catch (Exception ex)
 			{
@@ -341,7 +342,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				_service.SendMessage(msgLink);
+				_channelService.SendMessage(msgLink);
 			}
 			catch (Exception ex)
 			{
@@ -352,16 +353,15 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#endregion
 
 
-		//public override Task OnDisconnectedAsync(Exception exception)
-		//{
-		//	return base.OnDisconnectedAsync(exception);
-		//}
-
 		//public override Task OnConnectedAsync()
 		//{
 		//	return base.OnConnectedAsync();
 		//}
 
+		//public override Task OnDisconnectedAsync(Exception exception)
+		//{
+		//	return base.OnDisconnectedAsync(exception);
+		//}
 
 		//public async IAsyncEnumerable<byte> GetSensor2Data([EnumeratorCancellation] CancellationToken cancellationToken)
 		//{
@@ -374,28 +374,44 @@ namespace Microservices.Channels.MSSQL.Hubs
 		//}
 
 		#region Logging
-		void LogError(Exception error)
+		Task LogError(Exception error)
 		{
-			_service.LogError(error);
-			this.Clients.Caller.ReceiveLog(this.Context.ConnectionId, _service.VirtAddress, "ERROR", error.ToString());
+			_channelService.LogError(error);
+			return SendLog("ERROR", error);
 		}
 
-		void LogError(string text, Exception error)
+		Task LogError(string text, Exception error)
 		{
-			_service.LogError(text, error);
-			this.Clients.Caller.ReceiveLog(this.Context.ConnectionId, _service.VirtAddress, "ERROR", text + Environment.NewLine + error.ToString());
+			_channelService.LogError(text, error);
+			return SendLog("ERROR", text + Environment.NewLine + error);
 		}
 
-		void LogInfo(string text)
+		Task LogInfo(string text)
 		{
-			_service.LogInfo(text);
-			this.Clients.Caller.ReceiveLog(this.Context.ConnectionId, _service.VirtAddress, "INFO", text);
+			_channelService.LogInfo(text);
+			return SendLog("INFO", text);
 		}
 
-		void LogTrace(string text)
+		Task LogTrace(string text)
 		{
-			_service.LogTrace(text);
-			this.Clients.Caller.ReceiveLog(this.Context.ConnectionId, _service.VirtAddress, "TRACE", text);
+			_channelService.LogTrace(text);
+			return SendLog("TRACE", text);
+		}
+		#endregion
+
+
+		#region Helper
+		private Task SendLog(string logLevel, object text)
+		{
+			var logRecord = new Dictionary<string, string>();
+			logRecord.Add("MachineName", Environment.MachineName);
+			logRecord.Add("ProcessId", _channelService.ProcessId);
+			logRecord.Add("ConnectionId", this.Context.ConnectionId);
+			logRecord.Add("VirtAddress", _channelService.VirtAddress);
+			logRecord.Add("LogLevel", logLevel);
+			logRecord.Add("Text", text.ToString());
+
+			return this.Clients.Caller.ReceiveLog(logRecord);
 		}
 		#endregion
 

@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Timers;
-//using System.Threading;
-using System.Threading.Tasks.Dataflow;
 
-using NHibernate;
-using NHibernate.Criterion;
 using Microservices.Channels.Adapters;
 using Microservices.Channels.Data;
 
-//using Keysystems.RemoteMessaging.Adapters;
-//using Keysystems.RemoteMessaging.Data;
-//using Keysystems.RemoteMessaging.Lib;
+using NHibernate.Criterion;
 
 namespace Microservices.Channels.MSSQL
 {
@@ -104,8 +97,11 @@ namespace Microservices.Channels.MSSQL
 					{
 						PreProcessSelectedMessages(messages, _cancellationToken);
 
-						if (this.NewMessages.Invoke(messages.ToArray()))
+						if (this.NewMessages != null)
 						{
+							if (this.NewMessages.Invoke(messages.ToArray()))
+							{
+							}
 						}
 					}
 				}

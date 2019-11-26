@@ -21,12 +21,11 @@ namespace Microservices.Channels.MSSQL
 	{
 		private IServiceProvider _serviceProvider;
 		private XmlConfigFileConfigurationProvider _appConfig;
+		private CancellationTokenSource _cancellationSource;
 		private bool _initialized;
 		private ChannelDatabase _database;
-		private MessageReceiver _receiver;
-		//private MessageSender _sender;
 		//private MessagePublisher _publisher;
-		private CancellationTokenSource _cancellationSource;
+		private MessageReceiver _receiver;
 		private SendMessageScanner _sender;
 
 
@@ -47,6 +46,9 @@ namespace Microservices.Channels.MSSQL
 
 			_receiver = new MessageReceiver(this);
 			_sender = new SendMessageScanner(this, "*");
+			//_publisher = new MessagePublisher(this);
+
+			_processId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
 		}
 		#endregion
 
@@ -128,6 +130,12 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region Properties
+		private string _processId;
+		public string ProcessId
+		{
+			get { return _processId; }
+		}
+
 		/// <summary>
 		/// {Get} Виртуальный адрес канала.
 		/// </summary>
@@ -148,15 +156,6 @@ namespace Microservices.Channels.MSSQL
 		public void Open()
 		{
 			Initialize();
-
-			//_receiver = new MessageReceiver(this);
-			//_scanSenders = new List<SendMessageScanner>();
-
-			//_sender = new MessageSender(this);
-			//_publisher = new MessagePublisher(this);
-			//_scanSenders = new List<SendMessageProcessor>();
-			//_scanPublisher = new PublishMessageProcessor(this.MessageService, THIS, this.MessageDataAdapter, "*");
-			//_scanSubscriber = new SubscribeMessageProcessor(this.MessageService, THIS);
 
 			this.Opened = true;
 			//UpdateMyselfContact(this.Info);
@@ -216,7 +215,7 @@ namespace Microservices.Channels.MSSQL
 			try
 			{
 				string statusInfo = new ChannelException(this, "Отправка сообщения была прервана.").ToString();
-				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
+				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
 				int count = _dataAdapter.ExecuteUpdate(sql);
 
 				LogTrace($"Найдено недоставленных сообщений: {count}");
@@ -229,7 +228,7 @@ namespace Microservices.Channels.MSSQL
 			try
 			{
 				string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
-				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.SENDING}'";
+				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.SENDING}'";
 				int count = _dataAdapter.ExecuteUpdate(sql);
 
 				LogTrace($"Найдено непринятых сообщений: {count}");
@@ -330,11 +329,11 @@ namespace Microservices.Channels.MSSQL
 		{
 			Initialize();
 
-			if (this.DatabaseSettings.RepairSPEnabled)
+			if (_databaseSettings.RepairSPEnabled)
 			{
 				try
 				{
-					string repairSP = this.DatabaseSettings.RepairSP;
+					string repairSP = _databaseSettings.RepairSP;
 					if (String.IsNullOrWhiteSpace(repairSP))
 						throw new InvalidOperationException("Не указано имя хранимой процедуры восстановления БД.");
 
@@ -362,9 +361,9 @@ namespace Microservices.Channels.MSSQL
 			if (!TryConnect(out error))
 				throw error;
 
-			if (this.DatabaseSettings.PingSPEnabled)
+			if (_databaseSettings.PingSPEnabled)
 			{
-				string pingSP = this.DatabaseSettings.PingSP;
+				string pingSP = _databaseSettings.PingSP;
 				if (String.IsNullOrWhiteSpace(pingSP))
 					throw new ConfigSettingsException("Не указано имя хранимой процедуры пинга БД.", "DATABASE.PING_SP");
 
@@ -403,7 +402,7 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
-		#region IMessageRepository
+		#region Messages
 		/// <summary>
 		/// 
 		/// </summary>
@@ -599,10 +598,7 @@ namespace Microservices.Channels.MSSQL
 		}
 		#endregion
 
-		#endregion
 
-
-		#region Messages
 		///// <summary>
 		///// Опубликовать сообщение.
 		///// </summary>
@@ -721,8 +717,12 @@ namespace Microservices.Channels.MSSQL
 		{
 			return Task.Run(() =>
 				{
-					Open();
-					Run();
+					if (_channelSettings.AutoOpen)
+					{
+						Open();
+						if (_channelSettings.AutoRun)
+							Run();
+					}
 				}, cancellationToken);
 		}
 
@@ -749,11 +749,6 @@ namespace Microservices.Channels.MSSQL
 
 						try
 						{
-							//IDictionary<string, ConfigFileSetting> appSettings = _infoSettings.GetAppSettings();
-							//_databaseSettings = new DatabaseSettings(appSettings);
-							//_messageSettings = new MessageSettings(appSettings);
-							//_channelSettings = new ChannelSettings(appSettings);
-
 							_database = new ChannelDatabase();
 							_database.Schema = _databaseSettings.Schema;
 							_database.ConnectionString = _infoSettings.RealAddress;

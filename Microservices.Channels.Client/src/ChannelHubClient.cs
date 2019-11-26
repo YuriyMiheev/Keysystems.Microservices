@@ -15,7 +15,6 @@ namespace Microservices.Channels.Client
 {
 	public class ChannelHubClient : IChannelHubClient, IChannelHub_v1
 	{
-		//private CancellationTokenSource _cancellationSource;
 		private HubConnection _hubConnection;
 
 
@@ -30,7 +29,6 @@ namespace Microservices.Channels.Client
 		public ChannelHubClient(Uri serviceUrl)
 		{
 			this.HubUrl = new UriBuilder(serviceUrl);
-			//_cancellationSource = new CancellationTokenSource();
 		}
 
 
@@ -57,10 +55,10 @@ namespace Microservices.Channels.Client
 		#endregion
 
 
-		#region v1
-		private ActionBlock<object> _onReceiveLogAction_v1;
+		#region IChannelHub_v1
 		private IDisposable _receiveLogHandler_v1;
-		private Action<IChannelHubClient, string, string, string, string> _serviceLogEventHandler_v1;
+		private ActionBlock<IDictionary<string, string>> _onReceiveLogAction_v1;
+		private Action<IChannelHubClient, IDictionary<string, string>> _serviceLogEventHandler_v1;
 
 
 		#region Events
@@ -71,19 +69,19 @@ namespace Microservices.Channels.Client
 
 
 		#region Callbacks
-		void IChannelHub_v1.ServiceLogEventHandler(Action<IChannelHubClient, string, string, string, string> eventHandler)
+		void IChannelHub_v1.ServiceLogEventHandler(Action<IChannelHubClient, IDictionary<string, string>> eventHandler)
 		{
 			_serviceLogEventHandler_v1 = eventHandler;
 		}
 
-		void ReceiveLog(string traceId, string channel, string logLevel, string text)
+		void ReceiveLog(IDictionary<string, string> logRecord)
 		{
-			_onReceiveLogAction_v1.Post(new { TraceId = traceId, Channel = channel, LogLevel = logLevel, Text = text });
+			_onReceiveLogAction_v1.Post(logRecord);
 		}
 
-		void OnReceiveLog(dynamic logArgs)
+		void OnReceiveLog(IDictionary<string, string> logRecord)
 		{
-			_serviceLogEventHandler_v1?.Invoke(this, logArgs.TraceId, logArgs.Channel, logArgs.LogLevel, logArgs.Text);
+			_serviceLogEventHandler_v1?.Invoke(this, logRecord);
 		}
 		#endregion
 
@@ -109,8 +107,8 @@ namespace Microservices.Channels.Client
 
 			this.Connected?.Invoke(this);
 
-			_onReceiveLogAction_v1 = new ActionBlock<object>(new Action<object>(OnReceiveLog), new ExecutionDataflowBlockOptions() { });
-			_receiveLogHandler_v1 = _hubConnection.On<string, string, string, string>("ReceiveLog", new Action<string, string, string, string>(ReceiveLog));
+			_onReceiveLogAction_v1 = new ActionBlock<IDictionary<string, string>>(new Action<IDictionary<string, string>>(OnReceiveLog), new ExecutionDataflowBlockOptions() { });
+			_receiveLogHandler_v1 = _hubConnection.On<IDictionary<string, string>>("ReceiveLog", new Action<IDictionary<string, string>>(ReceiveLog));
 		}
 
 		Task IChannelHub_v1.LogoutAsync(CancellationToken cancellationToken)
@@ -133,7 +131,7 @@ namespace Microservices.Channels.Client
 		Task IChannelHub_v1.CloseAsync(CancellationToken cancellationToken)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("Close", cancellationToken);
+			return _hubConnection.InvokeAsync("CloseAsync", cancellationToken);
 		}
 
 		Task IChannelHub_v1.RunAsync(CancellationToken cancellationToken)

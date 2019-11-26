@@ -19,7 +19,7 @@ namespace Microservices.Channels.Hubs
 		#region Control
 		void Open();
 
-		void Close();
+		Task CloseAsync();
 
 		void Run();
 
