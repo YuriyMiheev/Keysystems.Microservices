@@ -9,12 +9,12 @@ namespace Microservices.Channels.Hubs
 	{
 
 		#region Messages
-		Task NewMessages(Message[] messages);
+		Task OutMessages(Message[] messages);
 		#endregion
 
 
 		#region Logging
-		Task ReceiveLog(IDictionary<string, string> logRecord);
+		Task Log(IDictionary<string, string> record);
 		#endregion
 
 	}

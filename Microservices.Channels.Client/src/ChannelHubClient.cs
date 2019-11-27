@@ -18,6 +18,7 @@ namespace Microservices.Channels.Client
 		private HubConnection _hubConnection;
 
 
+		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
@@ -30,6 +31,7 @@ namespace Microservices.Channels.Client
 		{
 			this.HubUrl = new UriBuilder(serviceUrl);
 		}
+		#endregion
 
 
 		#region Properties
@@ -55,12 +57,6 @@ namespace Microservices.Channels.Client
 		#endregion
 
 
-		#region IChannelHub_v1
-		private IDisposable _receiveLogHandler_v1;
-		private ActionBlock<IDictionary<string, string>> _onReceiveLogAction_v1;
-		private Action<IChannelHubClient, IDictionary<string, string>> _serviceLogEventHandler_v1;
-
-
 		#region Events
 		public event Action<IChannelHubClient> Connected;
 
@@ -68,20 +64,72 @@ namespace Microservices.Channels.Client
 		#endregion
 
 
-		#region Callbacks
-		void IChannelHub_v1.ServiceLogEventHandler(Action<IChannelHubClient, IDictionary<string, string>> eventHandler)
+		#region IChannelHub_v1
+
+		#region Events/Callbacks
+		private IDisposable receiveLogHandler_v1;
+		private ActionBlock<IDictionary<string, string>> receiveLogAction_v1;
+		private object _serviceLogReceivedLock = new Object();
+		private event Action<IChannelHubClient, IDictionary<string, string>> serviceLogReceived_v1;
+		event Action<IChannelHubClient, IDictionary<string, string>> IChannelHub_v1.LogReceived
 		{
-			_serviceLogEventHandler_v1 = eventHandler;
+			add
+			{
+				lock (_serviceLogReceivedLock)
+				{
+					serviceLogReceived_v1 += value;
+				}
+			}
+			remove
+			{
+				lock (_serviceLogReceivedLock)
+				{
+					serviceLogReceived_v1 -= value;
+				}
+			}
 		}
 
-		void ReceiveLog(IDictionary<string, string> logRecord)
+		void OnReceiveLog_v1(IDictionary<string, string> logRecord)
 		{
-			_onReceiveLogAction_v1.Post(logRecord);
+			receiveLogAction_v1.Post(logRecord);
 		}
 
-		void OnReceiveLog(IDictionary<string, string> logRecord)
+		void ReceiveLogAction_v1(IDictionary<string, string> logRecord)
 		{
-			_serviceLogEventHandler_v1?.Invoke(this, logRecord);
+			serviceLogReceived_v1?.Invoke(this, logRecord);
+		}
+
+
+		private IDisposable receiveMessagesHandler_v1;
+		private ActionBlock<Message[]> receiveMessagesAction_v1;
+		private object _sendMessagesReceivedLock = new Object();
+		private event Action<IChannelHubClient, Message[]> sendMessagesReceived_v1;
+		event Action<IChannelHubClient, Message[]> IChannelHub_v1.SendMessagesReceived
+		{
+			add
+			{
+				lock (_sendMessagesReceivedLock)
+				{
+					sendMessagesReceived_v1 += value;
+				}
+			}
+			remove
+			{
+				lock (_sendMessagesReceivedLock)
+				{
+					sendMessagesReceived_v1 -= value;
+				}
+			}
+		}
+
+		void OnReceiveMessages_v1(Message[] messages)
+		{
+			receiveMessagesAction_v1.Post(messages);
+		}
+
+		void ReceiveMessagesAction_v1(Message[] messages)
+		{
+			sendMessagesReceived_v1?.Invoke(this, messages);
 		}
 		#endregion
 
@@ -107,8 +155,11 @@ namespace Microservices.Channels.Client
 
 			this.Connected?.Invoke(this);
 
-			_onReceiveLogAction_v1 = new ActionBlock<IDictionary<string, string>>(new Action<IDictionary<string, string>>(OnReceiveLog), new ExecutionDataflowBlockOptions() { });
-			_receiveLogHandler_v1 = _hubConnection.On<IDictionary<string, string>>("ReceiveLog", new Action<IDictionary<string, string>>(ReceiveLog));
+			receiveLogAction_v1 = new ActionBlock<IDictionary<string, string>>(ReceiveLogAction_v1, new ExecutionDataflowBlockOptions() { });
+			receiveLogHandler_v1 = _hubConnection.On<IDictionary<string, string>>("Log", OnReceiveLog_v1);
+
+			receiveMessagesAction_v1 = new ActionBlock<Message[]>(ReceiveMessagesAction_v1, new ExecutionDataflowBlockOptions() { });
+			receiveMessagesHandler_v1 = _hubConnection.On<Message[]>("OutMessages", OnReceiveMessages_v1);
 		}
 
 		Task IChannelHub_v1.LogoutAsync(CancellationToken cancellationToken)
@@ -122,28 +173,55 @@ namespace Microservices.Channels.Client
 
 
 		#region Control
-		Task IChannelHub_v1.OpenAsync(CancellationToken cancellationToken)
+		Task IChannelHub_v1.OpenChannelAsync(CancellationToken cancellationToken)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("Open", cancellationToken);
+			return _hubConnection.InvokeAsync("OpenChannel", cancellationToken);
 		}
 
-		Task IChannelHub_v1.CloseAsync(CancellationToken cancellationToken)
+		Task IChannelHub_v1.CloseChannelAsync(CancellationToken cancellationToken)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("Close", cancellationToken);
+			return _hubConnection.InvokeAsync("CloseChannel", cancellationToken);
 		}
 
-		Task IChannelHub_v1.RunAsync(CancellationToken cancellationToken)
+		Task IChannelHub_v1.RunChannelAsync(CancellationToken cancellationToken)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("Run", cancellationToken);
+			return _hubConnection.InvokeAsync("RunChannel", cancellationToken);
 		}
 
-		Task IChannelHub_v1.StopAsync(CancellationToken cancellationToken)
+		Task IChannelHub_v1.StopChannelAsync(CancellationToken cancellationToken)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("Stop", cancellationToken);
+			return _hubConnection.InvokeAsync("StopChannel", cancellationToken);
+		}
+		#endregion
+
+
+		#region Diagnostic
+		Task<Exception> IChannelHub_v1.TryConnectAsync(CancellationToken cancellationToken)
+		{
+			CheckConnected();
+			return _hubConnection.InvokeAsync<Exception>("TryConnect", cancellationToken);
+		}
+
+		Task<Exception> IChannelHub_v1.CheckStateAsync(CancellationToken cancellationToken)
+		{
+			CheckConnected();
+			return _hubConnection.InvokeAsync<Exception>("CheckState", cancellationToken);
+		}
+
+		Task IChannelHub_v1.RepairAsync(CancellationToken cancellationToken)
+		{
+			CheckConnected();
+			return _hubConnection.InvokeAsync("Repair", cancellationToken);
+		}
+
+		Task IChannelHub_v1.PingAsync(CancellationToken cancellationToken)
+		{
+			CheckConnected();
+			return _hubConnection.InvokeAsync("Ping", cancellationToken);
 		}
 		#endregion
 
@@ -306,22 +384,6 @@ namespace Microservices.Channels.Client
 
 		#endregion
 
-		//public async void GetSensor1Data(CancellationToken cancellationToken = default(CancellationToken))
-		//{
-		//	try
-		//	{
-		//		var stream = _hubConnection.StreamAsync<byte>("GetSensor1Data", cancellationToken);
-		//		await foreach (byte data in stream)
-		//		{
-		//			Console.WriteLine($"1. {data}");
-		//		}
-		//	}
-		//	catch (OperationCanceledException ex)
-		//	{
-		//		//ex.CancellationToken.ThrowIfCancellationRequested();
-		//	}
-		//}
-
 
 		#region Helpers
 		private HubConnection CreateConnection(Uri uri)
@@ -357,7 +419,11 @@ namespace Microservices.Channels.Client
 				if (disposing)
 				{
 					// TODO: dispose managed state (managed objects).
-					//_cancellationSource.Cancel();
+					if (receiveLogHandler_v1 != null)
+						receiveLogHandler_v1.Dispose();
+
+					if(receiveMessagesHandler_v1 != null)
+						receiveMessagesHandler_v1.Dispose();
 
 					_hubConnection?.DisposeAsync();
 					_hubConnection = null;
@@ -365,7 +431,8 @@ namespace Microservices.Channels.Client
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
 				// TODO: set large fields to null.
-				_serviceLogEventHandler_v1 = null;
+				serviceLogReceived_v1 = null;
+				sendMessagesReceived_v1 = null;
 				this.Connected = null;
 				this.Disconnected = null;
 
@@ -392,3 +459,19 @@ namespace Microservices.Channels.Client
 
 	}
 }
+
+//public async void GetSensor1Data(CancellationToken cancellationToken = default(CancellationToken))
+//{
+//	try
+//	{
+//		var stream = _hubConnection.StreamAsync<byte>("GetSensor1Data", cancellationToken);
+//		await foreach (byte data in stream)
+//		{
+//			Console.WriteLine($"1. {data}");
+//		}
+//	}
+//	catch (OperationCanceledException ex)
+//	{
+//		//ex.CancellationToken.ThrowIfCancellationRequested();
+//	}
+//}

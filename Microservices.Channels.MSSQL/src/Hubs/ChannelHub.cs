@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,12 +18,14 @@ namespace Microservices.Channels.MSSQL.Hubs
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
 		private IChannelService _channelService;
+		private IHubClientConnections _connections;
 
 
 		#region Ctor
-		public ChannelHub(IChannelService channelService)
+		public ChannelHub(IChannelService channelService, IHubClientConnections connections)
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
+			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 		}
 		#endregion
 
@@ -31,67 +34,81 @@ namespace Microservices.Channels.MSSQL.Hubs
 		public string Login(string accessKey)
 		{
 			if (String.IsNullOrWhiteSpace(accessKey))
+			{
+				string connectionId = this.Context.ConnectionId;
+				if (!_connections.TryGet(connectionId, out HubClientConnection connection))
+				{
+					IChannelHubClient client = this.Clients.Client(connectionId);
+					connection = new HubClientConnection(connectionId, client);
+					_connections.Add(connection);
+
+					_channelService.OutMessages += SendMessages;
+				}
+
 				return this.Context.ConnectionId;
+			}
 			else
+			{
 				return null;
+			}
 		}
 
 
 		#region Control
 		//[Authorize]
-		public async Task Open()
+		public void OpenChannel()
 		{
 			try
 			{
-				await LogTrace("Opening");
+				LogTrace("Opening");
 				_channelService.Open();
-				await LogTrace("Opened");
+				LogTrace("Opened");
 			}
 			catch (Exception ex)
 			{
-				await LogError(ex);
+				LogError(ex);
 			}
 		}
 
-		public async Task Close()
+		public async Task CloseChannel()
 		{
 			try
 			{
-				await LogTrace("Closing");
-				await ((IHostedService)_channelService).StopAsync(CancellationToken.None);
-				await LogTrace("Closed");
+				LogTrace("Closing");
+				await (_channelService as IHostedService)?.StopAsync(CancellationToken.None);
+				LogTrace("Closed");
 			}
 			catch (Exception ex)
 			{
-				await LogError(ex);
+				LogError(ex);
 			}
 		}
 
-		public async Task Run()
+		public void RunChannel()
 		{
 			try
 			{
-				await LogTrace("Running");
+				LogTrace("Running");
 				_channelService.Run();
-				await LogTrace("Runned");
+				LogTrace("Runned");
 			}
 			catch (Exception ex)
 			{
-				await LogError(ex);
+				LogError(ex);
 			}
 		}
 
-		public async Task Stop()
+		public void StopChannel()
 		{
 			try
 			{
-				await LogTrace("Stopping");
+				LogTrace("Stopping");
 				_channelService.Stop();
-				await LogTrace("Stopped");
+				LogTrace("Stopped");
 			}
 			catch (Exception ex)
 			{
-				await LogError(ex);
+				LogError(ex);
 			}
 		}
 		#endregion
@@ -348,67 +365,88 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#endregion
 
 
+		#region Override
 		//public override Task OnConnectedAsync()
 		//{
 		//	return base.OnConnectedAsync();
 		//}
 
-		//public override Task OnDisconnectedAsync(Exception exception)
-		//{
-		//	return base.OnDisconnectedAsync(exception);
-		//}
+		public override Task OnDisconnectedAsync(Exception exception)
+		{
+			try
+			{
+				if (_connections.TryRemove(this.Context.ConnectionId, out HubClientConnection connection))
+					connection.Dispose();
 
-		//public async IAsyncEnumerable<byte> GetSensor2Data([EnumeratorCancellation] CancellationToken cancellationToken)
-		//{
-		//	var r = new Random();
-		//	while (!cancellationToken.IsCancellationRequested)
-		//	{
-		//		await Task.Delay(10, cancellationToken);
-		//		yield return (byte)r.Next(255);
-		//	}
-		//}
+				return base.OnDisconnectedAsync(exception);
+			}
+			catch (Exception ex)
+			{
+				_channelService.LogError(ex);
+				throw;
+			}
+		}
+		#endregion
+
 
 		#region Logging
-		Task LogError(Exception error)
+		void LogError(Exception error)
 		{
-			_channelService.LogError(error);
-			return SendLog("ERROR", error);
+			//_channelService.LogError(error);
+			SendLog("ERROR", error);
 		}
 
-		Task LogError(string text, Exception error)
+		void LogError(string text, Exception error)
 		{
-			_channelService.LogError(text, error);
-			return SendLog("ERROR", text + Environment.NewLine + error);
+			//_channelService.LogError(text, error);
+			SendLog("ERROR", text + Environment.NewLine + error);
 		}
 
-		Task LogInfo(string text)
+		void LogInfo(string text)
 		{
-			_channelService.LogInfo(text);
-			return SendLog("INFO", text);
+			//_channelService.LogInfo(text);
+			SendLog("INFO", text);
 		}
 
-		Task LogTrace(string text)
+		void LogTrace(string text)
 		{
-			_channelService.LogTrace(text);
-			return SendLog("TRACE", text);
+			//_channelService.LogTrace(text);
+			SendLog("TRACE", text);
 		}
 		#endregion
 
 
 		#region Helper
-		private Task SendLog(string logLevel, object text)
+		private bool SendLog(string logLevel, object text)
 		{
-			var logRecord = new Dictionary<string, string>();
-			logRecord.Add("MachineName", Environment.MachineName);
-			logRecord.Add("ProcessId", _channelService.ProcessId);
-			logRecord.Add("ConnectionId", this.Context.ConnectionId);
-			logRecord.Add("VirtAddress", _channelService.VirtAddress);
-			logRecord.Add("LogLevel", logLevel);
-			logRecord.Add("Text", text.ToString());
+			var record = new Dictionary<string, string>();
+			record.Add("MachineName", Environment.MachineName);
+			record.Add("ProcessId", _channelService.ProcessId);
+			record.Add("ConnectionId", this.Context.ConnectionId);
+			record.Add("VirtAddress", _channelService.VirtAddress);
+			record.Add("LogLevel", logLevel);
+			record.Add("Text", text.ToString());
 
-			return this.Clients.Caller.ReceiveLog(logRecord);
+			//return this.Clients.Caller.Log(record);
+
+			return _connections.SendLogToClient(record);
+		}
+
+		private bool SendMessages(Message[] messages)
+		{
+			return _connections.SendMessagesToClient(messages);
 		}
 		#endregion
 
 	}
 }
+
+//public async IAsyncEnumerable<byte> GetSensor2Data([EnumeratorCancellation] CancellationToken cancellationToken)
+//{
+//	var r = new Random();
+//	while (!cancellationToken.IsCancellationRequested)
+//	{
+//		await Task.Delay(10, cancellationToken);
+//		yield return (byte)r.Next(255);
+//	}
+//}

@@ -10,8 +10,10 @@ namespace Microservices.Channels.Client
 	public interface IChannelHub_v1 : IDisposable
 	{
 
-		#region Callbacks
-		void ServiceLogEventHandler(Action<IChannelHubClient, IDictionary<string, string>> eventHandler);
+		#region Events
+		event Action<IChannelHubClient, IDictionary<string, string>> LogReceived;
+
+		event Action<IChannelHubClient, Message[]> SendMessagesReceived;
 		#endregion
 
 
@@ -23,13 +25,24 @@ namespace Microservices.Channels.Client
 
 
 		#region Control
-		Task OpenAsync(CancellationToken cancellationToken = default);
+		Task OpenChannelAsync(CancellationToken cancellationToken = default);
 
-		Task CloseAsync(CancellationToken cancellationToken = default);
+		Task CloseChannelAsync(CancellationToken cancellationToken = default);
 
-		Task RunAsync(CancellationToken cancellationToken = default);
+		Task RunChannelAsync(CancellationToken cancellationToken = default);
 
-		Task StopAsync(CancellationToken cancellationToken = default);
+		Task StopChannelAsync(CancellationToken cancellationToken = default);
+		#endregion
+
+
+		#region Diagnostic
+		Task<Exception> TryConnectAsync(CancellationToken cancellationToken = default);
+
+		Task<Exception> CheckStateAsync(CancellationToken cancellationToken = default);
+
+		Task RepairAsync(CancellationToken cancellationToken = default);
+
+		Task PingAsync(CancellationToken cancellationToken = default);
 		#endregion
 
 

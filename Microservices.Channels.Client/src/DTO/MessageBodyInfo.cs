@@ -21,7 +21,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get} ID сообщения.
 		/// </summary>
-		[XmlIgnore]
+		//[XmlIgnore]
 		public int? MessageLINK
 		{
 			get { return messageLINK; }
@@ -32,7 +32,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
-		[XmlElement(ElementName = "Name", IsNullable = true)]
+		//[XmlElement(ElementName = "Name", IsNullable = true)]
 		public string Name
 		{
 			get { return name; }
@@ -43,7 +43,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
-		[XmlElement(ElementName = "Type", IsNullable = true)]
+		//[XmlElement(ElementName = "Type", IsNullable = true)]
 		public string Type
 		{
 			get { return type; }
@@ -54,7 +54,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
-		[XmlElement(ElementName = "Length", IsNullable = true)]
+		//[XmlElement(ElementName = "Length", IsNullable = true)]
 		public int? Length
 		{
 			get { return length; }
@@ -65,7 +65,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
-		[XmlElement(ElementName = "FileSize", IsNullable = true)]
+		//[XmlElement(ElementName = "FileSize", IsNullable = true)]
 		public int? FileSize
 		{
 			get { return fileSize; }
@@ -75,20 +75,20 @@ namespace Microservices.Channels.Client
 
 
 		#region Methods
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public NameValueCollection ToHeaders()
-		{
-			var headers = new NameValueCollection();
-			headers.Add("X-RMS-MessageLINK", (this.MessageLINK == null ? null : this.MessageLINK.ToString()));
-			headers.Add("X-RMS-MessageBodyName", (this.Name == null ? null : HttpUtility.UrlPathEncode(this.Name)));
-			headers.Add("X-RMS-MessageBodyType", this.Type);
-			headers.Add("X-RMS-MessageBodyLength", (this.Length == null ? null : this.Length.ToString()));
-			headers.Add("X-RMS-MessageBodyFileSize", (this.FileSize == null ? null : this.FileSize.ToString()));
-			return headers;
-		}
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <returns></returns>
+		//public NameValueCollection ToHeaders()
+		//{
+		//	var headers = new NameValueCollection();
+		//	headers.Add("X-RMS-MessageLINK", (this.MessageLINK == null ? null : this.MessageLINK.ToString()));
+		//	headers.Add("X-RMS-MessageBodyName", (this.Name == null ? null : HttpUtility.UrlPathEncode(this.Name)));
+		//	headers.Add("X-RMS-MessageBodyType", this.Type);
+		//	headers.Add("X-RMS-MessageBodyLength", (this.Length == null ? null : this.Length.ToString()));
+		//	headers.Add("X-RMS-MessageBodyFileSize", (this.FileSize == null ? null : this.FileSize.ToString()));
+		//	return headers;
+		//}
 
 		///// <summary>
 		///// 

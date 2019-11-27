@@ -101,6 +101,9 @@ namespace Microservices.Channels.MSSQL
 						{
 							if (this.NewMessages.Invoke(messages.ToArray()))
 							{
+								string statusInfo = "Сообщение отправлено.";
+								//string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.SENDING}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE LINK={msg.LINK}";
+								//int count = _dataAdapter.ExecuteUpdate(sql);
 							}
 						}
 					}

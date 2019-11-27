@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microservices.Channels.Configuration;
+using Microservices.Channels.Logging;
 using Microservices.Channels.MSSQL.Adapters;
 
 namespace Microservices.Channels.MSSQL
@@ -20,8 +21,8 @@ namespace Microservices.Channels.MSSQL
 		/// 
 		/// </summary>
 		/// <param name="channelService"></param>
-		public MessageReceiver(IChannelService channelService)
-			: base(channelService)
+		public MessageReceiver(IChannelService channelService, ILogger logger)
+			: base(channelService, logger)
 		{
 			_dataAdapter = (MessageDataAdapter)this.Channel.MessageDataAdapter;
 		}
@@ -33,7 +34,6 @@ namespace Microservices.Channels.MSSQL
 		/// 
 		/// </summary>
 		/// <param name="msg"></param>
-		/// <param name="reliable"></param>
 		/// <returns></returns>
 		public override Message ReceiveMessage(Message msg)
 		{

@@ -16,7 +16,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set} Внутренний ID.
 		/// </summary>
-		[XmlElement(ElementName = "LINK", IsNullable = true)]
+		//[XmlElement(ElementName = "LINK", IsNullable = true)]
 		public int? LINK
 		{
 			get { return link; }
@@ -27,7 +27,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set} Ссылка на сообщение.
 		/// </summary>
-		[XmlIgnore]
+		//[XmlIgnore]
 		public int? MessageLINK
 		{
 			get { return messageLINK; }
@@ -38,7 +38,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set} Имя.
 		/// </summary>
-		[XmlElement(ElementName = "Name")]
+		//[XmlElement(ElementName = "Name")]
 		public string Name
 		{
 			get { return name; }
@@ -49,7 +49,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set} Значение.
 		/// </summary>
-		[XmlElement(ElementName = "Value", IsNullable = true)]
+		//[XmlElement(ElementName = "Value", IsNullable = true)]
 		public string Value
 		{
 			get { return value; }
@@ -60,7 +60,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set} Тип.
 		/// </summary>
-		[XmlElement(ElementName = "Type", IsNullable = true)]
+		//[XmlElement(ElementName = "Type", IsNullable = true)]
 		public string Type
 		{
 			get { return type; }
@@ -71,7 +71,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set} Формат.
 		/// </summary>
-		[XmlElement(ElementName = "Format", IsNullable = true)]
+		//[XmlElement(ElementName = "Format", IsNullable = true)]
 		public string Format
 		{
 			get { return format; }
@@ -82,7 +82,7 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
-		[XmlElement(ElementName = "Comment", IsNullable = true)]
+		//[XmlElement(ElementName = "Comment", IsNullable = true)]
 		public string Comment
 		{
 			get { return comment; }

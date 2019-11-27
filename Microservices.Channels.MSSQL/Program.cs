@@ -43,7 +43,8 @@ namespace Microservices.Channels.MSSQL
 					{
 						services.AddSingleton<IChannelService>(serviceProvider =>
 							{
-								return new ChannelService(serviceProvider, appConfiguration);
+								//return new ChannelService(serviceProvider, appConfiguration);
+								return new ChannelService(appConfiguration, null);
 							});
 						services.AddHostedService<IChannelService>(serviceProvider =>
 							{

@@ -17,13 +17,13 @@ namespace Microservices.Channels.Hubs
 
 
 		#region Control
-		Task Open();
+		void OpenChannel();
 
-		Task Close();
+		Task CloseChannel();
 
-		Task Run();
+		void RunChannel();
 
-		Task Stop();
+		void StopChannel();
 		#endregion
 
 

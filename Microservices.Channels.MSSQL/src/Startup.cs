@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using System.Text;
 
+using Microservices.Channels.Hubs;
 using Microservices.Channels.MSSQL.Hubs;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels.MSSQL
 {
@@ -30,6 +30,9 @@ namespace Microservices.Channels.MSSQL
 		{
 			services.AddControllers();
 			services.AddSignalR().AddMessagePackProtocol();
+
+			var connections = new HubClientConnections();
+			services.AddSingleton<IHubClientConnections>(connections);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

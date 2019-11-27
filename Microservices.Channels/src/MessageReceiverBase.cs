@@ -3,26 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-//using WCF = System.ServiceModel.Channels;
-//using Keysystems.RemoteMessaging.Lib;
-//using Keysystems.RemoteMessaging.Lib.Mime;
+using Microservices.Channels.Logging;
 
 namespace Microservices.Channels
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public abstract class MessageReceiverBase //<TChannelServcie> where TChannelServcie : IChannelService
+	public abstract class MessageReceiverBase
 	{
+		private ILogger _logger;
+
 
 		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channel"></param>
-		protected MessageReceiverBase(IChannelService channelService)
+		/// <param name="channelService"></param>
+		/// <param name="logger"></param>
+		protected MessageReceiverBase(IChannelService channelService, ILogger logger)
 		{
 			this.Channel = channelService ?? throw new ArgumentNullException("channelService");
+			_logger = logger ?? throw new ArgumentNullException("logger");
 		}
 		#endregion
 
@@ -148,42 +150,25 @@ namespace Microservices.Channels
 		#endregion
 
 
-		#region Logs
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		public virtual void LogTrace(string text)
+		#region ILogger
+		protected void LogTrace(string text)
 		{
-			this.Channel.LogTrace(text);
+			_logger?.LogTrace(text);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		public virtual void LogInfo(string text)
+		protected void LogInfo(string text)
 		{
-			this.Channel.LogInfo(text);
+			_logger?.LogInfo(text);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="error"></param>
-		public virtual void LogError(Exception error)
+		protected void LogError(Exception error)
 		{
-			this.Channel.LogError(error);
+			_logger?.LogError(error);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="error"></param>
-		public virtual void LogError(string text, Exception error)
+		protected void LogError(string text, Exception error)
 		{
-			this.Channel.LogError(text, error);
+			_logger?.LogError(text, error);
 		}
 		#endregion
 

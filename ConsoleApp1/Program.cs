@@ -53,11 +53,13 @@ namespace ConsoleApp1
 					hubClient.Disconnected += hubClient_Disconnected;
 
 					IChannelHub_v1 api = hubClient as IChannelHub_v1;
-					api.ServiceLogEventHandler(hubClient_ServiceLog);
+					api.LogReceived += log_Received;
+					api.SendMessagesReceived += sendMessages_Received;
+
 					await api.LoginAsync("");
 					IDictionary<string, SettingItem> settings = await api.GetSettingsAsync();
-					await api.OpenAsync();
-					await api.RunAsync();
+					await api.OpenChannelAsync();
+					await api.RunChannelAsync();
 					(List<Message>, int) messages = await api.GetMessagesAsync(null, null, null);
 					if (messages.Item1.Count > 0)
 					{
@@ -87,7 +89,7 @@ namespace ConsoleApp1
 					//await api.SaveMessageContent(contentInfo, contentStream);
 
 					Console.ReadLine();
-					await api.CloseAsync();
+					await api.CloseChannelAsync();
 					await api.LogoutAsync();
 				}
 
@@ -105,6 +107,24 @@ namespace ConsoleApp1
 				Console.ReadLine();
 			}
 		}
+
+		private static void sendMessages_Received(IChannelHubClient hubClient, Message[] messages)
+		{
+			Console.WriteLine($"Messages: {messages.Length}");
+		}
+
+		private static void log_Received(IChannelHubClient hubClient, IDictionary<string, string> logRecord)
+		{
+			string machineName = logRecord["MachineName"];
+			string processId = logRecord["ProcessId"];
+			string connectionId = logRecord["ConnectionId"];
+			string virtAddress = logRecord["VirtAddress"];
+			string logLevel = logRecord["LogLevel"];
+			string text = logRecord["Text"];
+			Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] [{machineName}] [{processId}] [{connectionId}] [{virtAddress}] [{logLevel}]");
+			Console.WriteLine($"{text}");
+		}
+
 		private static void hubClient_Connected(IChannelHubClient hubClient)
 		{
 			Console.WriteLine("Connected");
@@ -114,18 +134,6 @@ namespace ConsoleApp1
 		{
 			Console.WriteLine("Disconnected");
 			return Task.CompletedTask;
-		}
-
-		private static void hubClient_ServiceLog(IChannelHubClient hubClient, IDictionary<string, string> logRecord)
-		{
-			string machineName = logRecord["MachineName"];
-			string processId = logRecord["ProcessId"];
-			string connectionId = logRecord["ConnectionId"];
-			string virtAddress = logRecord["VirtAddress"];
-			string logLevel = logRecord["LogLevel"];
-			string text = logRecord["Text"];
-			Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] [{machineName}] [{processId}] [{connectionId}] [{virtAddress}]");
-			Console.WriteLine($"[{logLevel}] {text}");
 		}
 	}
 }

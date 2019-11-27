@@ -16,12 +16,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.SignalR;
 using Microservices.Channels.MSSQL.Hubs;
+using Microservices.Channels.Hubs;
 
 namespace Microservices.Channels.MSSQL
 {
 	public class ChannelService : IChannelService, IDisposable
 	{
-		private IServiceProvider _serviceProvider;
+		//private IServiceProvider _serviceProvider;
 		private XmlConfigFileConfigurationProvider _appConfig;
 		private CancellationTokenSource _cancellationSource;
 		private bool _initialized;
@@ -29,13 +30,16 @@ namespace Microservices.Channels.MSSQL
 		//private MessagePublisher _publisher;
 		private MessageReceiver _receiver;
 		private SendMessageScanner _sender;
+		private ILogger _logger;
 
 
 		#region Ctor
-		public ChannelService(IServiceProvider serviceProvider, IConfigurationRoot appConfiguration)
+		//public ChannelService(IServiceProvider serviceProvider, IConfigurationRoot appConfiguration)
+		public ChannelService(IConfigurationRoot appConfiguration, ILogger logger)
 		{
-			_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-			_appConfig = (appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration))).Providers.Single() as XmlConfigFileConfigurationProvider;
+			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+			_appConfig = (XmlConfigFileConfigurationProvider)(appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration))).Providers.Single();
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 			_cancellationSource = new CancellationTokenSource();
 
@@ -46,18 +50,12 @@ namespace Microservices.Channels.MSSQL
 			_messageSettings = new MessageSettings(appSettings);
 			_serviceSettings = new ServiceSettings(appSettings);
 
-			_receiver = new MessageReceiver(this);
+			_receiver = new MessageReceiver(this, _logger);
 			_sender = new SendMessageScanner(this, "*");
 			_sender.NewMessages += sender_NewMessages;
 			//_publisher = new MessagePublisher(this);
 
 			_processId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
-		}
-
-		private bool sender_NewMessages(Message[] messages)
-		{
-			var hubContext = _serviceProvider.GetRequiredService<IHubContext<ChannelHub, IChannelHubClient>>();
-			hubContext.Clients.All.NewMessages(messages);
 		}
 		#endregion
 
@@ -70,6 +68,14 @@ namespace Microservices.Channels.MSSQL
 		{
 			get { return _dataAdapter; }
 		}
+
+		
+		#region Events
+		/// <summary>
+		/// 
+		/// </summary>
+		public event Func<Message[], bool> OutMessages;
+		#endregion
 
 
 		#region Settings
@@ -458,12 +464,6 @@ namespace Microservices.Channels.MSSQL
 			return _dataAdapter.SelectMessages(queryParams);
 		}
 
-		private void CheckOpened()
-		{
-			if (!this.Opened)
-				throw new InvalidOperationException("Сервис-канал закрыт.");
-		}
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -725,56 +725,56 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
-		#region ILogger
-		/// <summary>
-		/// 
-		/// </summary>
-		void ILogger.InitializeLogger()
-		{ }
+		//#region ILogger
+		///// <summary>
+		///// 
+		///// </summary>
+		//void ILogger.InitializeLogger()
+		//{ }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="error"></param>
-		public void LogError(Exception error)
-		{
-			#region Validate parameters
-			if (error == null)
-				throw new ArgumentNullException("error");
-			#endregion
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="error"></param>
+		//public void LogError(Exception error)
+		//{
+		//	#region Validate parameters
+		//	if (error == null)
+		//		throw new ArgumentNullException("error");
+		//	#endregion
 
-		}
+		//}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="error"></param>
-		public void LogError(string text, Exception error)
-		{
-			#region Validate parameters
-			if (error == null)
-				throw new ArgumentNullException("error");
-			#endregion
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="text"></param>
+		///// <param name="error"></param>
+		//public void LogError(string text, Exception error)
+		//{
+		//	#region Validate parameters
+		//	if (error == null)
+		//		throw new ArgumentNullException("error");
+		//	#endregion
 
-		}
+		//}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		public void LogInfo(string text)
-		{
-		}
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="text"></param>
+		//public void LogInfo(string text)
+		//{
+		//}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		public void LogTrace(string text)
-		{
-		}
-		#endregion
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="text"></param>
+		//public void LogTrace(string text)
+		//{
+		//}
+		//#endregion
 
 
 		#region IHostedService  
@@ -853,6 +853,20 @@ namespace Microservices.Channels.MSSQL
 
 			if (msg.LINK == 0)
 				msg.SetStatus(MessageStatus.NULL);
+		}
+
+		private void CheckOpened()
+		{
+			if (!this.Opened)
+				throw new InvalidOperationException("Сервис-канал закрыт.");
+		}
+
+		private bool sender_NewMessages(Message[] messages)
+		{
+			if (this.OutMessages != null)
+				return this.OutMessages(messages);
+			else
+				return false;
 		}
 		#endregion
 

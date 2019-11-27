@@ -10,10 +10,15 @@ using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels
 {
-	public interface IChannelService : IHostedService, IMessageRepository, ILogger
+	public interface IChannelService : IHostedService, IMessageRepository
 	{
 
 		MessageDataAdapterBase MessageDataAdapter { get; }
+
+
+		#region Events
+		event Func<Message[], bool> OutMessages;
+		#endregion
 
 
 		#region Properties
