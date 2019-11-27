@@ -4,8 +4,10 @@ using System.Linq;
 using System.Timers;
 
 using Microservices.Channels.Adapters;
+using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
-
+using Microservices.Channels.MSSQL.Adapters;
+using Microsoft.Extensions.DependencyInjection;
 using NHibernate.Criterion;
 
 namespace Microservices.Channels.MSSQL
@@ -15,8 +17,8 @@ namespace Microservices.Channels.MSSQL
 	/// </summary>
 	public abstract class MessageScannerBase : IDisposable
 	{
-		private IChannelService _channelService;
-		private MessageDataAdapterBase _dataAdapter;
+		private MessageSettings _settings;
+		private MessageDataAdapter _dataAdapter;
 		private System.Threading.CancellationToken _cancellationToken;
 		private Timer _queryTimer;
 		private bool _started;
@@ -26,12 +28,11 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channelService"></param>
-		/// <param name="recipient"></param>
-		protected MessageScannerBase(IChannelService channelService, string recipient)
+		/// <param name="serviceProvider"></param>
+		protected MessageScannerBase(MessageDataAdapter dataAdapter, MessageSettings settings)
 		{
-			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
-			this.Recipient = recipient ?? throw new ArgumentException("Пустой адрес получателя сообщений.", nameof(recipient));
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
 			_queryTimer = new Timer() { AutoReset = false };
 			_queryTimer.Elapsed += new ElapsedEventHandler(queryTimer_Elapsed);
@@ -56,15 +57,16 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channelService"></param>
+		/// <param name="recipient"></param>
 		/// <param name="cancellationToken"></param>
-		public virtual void Start(System.Threading.CancellationToken cancellationToken = default)
+		public virtual void Start(string recipient, System.Threading.CancellationToken cancellationToken = default)
 		{
 			if (_started)
 				return;
 
 			_started = true;
-			_dataAdapter = _channelService.MessageDataAdapter;
+
+			this.Recipient = recipient ?? throw new ArgumentException("Пустой адрес получателя сообщений.", nameof(recipient));
 
 			_cancellationToken = cancellationToken;
 			_cancellationToken.Register(() =>
@@ -72,23 +74,25 @@ namespace Microservices.Channels.MSSQL
 					 OnCancel();
 				 });
 
-			_queryTimer.Interval = _channelService.MessageSettings.ScanInterval.TotalMilliseconds;
+			_queryTimer.Interval = _settings.ScanInterval.TotalMilliseconds;
 			_queryTimer.Start();
 		}
 		#endregion
 
 
-		#region Event Handlers
+		#region Timer
 		void queryTimer_Elapsed(object sender, ElapsedEventArgs e)
 		{
 			if (_started)
 			{
+				var messages = new List<Message>();
+
 				try
 				{
 					using IDataQuery dataQuery = _dataAdapter.OpenQuery();
 					var query = CreateOfflineSelectMessagesQuery();
-					List<Message> messages = query.GetExecutableQueryOver(dataQuery.Session)
-						 .Take(_channelService.MessageSettings.ScanPortion).List()
+					messages = query.GetExecutableQueryOver(dataQuery.Session)
+						 .Take(_settings.ScanPortion).List()
 						 .Select(msg => msg.ToObj()).ToList();
 
 					LogTrace($"Найдено {messages.Count} новых сообщений.");
@@ -117,7 +121,14 @@ namespace Microservices.Channels.MSSQL
 				finally
 				{
 					if (_started)
+					{
+						if (messages.Count > 0)
+							_queryTimer.Interval = 1;
+						else
+							_queryTimer.Interval = _settings.ScanInterval.TotalMilliseconds;
+
 						_queryTimer.Start();
+					}
 				}
 			}
 		}

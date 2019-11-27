@@ -30,9 +30,6 @@ namespace Microservices.Channels.MSSQL
 		{
 			services.AddControllers();
 			services.AddSignalR().AddMessagePackProtocol();
-
-			var connections = new HubClientConnections();
-			services.AddSingleton<IHubClientConnections>(connections);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

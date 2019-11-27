@@ -9,9 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Xml;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+//using Microsoft.Extensions.Logging;
 
 using Microservices.Channels.Configuration;
+using Microservices.Channels.Logging;
+using Microservices.Channels.Hubs;
+using Microservices.Channels.MSSQL.Data;
+using Microservices.Channels.Data;
 //using Microservices.Channels.MSSQL.Configuration;
 
 namespace Microservices.Channels.MSSQL
@@ -40,17 +44,31 @@ namespace Microservices.Channels.MSSQL
 							.UseStartup<Startup>();
 					})
 				.ConfigureServices(services =>
-					{
-						services.AddSingleton<IChannelService>(serviceProvider =>
-							{
-								//return new ChannelService(serviceProvider, appConfiguration);
-								return new ChannelService(appConfiguration, null);
-							});
-						services.AddHostedService<IChannelService>(serviceProvider =>
-							{
-								return serviceProvider.GetRequiredService<IChannelService>();
-							});
-					});
+				{
+					var appConfig = (XmlConfigFileConfigurationProvider)appConfiguration.Providers.Single();
+					services.AddSingleton(appConfig);
+
+					var database = new ChannelDatabase();
+					services.AddSingleton<IDatabase>(database);
+					//DbContext dbContext = database.CreateOrUpdateSchema();
+					//DbContext dbContext = database.ValidateSchema();
+
+					var logger = new ServiceLogger();
+					services.AddSingleton<ILogger>(logger);
+
+					var connections = new HubClientConnections();
+					services.AddSingleton<IHubClientConnections>(connections);
+
+					services.AddSingleton<IChannelService>(serviceProvider =>
+						{
+							return new ChannelService(serviceProvider);
+						});
+
+					services.AddHostedService<IChannelService>(serviceProvider =>
+						{
+							return serviceProvider.GetRequiredService<IChannelService>();
+						});
+				});
 
 			_host = hostBuilder.Build();
 			_host.Run();

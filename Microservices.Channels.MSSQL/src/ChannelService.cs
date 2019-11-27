@@ -23,23 +23,25 @@ namespace Microservices.Channels.MSSQL
 	public class ChannelService : IChannelService, IDisposable
 	{
 		//private IServiceProvider _serviceProvider;
+		private IDatabase _database;
 		private XmlConfigFileConfigurationProvider _appConfig;
 		private CancellationTokenSource _cancellationSource;
 		private bool _initialized;
-		private ChannelDatabase _database;
+		//private ChannelDatabase _database;
 		//private MessagePublisher _publisher;
 		private MessageReceiver _receiver;
-		private SendMessageScanner _sender;
+		private ISendMessageScanner _sender;
 		private ILogger _logger;
 
 
 		#region Ctor
-		//public ChannelService(IServiceProvider serviceProvider, IConfigurationRoot appConfiguration)
-		public ChannelService(IConfigurationRoot appConfiguration, ILogger logger)
+		public ChannelService(IServiceProvider serviceProvider)
 		{
 			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-			_appConfig = (XmlConfigFileConfigurationProvider)(appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration))).Providers.Single();
-			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_appConfig = serviceProvider.GetRequiredService<XmlConfigFileConfigurationProvider>();
+			_logger = serviceProvider.GetRequiredService<ILogger>();
+			_database = serviceProvider.GetRequiredService<IDatabase>();
+			_sender = serviceProvider.GetRequiredService<ISendMessageScanner>();
 
 			_cancellationSource = new CancellationTokenSource();
 
@@ -51,8 +53,6 @@ namespace Microservices.Channels.MSSQL
 			_serviceSettings = new ServiceSettings(appSettings);
 
 			_receiver = new MessageReceiver(this, _logger);
-			_sender = new SendMessageScanner(this, "*");
-			_sender.NewMessages += sender_NewMessages;
 			//_publisher = new MessagePublisher(this);
 
 			_processId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
@@ -69,7 +69,7 @@ namespace Microservices.Channels.MSSQL
 			get { return _dataAdapter; }
 		}
 
-		
+
 		#region Events
 		/// <summary>
 		/// 
@@ -817,16 +817,14 @@ namespace Microservices.Channels.MSSQL
 
 						try
 						{
-							_database = new ChannelDatabase();
 							_database.Schema = _databaseSettings.Schema;
 							_database.ConnectionString = _infoSettings.RealAddress;
-
-							//DbContext dbContext = _database.CreateOrUpdateSchema();
-							DbContext dbContext = _database.ValidateSchema();
-							dbContext.ConnectionChanged += (s, e) => { };
-
+							DbContext dbContext = _database.Open();
 							_dataAdapter = new MessageDataAdapter(dbContext);
 							_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
+
+							_sender = new SendMessageScanner(_dataAdapter, _messageSettings);
+							_sender.NewMessages += sender_NewMessages;
 						}
 						catch
 						{

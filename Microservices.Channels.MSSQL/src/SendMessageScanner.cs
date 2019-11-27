@@ -1,29 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
-//using Microservices.Channels.MSSQL.Adapters;
+using Microservices.Channels.Configuration;
+using Microservices.Channels.MSSQL.Adapters;
+
 using NHibernate;
 using NHibernate.Criterion;
-
-//using Keysystems.RemoteMessaging.Adapters;
-//using Keysystems.RemoteMessaging.Data;
 
 namespace Microservices.Channels.MSSQL
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class SendMessageScanner : MessageScannerBase
+	public class SendMessageScanner : MessageScannerBase, ISendMessageScanner
 	{
 
 		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="recipient"></param>
-		public SendMessageScanner(IChannelService channelService, string recipient)
-			: base(channelService, recipient)
+		public SendMessageScanner(MessageDataAdapter dataAdapter, MessageSettings settings)
+			: base(dataAdapter, settings)
 		{ }
 		#endregion
 
@@ -39,7 +37,7 @@ namespace Microservices.Channels.MSSQL
 			var query = QueryOver.Of<DAO.Message>();
 			//	query = query.Where(msg => msg.Channel == this.channel.VirtAddress);
 
-			if ( this.Recipient != "*" )
+			if (this.Recipient != "*")
 				query = query.Where(msg => msg.To == this.Recipient);
 
 			query = query

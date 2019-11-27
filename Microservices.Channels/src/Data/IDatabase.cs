@@ -11,7 +11,7 @@ namespace Microservices.Channels.Data
 
 		string Provider { get; }
 
-		string Schema { get; }
+		string Schema { get; set; }
 
 		string ConnectionString { get; set; }
 
