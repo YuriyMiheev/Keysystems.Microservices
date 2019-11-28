@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microservices.Channels.Configuration;
+using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Channels.MSSQL.Adapters;
 
@@ -11,20 +12,25 @@ namespace Microservices.Channels.MSSQL
 	/// <summary>
 	/// 
 	/// </summary>
-	public class MessageReceiver : MessageReceiverBase
+	public class MessageReceiver : MessageReceiverBase, IMessageReceiver
 	{
-		private MessageDataAdapter _dataAdapter;
+		private IMessageDataAdapter _dataAdapter;
+		private IAppSettingsConfiguration _appConfig;
+		private ILogger _logger;
 
 
 		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channelService"></param>
-		public MessageReceiver(IChannelService channelService, ILogger logger)
-			: base(channelService, logger)
+		/// <param name="dataAdapter"></param>
+		/// <param name="logger"></param>
+		public MessageReceiver(IMessageDataAdapter dataAdapter, ILogger logger, IAppSettingsConfiguration appConfig)
+			: base(dataAdapter, logger)
 		{
-			_dataAdapter = (MessageDataAdapter)this.Channel.MessageDataAdapter;
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 		#endregion
 
@@ -61,7 +67,7 @@ namespace Microservices.Channels.MSSQL
 			}
 			finally
 			{
-				this.Channel.SaveMessage(msg);
+				_dataAdapter.SaveMessage(msg);
 			}
 
 			return ResponseMessage(msg, resLink);
@@ -72,23 +78,23 @@ namespace Microservices.Channels.MSSQL
 		#region Helpers
 		private void BeforeReceiveMessage(Message msg)
 		{
-			MessageValidator.CheckReceiveMessage(this.Channel, msg);
+			//MessageValidator.CheckReceiveMessage(this.Channel, msg);
 			msg.SetStatus(MessageStatus.RECEIVING);
-			this.Channel.SaveMessage(msg);
+			_dataAdapter.SaveMessage(msg);
 		}
 
 		private int? CallReceiveMessageSP(Message msg)
 		{
 			int? resLink = null;
 
-			DatabaseSettings databaseSettings = this.Channel.DatabaseSettings;
+			DatabaseSettings databaseSettings = _appConfig.DatabaseSettings();
 			if ( databaseSettings.ReceiveMessageSPEnabled )
 			{
 				string receiveMessageSP = databaseSettings.ReceiveMessageSP;
 				if ( String.IsNullOrWhiteSpace(receiveMessageSP) )
 					throw new ConfigSettingsException("Не задано имя хранимой процедуры приема сообщений.", "DATABASE.RECEIVE_SP");
 
-				LogTrace(String.Format("Вызов хранимой процедуры \"{0}\" для сообщения {1}.", receiveMessageSP, msg));
+				_logger.LogTrace(String.Format("Вызов хранимой процедуры \"{0}\" для сообщения {1}.", receiveMessageSP, msg));
 				resLink = _dataAdapter.CallReceiveMessageSP(receiveMessageSP, msg, databaseSettings.ReceiveMessageSPUseOutputParam);
 			}
 
@@ -100,30 +106,30 @@ namespace Microservices.Channels.MSSQL
 			if ( resLink == null || resLink == 0 )
 				return null;
 
-			Message resMsg = this.Channel.GetMessage(resLink.Value);
+			Message resMsg = _dataAdapter.GetMessage(resLink.Value);
 			PrepareResponseMessage(resMsg);
 			resMsg.To = inMsg.From;
 
-			this.Channel.SaveMessage(resMsg);
+			_dataAdapter.SaveMessage(resMsg);
 
 			try
 			{
 				if ( resLink <= inMsg.LINK )
 					throw new MessageException(String.Format("Ответное сообщение #{0} должно быть следующим после принятого сообщения {1}.", resLink, inMsg));
 
-				MessageValidator.CheckResponseMessage(this.Channel, resMsg);
+				//MessageValidator.CheckResponseMessage(this.Channel, resMsg);
 			}
 			catch ( Exception ex )
 			{
 				resMsg.SetStatus(MessageStatus.ERROR, ex.ToString());
-				this.Channel.SaveMessage(resMsg);
+				_dataAdapter.SaveMessage(resMsg);
 			}
 
 			CorrelateMessages(inMsg, resMsg);
-			this.Channel.SaveMessage(inMsg);
-			this.Channel.SaveMessage(resMsg);
+			_dataAdapter.SaveMessage(inMsg);
+			_dataAdapter.SaveMessage(resMsg);
 
-			return this.Channel.GetMessage(resMsg.LINK);
+			return _dataAdapter.GetMessage(resMsg.LINK);
 		}
 		#endregion
 

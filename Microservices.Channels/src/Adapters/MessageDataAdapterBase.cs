@@ -19,6 +19,8 @@ namespace Microservices.Channels.Adapters
 	/// </summary>
 	public abstract class MessageDataAdapterBase
 	{
+		private IDatabase _database;
+		private DbContext _dbContext;
 		private int bufferSize = 4096 * 1024; //ServiceEnvironment.MessageBufferSize;
 
 
@@ -26,10 +28,20 @@ namespace Microservices.Channels.Adapters
 		/// <summary>
 		/// Создание экземпляра.
 		/// </summary>
+		/// <param name="database"></param>
+		protected MessageDataAdapterBase(IDatabase database)
+		{
+			_database = database ?? throw new ArgumentNullException(nameof(database));
+			this.ExecuteTimeout = 30;
+		}
+
+		/// <summary>
+		/// Создание экземпляра.
+		/// </summary>
 		/// <param name="dbContext"></param>
 		protected MessageDataAdapterBase(DbContext dbContext)
 		{
-			this.DbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+			_dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 			this.ExecuteTimeout = 30;
 		}
 		#endregion
@@ -39,7 +51,16 @@ namespace Microservices.Channels.Adapters
 		/// <summary>
 		/// {Get} Контекст подключения к БД.
 		/// </summary>
-		public DbContext DbContext { get; protected set; }
+		public DbContext DbContext
+		{
+			get
+			{
+				if (_dbContext == null)
+					_dbContext = _database.Open();
+
+				return _dbContext;
+			}
+		}
 
 		/// <summary>
 		/// {Get,Set} Таймаут выполнения (сек).
@@ -200,15 +221,15 @@ namespace Microservices.Channels.Adapters
 		/// <param name="take"></param>
 		/// <param name="totalCount"></param>
 		/// <returns></returns>
-		public virtual List<Message> GetMessages(string channel, string status, int? skip, int? take, out int totalCount)
+		public virtual List<Message> GetMessages(string status, int? skip, int? take, out int totalCount)
 		{
 			using ( IDataQuery dataQuery = OpenQuery() )
 			{
 				var query = dataQuery.Open<DAO.Message>();
-				if (String.IsNullOrEmpty(channel))
-					query.Where(msg => msg.Channel == null || msg.Channel == "");
-				else if (channel != "*")
-					query.Where(msg => msg.Channel == channel);
+				//if (String.IsNullOrEmpty(channel))
+				//	query.Where(msg => msg.Channel == null || msg.Channel == "");
+				//else if (channel != "*")
+				//	query.Where(msg => msg.Channel == channel);
 
 				if ( status == MessageStatus.DRAFT )
 				{
@@ -258,15 +279,15 @@ namespace Microservices.Channels.Adapters
 		/// <param name="take"></param>
 		/// <param name="totalCount"></param>
 		/// <returns></returns>
-		public virtual List<Message> GetLastMessages(string channel, string status, int? skip, int? take, out int totalCount)
+		public virtual List<Message> GetLastMessages(string status, int? skip, int? take, out int totalCount)
 		{
 			using ( IDataQuery dataQuery = OpenQuery() )
 			{
 				var query = dataQuery.Open<DAO.Message>();
-				if (String.IsNullOrEmpty(channel))
-					query.Where(msg => msg.Channel == null || msg.Channel == "");
-				else if (channel != "*")
-					query.Where(msg => msg.Channel == channel);
+				//if (String.IsNullOrEmpty(channel))
+				//	query.Where(msg => msg.Channel == null || msg.Channel == "");
+				//else if (channel != "*")
+				//	query.Where(msg => msg.Channel == channel);
 
 				if ( status == MessageStatus.DRAFT )
 				{
@@ -327,15 +348,15 @@ namespace Microservices.Channels.Adapters
 		/// <param name="msgGuid"></param>
 		/// <param name="direction"></param>
 		/// <returns></returns>
-		public virtual Message FindMessage(string channel, string msgGuid, string direction)
+		public virtual Message FindMessage(string msgGuid, string direction)
 		{
 			using ( IDataQuery dataQuery = OpenQuery() )
 			{
 				var query = dataQuery.Open<DAO.Message>();
-				if ( String.IsNullOrEmpty(channel) )
-					query.Where(msg => msg.Channel == null || msg.Channel == "");
-				else if ( channel != "*" )
-					query.Where(msg => (msg.Channel == channel));
+				//if ( String.IsNullOrEmpty(channel) )
+				//	query.Where(msg => msg.Channel == null || msg.Channel == "");
+				//else if ( channel != "*" )
+				//	query.Where(msg => (msg.Channel == channel));
 
 				query.Where(msg => (msg.GUID == msgGuid && msg.Direction == direction));
 				return query.SingleOrDefault().ToObj();
@@ -385,63 +406,63 @@ namespace Microservices.Channels.Adapters
 			}
 		}
 
-		/// <summary>
-		/// Удалить удаленные сообщения.
-		/// </summary>
-		/// <param name="channel">* - все.</param>
-		public virtual void DeleteDeletedMessages(string channel)
-		{
-			var msgLinks = new List<int>();
-			using ( IDataQuery dataQuery = OpenQuery() )
-			{
-				var query = QueryMessages(dataQuery)
-					.Where(msg => msg.Status.Value == MessageStatus.DELETED);
+		///// <summary>
+		///// Удалить удаленные сообщения.
+		///// </summary>
+		///// <param name="channel">* - все.</param>
+		//public virtual void DeleteDeletedMessages(string channel)
+		//{
+		//	var msgLinks = new List<int>();
+		//	using ( IDataQuery dataQuery = OpenQuery() )
+		//	{
+		//		var query = QueryMessages(dataQuery)
+		//			.Where(msg => msg.Status.Value == MessageStatus.DELETED);
 
-				if ( String.IsNullOrEmpty(channel) )
-					query.Where(msg => msg.Channel == null || msg.Channel == "");
-				else if ( channel != "*" )
-					query.Where(msg => msg.Channel == channel);
+		//		if ( String.IsNullOrEmpty(channel) )
+		//			query.Where(msg => msg.Channel == null || msg.Channel == "");
+		//		else if ( channel != "*" )
+		//			query.Where(msg => msg.Channel == channel);
 
-				msgLinks = query.List().Select(msg => msg.LINK).ToList();
-			}
+		//		msgLinks = query.List().Select(msg => msg.LINK).ToList();
+		//	}
 
-			if ( msgLinks.Count > 0 )
-			{
-				msgLinks.Sort();
-				DeleteMessages(msgLinks);
-			}
-		}
+		//	if ( msgLinks.Count > 0 )
+		//	{
+		//		msgLinks.Sort();
+		//		DeleteMessages(msgLinks);
+		//	}
+		//}
 
-		/// <summary>
-		/// Удалить устаревшие сообщения.
-		/// System.InvalidOperationException: Ошибка удаления устаревших сообщений. ---> System.Exception: Cannot supply null value to operator LessThanOrEqual
-		/// </summary>
-		/// <param name="channel">* - все.</param>
-		/// <param name="expiredDate"></param>
-		/// <param name="statuses"></param>
-		public virtual void DeleteExpiredMessages(string channel, DateTime expiredDate, List<string> statuses)
-		{
-			var msgLinks = new List<int>();
-			using ( IDataQuery dataQuery = OpenQuery() )
-			{
-				var query = QueryMessages(dataQuery)
-					.Where(msg => (msg.TTL == null && msg.Date <= expiredDate) || (msg.TTL <= DateTime.Now))
-					.AndRestrictionOn(msg => msg.Status.Value).IsIn(statuses);
+		///// <summary>
+		///// Удалить устаревшие сообщения.
+		///// System.InvalidOperationException: Ошибка удаления устаревших сообщений. ---> System.Exception: Cannot supply null value to operator LessThanOrEqual
+		///// </summary>
+		///// <param name="channel">* - все.</param>
+		///// <param name="expiredDate"></param>
+		///// <param name="statuses"></param>
+		//public virtual void DeleteExpiredMessages(string channel, DateTime expiredDate, List<string> statuses)
+		//{
+		//	var msgLinks = new List<int>();
+		//	using ( IDataQuery dataQuery = OpenQuery() )
+		//	{
+		//		var query = QueryMessages(dataQuery)
+		//			.Where(msg => (msg.TTL == null && msg.Date <= expiredDate) || (msg.TTL <= DateTime.Now))
+		//			.AndRestrictionOn(msg => msg.Status.Value).IsIn(statuses);
 
-				if ( String.IsNullOrEmpty(channel) )
-					query.Where(msg => msg.Channel == null || msg.Channel == "");
-				else if ( channel != "*" )
-					query.Where(msg => msg.Channel == channel);
+		//		if ( String.IsNullOrEmpty(channel) )
+		//			query.Where(msg => msg.Channel == null || msg.Channel == "");
+		//		else if ( channel != "*" )
+		//			query.Where(msg => msg.Channel == channel);
 
-				msgLinks = query.List().Select(msg => msg.LINK).ToList();
-			}
+		//		msgLinks = query.List().Select(msg => msg.LINK).ToList();
+		//	}
 
-			if ( msgLinks.Count > 0 )
-			{
-				msgLinks.Sort();
-				DeleteMessages(msgLinks);
-			}
-		}
+		//	if ( msgLinks.Count > 0 )
+		//	{
+		//		msgLinks.Sort();
+		//		DeleteMessages(msgLinks);
+		//	}
+		//}
 
 		/// <summary>
 		/// 

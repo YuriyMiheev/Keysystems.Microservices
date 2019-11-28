@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microservices.Channels.Data;
+using Microservices.Channels.Logging;
 
-using Microservices.Channels.Configuration;
-using Microservices.Channels.MSSQL.Adapters;
-
-using NHibernate;
 using NHibernate.Criterion;
 
 namespace Microservices.Channels.MSSQL
@@ -20,8 +15,10 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		public SendMessageScanner(MessageDataAdapter dataAdapter, MessageSettings settings)
-			: base(dataAdapter, settings)
+		/// <param name="dataAdapter"></param>
+		/// <param name="logger"></param>
+		public SendMessageScanner(IMessageDataAdapter dataAdapter, ILogger logger)
+			: base(dataAdapter, logger)
 		{ }
 		#endregion
 
@@ -30,15 +27,14 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="exceptLinks"></param>
 		/// <returns></returns>
 		protected override QueryOver<DAO.Message, DAO.Message> CreateOfflineSelectMessagesQuery()
 		{
 			var query = QueryOver.Of<DAO.Message>();
 			//	query = query.Where(msg => msg.Channel == this.channel.VirtAddress);
 
-			if (this.Recipient != "*")
-				query = query.Where(msg => msg.To == this.Recipient);
+			//if (this.Recipient != "*")
+			//	query = query.Where(msg => msg.To == this.Recipient);
 
 			query = query
 				.Where(msg => msg.Direction == MessageDirection.OUT)

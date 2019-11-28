@@ -239,22 +239,11 @@ namespace Microservices.Channels.Client
 			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SetSettings", cancellationToken);
 		}
 
-		//Task<IDictionary<string, string>> IChannelHub_v1.GetConnectionStrings(CancellationToken cancellationToken)
-		//{
-		//	CheckConnected();
-		//	return _hubConnection.InvokeAsync<IDictionary<string, string>>("GetConnectionStrings", cancellationToken);
-		//}
-
-		//Task IChannelHub_v1.SetConnectionStrings(IDictionary<string, string> connStrings, CancellationToken cancellationToken)
-		//{
-		//	CheckConnected();
-		//	return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SetConnectionStrings", cancellationToken);
-		//}
-
-		//public void SaveSettings()
-		//{
-		//	_service.Settings.Save();
-		//}
+		Task IChannelHub_v1.SaveSettings(CancellationToken cancellationToken)
+		{
+			CheckConnected();
+			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SaveSettings", cancellationToken);
+		}
 		#endregion
 
 
@@ -394,6 +383,7 @@ namespace Microservices.Channels.Client
 					if (this.WebProxy != null)
 						o.Proxy = this.WebProxy;
 				})
+				.WithAutomaticReconnect()
 				.AddMessagePackProtocol()
 				.Build();
 

@@ -1,22 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Xml;
-using Microsoft.Extensions.Hosting;
-//using Microsoft.Extensions.Logging;
 
 using Microservices.Channels.Configuration;
-using Microservices.Channels.Logging;
-using Microservices.Channels.Hubs;
-using Microservices.Channels.MSSQL.Data;
 using Microservices.Channels.Data;
-//using Microservices.Channels.MSSQL.Configuration;
+using Microservices.Channels.Hubs;
+using Microservices.Channels.Logging;
+using Microservices.Channels.MSSQL.Adapters;
+using Microservices.Channels.MSSQL.Data;
+
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels.MSSQL
 {
@@ -46,24 +40,24 @@ namespace Microservices.Channels.MSSQL
 				.ConfigureServices(services =>
 				{
 					var appConfig = (XmlConfigFileConfigurationProvider)appConfiguration.Providers.Single();
-					services.AddSingleton(appConfig);
+					services.AddSingleton<IAppSettingsConfiguration>(appConfig);
 
-					var database = new ChannelDatabase();
-					services.AddSingleton<IDatabase>(database);
+					//IDatabase database = new ChannelDatabase();
+					//database.Schema = _databaseSettings.Schema;
+					//database.ConnectionString = _infoSettings.RealAddress;
 					//DbContext dbContext = database.CreateOrUpdateSchema();
 					//DbContext dbContext = database.ValidateSchema();
 
-					var logger = new ServiceLogger();
-					services.AddSingleton<ILogger>(logger);
-
-					var connections = new HubClientConnections();
-					services.AddSingleton<IHubClientConnections>(connections);
-
+					services.AddSingleton<IDatabase, ChannelDatabase>();
+					services.AddSingleton<IMessageDataAdapter, MessageDataAdapter>();
+					services.AddSingleton<ILogger, ServiceLogger>();
+					services.AddSingleton<IHubClientConnections, HubClientConnections>();
+					services.AddSingleton<ISendMessageScanner, SendMessageScanner>();
+					services.AddSingleton<IMessageReceiver, MessageReceiver>();
 					services.AddSingleton<IChannelService>(serviceProvider =>
 						{
 							return new ChannelService(serviceProvider);
 						});
-
 					services.AddHostedService<IChannelService>(serviceProvider =>
 						{
 							return serviceProvider.GetRequiredService<IChannelService>();

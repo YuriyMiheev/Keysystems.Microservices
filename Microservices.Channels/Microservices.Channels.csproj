@@ -14,6 +14,7 @@
     <Compile Remove="ChannelServiceBase.cs" />
     <Compile Remove="CommonHubClient.cs" />
     <Compile Remove="src\ChannelServiceBase.cs" />
+    <Compile Remove="src\Configuration\IXmlConfigFileSettings.cs" />
     <Compile Remove="src\Configuration\ServiceSettingsChangedEventArgs.cs" />
     <Compile Remove="src\Configuration\ServiceSettingsChangeType.cs" />
     <Compile Remove="src\Configuration\XmlConfigFileException.cs" />

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,65 +8,56 @@ using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Channels.MSSQL.Adapters;
-using Microservices.Channels.MSSQL.Data;
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.SignalR;
-using Microservices.Channels.MSSQL.Hubs;
-using Microservices.Channels.Hubs;
+using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels.MSSQL
 {
 	public class ChannelService : IChannelService, IDisposable
 	{
+		private bool _initialized;
+		private IAppSettingsConfiguration _appConfig;
+		private ILogger _logger;
 		//private IServiceProvider _serviceProvider;
 		private IDatabase _database;
-		private XmlConfigFileConfigurationProvider _appConfig;
+		private IMessageDataAdapter _dataAdapter;
 		private CancellationTokenSource _cancellationSource;
-		private bool _initialized;
-		//private ChannelDatabase _database;
+		private ISendMessageScanner _scanner;
+		private IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
-		private MessageReceiver _receiver;
-		private ISendMessageScanner _sender;
-		private ILogger _logger;
+		private InfoSettings _infoSettings;
+		private ChannelSettings _channelSettings;
+		private DatabaseSettings _databaseSettings;
+		private MessageSettings _messageSettings;
+		private ServiceSettings _serviceSettings;
 
 
 		#region Ctor
 		public ChannelService(IServiceProvider serviceProvider)
 		{
 			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-			_appConfig = serviceProvider.GetRequiredService<XmlConfigFileConfigurationProvider>();
-			_logger = serviceProvider.GetRequiredService<ILogger>();
-			_database = serviceProvider.GetRequiredService<IDatabase>();
-			_sender = serviceProvider.GetRequiredService<ISendMessageScanner>();
-
 			_cancellationSource = new CancellationTokenSource();
 
-			IDictionary<string, ConfigFileSetting> appSettings = _appConfig.AppSettings;
-			_infoSettings = new InfoSettings(appSettings);
-			_channelSettings = new ChannelSettings(appSettings);
-			_databaseSettings = new DatabaseSettings(appSettings);
-			_messageSettings = new MessageSettings(appSettings);
-			_serviceSettings = new ServiceSettings(appSettings);
-
-			_receiver = new MessageReceiver(this, _logger);
+			_appConfig = serviceProvider.GetRequiredService<IAppSettingsConfiguration>();
+			_logger = serviceProvider.GetRequiredService<ILogger>();
+			_database = serviceProvider.GetRequiredService<IDatabase>();
+			_dataAdapter = serviceProvider.GetRequiredService<IMessageDataAdapter>();
+			_scanner = serviceProvider.GetRequiredService<ISendMessageScanner>();
+			_scanner.NewMessages += scanner_NewMessages;
+			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
 			//_publisher = new MessagePublisher(this);
 
-			_processId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+			_infoSettings = _appConfig.InfoSettings();
+			_channelSettings = _appConfig.ChannelSettings();
+			_databaseSettings = _appConfig.DatabaseSettings();
+			_messageSettings = _appConfig.MessageSettings();
+			_serviceSettings = _appConfig.ServiceSettings();
+
+			this.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+			this.VirtAddress = _infoSettings.VirtAddress;
 		}
 		#endregion
-
-
-		private MessageDataAdapter _dataAdapter;
-		/// <summary>
-		/// {Get} Адаптер БД сообщений.
-		/// </summary>
-		public MessageDataAdapterBase MessageDataAdapter
-		{
-			get { return _dataAdapter; }
-		}
 
 
 		#region Events
@@ -78,89 +68,16 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
-		#region Settings
-		private InfoSettings _infoSettings;
-		/// <summary>
-		/// {Get} Общие настройки.
-		/// </summary>
-		public InfoSettings InfoSettings
-		{
-			get { return _infoSettings; }
-		}
-
-		private ChannelSettings _channelSettings;
-		/// <summary>
-		/// {Get} Настройки канала.
-		/// </summary>
-		public ChannelSettings ChannelSettings
-		{
-			get { return _channelSettings; }
-		}
-
-		private DatabaseSettings _databaseSettings;
-		/// <summary>
-		/// {Get} Настройки БД.
-		/// </summary>
-		public DatabaseSettings DatabaseSettings
-		{
-			get { return _databaseSettings; }
-		}
-
-		private MessageSettings _messageSettings;
-		/// <summary>
-		/// {Get} Настройки сообщений.
-		/// </summary>
-		public MessageSettings MessageSettings
-		{
-			get { return _messageSettings; }
-		}
-
-		private ServiceSettings _serviceSettings;
-		/// <summary>
-		/// {Get} Настройки сервиса.
-		/// </summary>
-		public ServiceSettings ServiceSettings
-		{
-			get { return _serviceSettings; }
-		}
-
-		public IDictionary<string, ConfigFileSetting> GetAppSettings()
-		{
-			return _appConfig.AppSettings;
-		}
-
-		public void SetAppSettings(IDictionary<string, string> settings)
-		{
-			foreach (string key in settings.Keys)
-			{
-				if (_appConfig.AppSettings.ContainsKey(key))
-					_appConfig.AppSettings[key].Value = settings[key];
-			}
-		}
-
-		public void SaveAppSettings()
-		{
-		}
-		#endregion
-
-
 		#region Properties
-		private string _processId;
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public string ProcessId
-		{
-			get { return _processId; }
-		}
+		public string ProcessId { get; private set; }
 
 		/// <summary>
 		/// {Get} Виртуальный адрес канала.
 		/// </summary>
-		public string VirtAddress
-		{
-			get { return _infoSettings.VirtAddress; }
-		}
+		public string VirtAddress { get; private set; }
 
 		/// <summary>
 		/// {Get}
@@ -229,51 +146,60 @@ namespace Microservices.Channels.MSSQL
 			if (!TryConnect(out error))
 				throw error;
 
-			if (_messageSettings.DeleteDeleted)
+			void DeleteDeletedMessages()
+			{
+				if (_messageSettings.DeleteDeleted)
+				{
+					try
+					{
+						string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
+						int count = _dataAdapter.ExecuteUpdate(sql);
+						_logger.LogTrace($"Удалено сообщений: {count}");
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex);
+					}
+				}
+			}
+
+			void ResetSendingMessages()
 			{
 				try
 				{
-					string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
+					string statusInfo = new ChannelException(this, "Отправка сообщения была прервана.").ToString();
+					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
 					int count = _dataAdapter.ExecuteUpdate(sql);
-
-					LogTrace($"Удалено сообщений: {count}");
+					_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
 				}
 				catch (Exception ex)
 				{
-					LogError(ex);
+					_logger.LogError(ex);
 				}
 			}
 
-			try
+			void ResetReceivingMessages()
 			{
-				string statusInfo = new ChannelException(this, "Отправка сообщения была прервана.").ToString();
-				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
-				int count = _dataAdapter.ExecuteUpdate(sql);
-
-				LogTrace($"Найдено недоставленных сообщений: {count}");
-			}
-			catch (Exception ex)
-			{
-				LogError(ex);
-			}
-
-			try
-			{
-				string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
-				string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
-				int count = _dataAdapter.ExecuteUpdate(sql);
-
-				LogTrace($"Найдено непринятых сообщений: {count}");
-			}
-			catch (Exception ex)
-			{
-				LogError(ex);
+				try
+				{
+					string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
+					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
+					int count = _dataAdapter.ExecuteUpdate(sql);
+					_logger.LogTrace($"Найдено непринятых сообщений: {count}");
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex);
+				}
 			}
 
+			DeleteDeletedMessages();
+			ResetSendingMessages();
+			ResetReceivingMessages();
 
 			if (_messageSettings.ScanEnabled)
 			{
-				_sender.Start(_cancellationSource.Token);
+				_scanner.Start(_messageSettings.ScanInterval, _messageSettings.ScanPortion, _cancellationSource.Token);
 
 				//	if (this.MessageService.ChannelManager.GetSubscribers(this.LINK).Count > 0)
 				//		this.scanPublisher.Start(this.MessageSettings.ScanThreads, this.cancelToken);
@@ -364,7 +290,7 @@ namespace Microservices.Channels.MSSQL
 		{
 			Initialize();
 
-			_database.ValidateSchema();
+			using DbContext dbContext = _database.ValidateSchema();
 		}
 
 		/// <summary>
@@ -382,17 +308,17 @@ namespace Microservices.Channels.MSSQL
 					if (String.IsNullOrWhiteSpace(repairSP))
 						throw new InvalidOperationException("Не указано имя хранимой процедуры восстановления БД.");
 
-					LogTrace($"Вызов хранимой процедуры \"{repairSP}\".");
+					_logger.LogTrace($"Вызов хранимой процедуры \"{repairSP}\".");
 					_dataAdapter.CallRepairSP(repairSP);
 				}
 				catch (Exception ex)
 				{
 					SetError(ex);
-					LogError(ex);
+					_logger.LogError(ex);
 				}
 			}
 
-			_database.CreateOrUpdateSchema();
+			using DbContext dbContext = _database.CreateOrUpdateSchema();
 		}
 
 		/// <summary>
@@ -412,7 +338,7 @@ namespace Microservices.Channels.MSSQL
 				if (String.IsNullOrWhiteSpace(pingSP))
 					throw new InvalidOperationException("Не указано имя хранимой процедуры пинга БД.");
 
-				LogTrace($"Вызов хранимой процедуры \"{pingSP}\".");
+				_logger.LogTrace($"Вызов хранимой процедуры \"{pingSP}\".");
 				_dataAdapter.CallPingSP(pingSP);
 			}
 		}
@@ -475,7 +401,7 @@ namespace Microservices.Channels.MSSQL
 		public List<Message> GetMessages(string status, int? skip, int? take, out int totalCount)
 		{
 			CheckOpened();
-			return _dataAdapter.GetMessages("*", status, skip, take, out totalCount);
+			return _dataAdapter.GetMessages(status, skip, take, out totalCount);
 		}
 
 		/// <summary>
@@ -489,7 +415,7 @@ namespace Microservices.Channels.MSSQL
 		public List<Message> GetLastMessages(string status, int? skip, int? take, out int totalCount)
 		{
 			CheckOpened();
-			return _dataAdapter.GetLastMessages("*", status, skip, take, out totalCount);
+			return _dataAdapter.GetLastMessages(status, skip, take, out totalCount);
 		}
 
 		/// <summary>
@@ -528,7 +454,7 @@ namespace Microservices.Channels.MSSQL
 		public Message FindMessage(string msgGuid, string direction)
 		{
 			CheckOpened();
-			return _dataAdapter.FindMessage("*", msgGuid, direction);
+			return _dataAdapter.FindMessage(msgGuid, direction);
 		}
 
 		/// <summary>
@@ -552,16 +478,16 @@ namespace Microservices.Channels.MSSQL
 			_dataAdapter.DeleteMessage(msgLink);
 		}
 
-		/// <summary>
-		/// Удалить устаревшие сообщения.
-		/// </summary>
-		/// <param name="expiredDate"></param>
-		/// <param name="statuses"></param>
-		public void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses)
-		{
-			CheckOpened();
-			_dataAdapter.DeleteExpiredMessages("*", expiredDate, statuses);
-		}
+		///// <summary>
+		///// Удалить устаревшие сообщения.
+		///// </summary>
+		///// <param name="expiredDate"></param>
+		///// <param name="statuses"></param>
+		//public void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses)
+		//{
+		//	CheckOpened();
+		//	_dataAdapter.DeleteExpiredMessages("*", expiredDate, statuses);
+		//}
 
 		/// <summary>
 		/// Удалить устаревшие сообщения.
@@ -573,17 +499,17 @@ namespace Microservices.Channels.MSSQL
 			_dataAdapter.DeleteMessages(msgLinks);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="begin"></param>
-		/// <param name="end"></param>
-		/// <returns></returns>
-		public List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end)
-		{
-			CheckOpened();
-			return _dataAdapter.GetMessagesByDate("*", begin, end);
-		}
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="begin"></param>
+		///// <param name="end"></param>
+		///// <returns></returns>
+		//public List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end)
+		//{
+		//	CheckOpened();
+		//	return _dataAdapter.GetMessagesByDate("*", begin, end);
+		//}
 
 
 		#region Body
@@ -692,7 +618,7 @@ namespace Microservices.Channels.MSSQL
 				}
 				catch (Exception ex)
 				{
-					LogTrace(ex.ToString());
+					_logger.LogTrace(ex.ToString());
 				}
 			}
 
@@ -725,58 +651,6 @@ namespace Microservices.Channels.MSSQL
 		#endregion
 
 
-		//#region ILogger
-		///// <summary>
-		///// 
-		///// </summary>
-		//void ILogger.InitializeLogger()
-		//{ }
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="error"></param>
-		//public void LogError(Exception error)
-		//{
-		//	#region Validate parameters
-		//	if (error == null)
-		//		throw new ArgumentNullException("error");
-		//	#endregion
-
-		//}
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="text"></param>
-		///// <param name="error"></param>
-		//public void LogError(string text, Exception error)
-		//{
-		//	#region Validate parameters
-		//	if (error == null)
-		//		throw new ArgumentNullException("error");
-		//	#endregion
-
-		//}
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="text"></param>
-		//public void LogInfo(string text)
-		//{
-		//}
-
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <param name="text"></param>
-		//public void LogTrace(string text)
-		//{
-		//}
-		//#endregion
-
-
 		#region IHostedService  
 		Task IHostedService.StartAsync(CancellationToken cancellationToken)
 		{
@@ -806,33 +680,14 @@ namespace Microservices.Channels.MSSQL
 		{
 			if (!_initialized)
 			{
-				lock (this)
-				{
-					if (!_initialized)
-					{
-						_initialized = true;
+				_initialized = true;
 
-						if (_cancellationSource.IsCancellationRequested)
-							_cancellationSource = new CancellationTokenSource();
+				if (_cancellationSource.IsCancellationRequested)
+					_cancellationSource = new CancellationTokenSource();
 
-						try
-						{
-							_database.Schema = _databaseSettings.Schema;
-							_database.ConnectionString = _infoSettings.RealAddress;
-							DbContext dbContext = _database.Open();
-							_dataAdapter = new MessageDataAdapter(dbContext);
-							_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
-
-							_sender = new SendMessageScanner(_dataAdapter, _messageSettings);
-							_sender.NewMessages += sender_NewMessages;
-						}
-						catch
-						{
-							_initialized = false;
-							throw;
-						}
-					}
-				}
+				_database.Schema = _databaseSettings.Schema;
+				_database.ConnectionString = _infoSettings.RealAddress;
+				_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
 			}
 		}
 
@@ -859,7 +714,7 @@ namespace Microservices.Channels.MSSQL
 				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
 
-		private bool sender_NewMessages(Message[] messages)
+		private bool scanner_NewMessages(Message[] messages)
 		{
 			if (this.OutMessages != null)
 				return this.OutMessages(messages);
@@ -870,7 +725,7 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region IDisposable
-		private bool _disposed = false; // To detect redundant calls
+		private bool _disposed = false;
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -888,8 +743,8 @@ namespace Microservices.Channels.MSSQL
 					if (_dataAdapter != null)
 						_dataAdapter.DbContext.Dispose();
 
-					if (_sender != null)
-						_sender.Dispose();
+					//if (_scanner != null)
+					//	_scanner.Dispose();
 
 					//if (_publisher != null)
 					//	_publisher.Dispose();

@@ -56,7 +56,7 @@ namespace Microservices.Channels.Hubs
 
 		Message GetMessage(int msgLink);
 
-		Message FindMessage(int msgLink);
+		//Message FindMessage(int msgLink);
 
 		Message FindMessageByGuid(string msgGuid, string direction);
 
@@ -64,7 +64,7 @@ namespace Microservices.Channels.Hubs
 
 		void DeleteMessage(int msgLink);
 
-		void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses);
+		//void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses);
 
 		void DeleteMessages(IEnumerable<int> msgLinks);
 

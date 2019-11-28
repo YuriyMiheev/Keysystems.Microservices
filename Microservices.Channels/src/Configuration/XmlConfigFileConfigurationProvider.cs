@@ -11,8 +11,11 @@ namespace Microservices.Channels.Configuration
 	/// <summary>
 	/// 
 	/// </summary>
-	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider
+	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider, IAppSettingsConfiguration
 	{
+		private IDictionary<string, ConfigFileSetting> _appSettings;
+
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -24,14 +27,6 @@ namespace Microservices.Channels.Configuration
 		}
 
 
-		private IDictionary<string, ConfigFileSetting> _appSettings;
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public IDictionary<string, ConfigFileSetting> AppSettings
-		{
-			get { return _appSettings; }
-		}
 
 		/// <summary>
 		/// 
@@ -70,6 +65,24 @@ namespace Microservices.Channels.Configuration
 
 				this.Data.Add(key, value);
 			}
+		}
+
+		public IDictionary<string, ConfigFileSetting> GetAppSettings()
+		{
+			return _appSettings;
+		}
+
+		public void SetAppSettings(IDictionary<string, string> settings)
+		{
+			foreach (string key in settings.Keys)
+			{
+				if (_appSettings.ContainsKey(key))
+					_appSettings[key].Value = settings[key];
+			}
+		}
+
+		public void SaveAppSettings()
+		{
 		}
 	}
 }

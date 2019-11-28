@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,10 +8,25 @@ using System.Text;
 namespace Microservices.Channels.Data
 {
 	/// <summary>
-	/// Репозиторий сообщений.
+	/// Адаптер хранилища сообщений.
 	/// </summary>
-	public interface IMessageRepository
+	public interface IMessageDataAdapter
 	{
+		DbContext DbContext { get; }
+
+		int ExecuteTimeout { get; set; }
+
+
+		bool CheckConnection(out ConnectionException error);
+
+		IDataQuery OpenQuery();
+
+		IDataQuery OpenQuery(IsolationLevel transaction);
+
+		UnitOfWork BeginWork();
+
+
+
 		/// <summary>
 		/// Выбрать сообщения.
 		/// </summary>
@@ -45,12 +61,12 @@ namespace Microservices.Channels.Data
 		/// <returns></returns>
 		Message GetMessage(int msgLink);
 
-		/// <summary>
-		/// Найти сообщение.
-		/// </summary>
-		/// <param name="msgLink"></param>
-		/// <returns></returns>
-		Message FindMessage(int msgLink);
+		///// <summary>
+		///// Найти сообщение.
+		///// </summary>
+		///// <param name="msgLink"></param>
+		///// <returns></returns>
+		//Message FindMessage(int msgLink);
 
 		/// <summary>
 		/// Найти сообщение.
@@ -72,12 +88,12 @@ namespace Microservices.Channels.Data
 		/// <param name="msgLink"></param>
 		void DeleteMessage(int msgLink);
 
-		/// <summary>
-		/// Удалить устаревшие сообщения.
-		/// </summary>
-		/// <param name="expiredDate"></param>
-		/// <param name="statuses"></param>
-		void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses);
+		///// <summary>
+		///// Удалить устаревшие сообщения.
+		///// </summary>
+		///// <param name="expiredDate"></param>
+		///// <param name="statuses"></param>
+		//void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses);
 
 		/// <summary>
 		/// Удалить сообщения.
@@ -85,13 +101,13 @@ namespace Microservices.Channels.Data
 		/// <param name="msgLinks"></param>
 		void DeleteMessages(IEnumerable<int> msgLinks);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="begin"></param>
-		/// <param name="end"></param>
-		/// <returns></returns>
-		List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end);
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="begin"></param>
+		///// <param name="end"></param>
+		///// <returns></returns>
+		//List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end);
 
 
 		#region Body
@@ -137,5 +153,15 @@ namespace Microservices.Channels.Data
 		void DeleteMessageContent(int contentLink);
 		#endregion
 
+
+		int ExecuteUpdate(string sql);
+
+		void CallPingSP(string spName);
+
+		void CallRepairSP(string spName);
+
+		void CallMessageStatusChangedSP(string spName, Message msg);
+
+		int? CallReceiveMessageSP(string spName, Message msg, bool useOutputParam);
 	}
 }

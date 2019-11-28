@@ -50,6 +50,8 @@ namespace Microservices.Channels.Client
 		Task<IDictionary<string, SettingItem>> GetSettingsAsync(CancellationToken cancellationToken = default);
 
 		Task SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default);
+
+		Task SaveSettings(CancellationToken cancellationToken = default);
 		#endregion
 
 

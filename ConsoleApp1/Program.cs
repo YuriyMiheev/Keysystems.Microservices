@@ -47,12 +47,12 @@ namespace ConsoleApp1
 				//	_processId = process.Id;
 
 
-				using var hubClient = new ChannelHubClient("http://localhost:5005");
+				using (var hubClient = new ChannelHubClient("http://localhost:5005"))
 				{
 					hubClient.Connected += hubClient_Connected;
 					hubClient.Disconnected += hubClient_Disconnected;
 
-					IChannelHub_v1 api = hubClient as IChannelHub_v1;
+					var api = hubClient as IChannelHub_v1;
 					api.LogReceived += log_Received;
 					api.SendMessagesReceived += sendMessages_Received;
 

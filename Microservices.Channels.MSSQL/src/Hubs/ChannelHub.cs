@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
-
+using Microservices.Channels.Logging;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 
@@ -18,14 +18,23 @@ namespace Microservices.Channels.MSSQL.Hubs
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
 		private IChannelService _channelService;
+		private IAppSettingsConfiguration _appConfig;
+		private IMessageDataAdapter _dataAdapter;
 		private IHubClientConnections _connections;
+		private ServiceSettings _serviceSettings;
+		private ILogger _logger;
 
 
 		#region Ctor
-		public ChannelHub(IChannelService channelService, IHubClientConnections connections)
+		public ChannelHub(IChannelService channelService, IAppSettingsConfiguration appConfig, IMessageDataAdapter dataAdapter, ILogger logger, IHubClientConnections connections)
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
+			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
+
+			_serviceSettings = _appConfig.ServiceSettings();
 		}
 		#endregion
 
@@ -166,17 +175,20 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Settings
 		public IDictionary<string, ConfigFileSetting> GetSettings()
 		{
-			return _channelService.GetAppSettings();
+			return _appConfig.GetAppSettings();
 		}
 
 		public void SetSettings(IDictionary<string, string> settings)
 		{
-			_channelService.SetAppSettings(settings);
+			//if (_channelService.Opened)
+			//	throw new InvalidOperationException("Операция недопустима для открытого сервис-канала.");
+
+			_appConfig.SetAppSettings(settings);
 		}
 
 		public void SaveSettings()
 		{
-			_channelService.SaveAppSettings();
+			_appConfig.SaveAppSettings();
 		}
 		#endregion
 
@@ -184,52 +196,52 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Messages
 		public List<Message> SelectMessages(QueryParams queryParams)
 		{
-			return _channelService.SelectMessages(queryParams);
+			return _dataAdapter.SelectMessages(queryParams);
 		}
 
 		public (List<Message>, int) GetMessages(string status, int? skip, int? take)
 		{
-			return (_channelService.GetMessages(status, skip, take, out int totalCount), totalCount);
+			return (_dataAdapter.GetMessages(status, skip, take, out int totalCount), totalCount);
 		}
 
 		public (List<Message>, int) GetLastMessages(string status, int? skip, int? take)
 		{
-			return (_channelService.GetLastMessages(status, skip, take, out int totalCount), totalCount);
+			return (_dataAdapter.GetLastMessages(status, skip, take, out int totalCount), totalCount);
 		}
 
 		public Message GetMessage(int msgLink)
 		{
-			return _channelService.GetMessage(msgLink);
+			return _dataAdapter.GetMessage(msgLink);
 		}
 
-		public Message FindMessage(int msgLink)
-		{
-			return _channelService.FindMessage(msgLink);
-		}
+		//public Message FindMessage(int msgLink)
+		//{
+		//	return _dataAdapter.FindMessage(msgLink);
+		//}
 
 		public Message FindMessageByGuid(string msgGuid, string direction)
 		{
-			return _channelService.FindMessage(msgGuid, direction);
+			return _dataAdapter.FindMessage(msgGuid, direction);
 		}
 
 		public void SaveMessage(Message msg)
 		{
-			_channelService.SaveMessage(msg);
+			_dataAdapter.SaveMessage(msg);
 		}
 
 		public void DeleteMessage(int msgLink)
 		{
-			_channelService.DeleteMessage(msgLink);
+			_dataAdapter.DeleteMessage(msgLink);
 		}
 
-		public void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses)
-		{
-			_channelService.DeleteExpiredMessages(expiredDate, statuses);
-		}
+		//public void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses)
+		//{
+		//	_dataAdapter.DeleteExpiredMessages(expiredDate, statuses);
+		//}
 
 		public void DeleteMessages(IEnumerable<int> msgLinks)
 		{
-			_channelService.DeleteMessages(msgLinks);
+			_dataAdapter.DeleteMessages(msgLinks);
 		}
 
 
@@ -242,9 +254,9 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <returns></returns>
 		public async IAsyncEnumerable<char[]> ReadMessageBody(int msgLink, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			using (MessageBody body = _channelService.GetMessageBody(msgLink))
+			using (MessageBody body = _dataAdapter.GetMessageBody(msgLink))
 			{
-				int bufferSize = _channelService.ServiceSettings.BufferSize;
+				int bufferSize = _serviceSettings.BufferSize;
 				var buffer = new char[bufferSize];
 				int charsReaded;
 				do
@@ -265,11 +277,11 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			return Task.Run(() =>
 				{
-					using (MessageBody body = _channelService.GetMessageBody(bodyInfo.MessageLINK))
+					using (MessageBody body = _dataAdapter.GetMessageBody(bodyInfo.MessageLINK))
 					{
 						body.ApplyInfo(bodyInfo);
 						body.Value = new AsyncStreamTextReader(bodyStream);
-						_channelService.SaveMessageBody(body);
+						_dataAdapter.SaveMessageBody(body);
 					}
 				});
 		}
@@ -280,7 +292,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <param name="msgLink"></param>
 		public void DeleteMessageBody(int msgLink)
 		{
-			_channelService.DeleteMessageBody(msgLink);
+			_dataAdapter.DeleteMessageBody(msgLink);
 		}
 		#endregion
 
@@ -293,9 +305,9 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <returns></returns>
 		public async IAsyncEnumerable<char[]> ReadMessageContent(int contentLink, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			using (MessageContent content = _channelService.GetMessageContent(contentLink))
+			using (MessageContent content = _dataAdapter.GetMessageContent(contentLink))
 			{
-				int bufferSize = _channelService.ServiceSettings.BufferSize;
+				int bufferSize = _serviceSettings.BufferSize;
 				var buffer = new char[bufferSize];
 				int charsReaded;
 				do
@@ -321,7 +333,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 					{
 						content.ApplyInfo(contentInfo);
 						content.Value = new AsyncStreamTextReader(stream);
-						_channelService.SaveMessageContent(content);
+						_dataAdapter.SaveMessageContent(content);
 					}
 				});
 		}
@@ -332,7 +344,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		/// <param name="contentLink"></param>
 		public void DeleteMessageContent(int contentLink)
 		{
-			_channelService.DeleteMessageContent(contentLink);
+			_dataAdapter.DeleteMessageContent(contentLink);
 		}
 		#endregion
 
@@ -382,7 +394,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			}
 			catch (Exception ex)
 			{
-				_channelService.LogError(ex);
+				LogError(ex);
 				throw;
 			}
 		}
@@ -392,25 +404,25 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Logging
 		void LogError(Exception error)
 		{
-			//_channelService.LogError(error);
+			_logger.LogError(error);
 			SendLog("ERROR", error);
 		}
 
 		void LogError(string text, Exception error)
 		{
-			//_channelService.LogError(text, error);
+			_logger.LogError(text, error);
 			SendLog("ERROR", text + Environment.NewLine + error);
 		}
 
 		void LogInfo(string text)
 		{
-			//_channelService.LogInfo(text);
+			_logger.LogInfo(text);
 			SendLog("INFO", text);
 		}
 
 		void LogTrace(string text)
 		{
-			//_channelService.LogTrace(text);
+			_logger.LogTrace(text);
 			SendLog("TRACE", text);
 		}
 		#endregion
@@ -426,8 +438,6 @@ namespace Microservices.Channels.MSSQL.Hubs
 			record.Add("VirtAddress", _channelService.VirtAddress);
 			record.Add("LogLevel", logLevel);
 			record.Add("Text", text.ToString());
-
-			//return this.Clients.Caller.Log(record);
 
 			return _connections.SendLogToClient(record);
 		}

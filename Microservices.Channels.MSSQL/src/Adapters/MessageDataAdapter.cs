@@ -20,10 +20,14 @@ namespace Microservices.Channels.MSSQL.Adapters
 	/// <summary>
 	/// Базовый класс для доступа к БД.
 	/// </summary>
-	public class MessageDataAdapter : MessageDataAdapterBase
+	public class MessageDataAdapter : MessageDataAdapterBase, IMessageDataAdapter
 	{
 
 		#region Ctor
+		public MessageDataAdapter(IDatabase database)
+			: base(database)
+		{ }
+
 		/// <summary>
 		/// Создание экземпляра.
 		/// </summary>
@@ -31,6 +35,7 @@ namespace Microservices.Channels.MSSQL.Adapters
 		public MessageDataAdapter(DbContext dbContext)
 			: base(dbContext)
 		{ }
+		#endregion
 
 
 		protected override MessageBodyStreamBase ConstructMessageBodyStream(int msgLink, UnitOfWork work, DataStreamMode mode, Encoding encoding)
@@ -42,7 +47,6 @@ namespace Microservices.Channels.MSSQL.Adapters
 		{
 			return new MessageContentStream(this.DbContext, work, mode, contentLink, encoding);
 		}
-		#endregion
 
 
 		#region Contacts

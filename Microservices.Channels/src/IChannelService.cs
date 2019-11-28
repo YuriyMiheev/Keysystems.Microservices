@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Microservices.Channels.Adapters;
 using Microservices.Channels.Configuration;
-using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
 
 using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels
 {
-	public interface IChannelService : IHostedService, IMessageRepository
+	public interface IChannelService : IHostedService
 	{
-
-		MessageDataAdapterBase MessageDataAdapter { get; }
-
 
 		#region Events
 		event Func<Message[], bool> OutMessages;
@@ -31,25 +25,6 @@ namespace Microservices.Channels
 		bool Running { get; }
 
 		bool? Online { get; }
-		#endregion
-
-
-		#region Settings
-		InfoSettings InfoSettings { get; }
-
-		ChannelSettings ChannelSettings { get; }
-
-		DatabaseSettings DatabaseSettings { get; }
-
-		MessageSettings MessageSettings { get; }
-
-		ServiceSettings ServiceSettings { get; }
-
-		IDictionary<string, ConfigFileSetting> GetAppSettings();
-
-		void SetAppSettings(IDictionary<string, string> settings);
-
-		void SaveAppSettings();
 		#endregion
 
 
