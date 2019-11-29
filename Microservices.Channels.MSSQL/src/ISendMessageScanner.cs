@@ -8,7 +8,7 @@ namespace Microservices.Channels.MSSQL
 
 		event Func<Message[], bool> NewMessages;
 
-		event Action<Exception> Error;
+		//event Action<Exception> Error;
 
 		///// <summary>
 		///// {Get}

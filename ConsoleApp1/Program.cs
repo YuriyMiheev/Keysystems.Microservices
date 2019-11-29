@@ -108,9 +108,11 @@ namespace ConsoleApp1
 			}
 		}
 
+		private static int _count = 0;
 		private static void sendMessages_Received(IChannelHubClient hubClient, Message[] messages)
 		{
-			Console.WriteLine($"Messages: {messages.Length}");
+			_count++;
+			Console.WriteLine($"{_count}. Messages: {messages.Length}");
 		}
 
 		private static void log_Received(IChannelHubClient hubClient, IDictionary<string, string> logRecord)

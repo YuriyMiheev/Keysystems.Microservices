@@ -24,6 +24,10 @@ namespace Microservices.Channels.Client
 		#region Events
 		event Action<IChannelHubClient> Connected;
 
+		event Func<IChannelHubClient, Exception, Task> Reconnecting;
+
+		event Func<IChannelHubClient, string, Task> Reconnected;
+
 		event Func<IChannelHubClient, Exception, Task> Disconnected;
 		#endregion
 

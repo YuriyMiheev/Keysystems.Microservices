@@ -64,7 +64,7 @@ namespace Microservices.Channels.Client
 
 		Task<Message> GetMessageAsync(int msgLink, CancellationToken cancellationToken = default);
 
-		Task<Message> FindMessageAsync(int msgLink, CancellationToken cancellationToken = default);
+		//Task<Message> FindMessageAsync(int msgLink, CancellationToken cancellationToken = default);
 
 		Task<Message> FindMessageByGuidAsync(string msgGuid, string direction, CancellationToken cancellationToken = default);
 
@@ -72,7 +72,7 @@ namespace Microservices.Channels.Client
 
 		Task DeleteMessageAsync(int msgLink, CancellationToken cancellationToken = default);
 
-		Task DeleteExpiredMessagesAsync(DateTime expiredDate, List<string> statuses, CancellationToken cancellationToken = default);
+		//Task DeleteExpiredMessagesAsync(DateTime expiredDate, List<string> statuses, CancellationToken cancellationToken = default);
 
 		Task DeleteMessagesAsync(IEnumerable<int> msgLinks, CancellationToken cancellationToken = default);
 

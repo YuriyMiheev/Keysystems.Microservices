@@ -44,9 +44,10 @@ namespace Microservices.Channels.MSSQL
 			_database = serviceProvider.GetRequiredService<IDatabase>();
 			_dataAdapter = serviceProvider.GetRequiredService<IMessageDataAdapter>();
 			_scanner = serviceProvider.GetRequiredService<ISendMessageScanner>();
-			_scanner.NewMessages += scanner_NewMessages;
 			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
 			//_publisher = new MessagePublisher(this);
+
+			_scanner.NewMessages += scanner_NewMessages;
 
 			_infoSettings = _appConfig.InfoSettings();
 			_channelSettings = _appConfig.ChannelSettings();
@@ -717,7 +718,7 @@ namespace Microservices.Channels.MSSQL
 		private bool scanner_NewMessages(Message[] messages)
 		{
 			if (this.OutMessages != null)
-				return this.OutMessages(messages);
+				return this.OutMessages.Invoke(messages);
 			else
 				return false;
 		}

@@ -58,6 +58,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			}
 			else
 			{
+				this.Context.Abort();
 				return null;
 			}
 		}

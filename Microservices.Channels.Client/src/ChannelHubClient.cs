@@ -60,6 +60,10 @@ namespace Microservices.Channels.Client
 		#region Events
 		public event Action<IChannelHubClient> Connected;
 
+		public event Func<IChannelHubClient, Exception, Task> Reconnecting;
+
+		public event Func<IChannelHubClient, string, Task> Reconnected;
+
 		public event Func<IChannelHubClient, Exception, Task> Disconnected;
 		#endregion
 
@@ -272,11 +276,11 @@ namespace Microservices.Channels.Client
 			return _hubConnection.InvokeAsync<Message>("GetMessage", msgLink, cancellationToken);
 		}
 
-		Task<Message> IChannelHub_v1.FindMessageAsync(int msgLink, CancellationToken cancellationToken)
-		{
-			CheckConnected();
-			return _hubConnection.InvokeAsync<Message>("FindMessage", msgLink, cancellationToken);
-		}
+		//Task<Message> IChannelHub_v1.FindMessageAsync(int msgLink, CancellationToken cancellationToken)
+		//{
+		//	CheckConnected();
+		//	return _hubConnection.InvokeAsync<Message>("FindMessage", msgLink, cancellationToken);
+		//}
 
 		Task<Message> IChannelHub_v1.FindMessageByGuidAsync(string msgGuid, string direction, CancellationToken cancellationToken)
 		{
@@ -296,11 +300,11 @@ namespace Microservices.Channels.Client
 			return _hubConnection.InvokeAsync("DeleteMessage", msgLink, cancellationToken);
 		}
 
-		Task IChannelHub_v1.DeleteExpiredMessagesAsync(DateTime expiredDate, List<string> statuses, CancellationToken cancellationToken)
-		{
-			CheckConnected();
-			return _hubConnection.InvokeAsync("DeleteExpiredMessages", expiredDate, statuses, cancellationToken);
-		}
+		//Task IChannelHub_v1.DeleteExpiredMessagesAsync(DateTime expiredDate, List<string> statuses, CancellationToken cancellationToken)
+		//{
+		//	CheckConnected();
+		//	return _hubConnection.InvokeAsync("DeleteExpiredMessages", expiredDate, statuses, cancellationToken);
+		//}
 
 		Task IChannelHub_v1.DeleteMessagesAsync(IEnumerable<int> msgLinks, CancellationToken cancellationToken)
 		{
@@ -387,7 +391,13 @@ namespace Microservices.Channels.Client
 				.AddMessagePackProtocol()
 				.Build();
 
-			hubConnection.Closed += (e) => this.Disconnected?.Invoke(this, e);
+			hubConnection.Closed += (error) => this.Disconnected?.Invoke(this, error);
+			hubConnection.Reconnecting += (error) => this.Reconnecting?.Invoke(this, error);
+			hubConnection.Reconnected += (connectionId) =>
+				{
+					this.ConnectionId = connectionId;
+					return this.Reconnected?.Invoke(this, connectionId);
+				};
 			return hubConnection;
 		}
 
@@ -412,7 +422,7 @@ namespace Microservices.Channels.Client
 					if (receiveLogHandler_v1 != null)
 						receiveLogHandler_v1.Dispose();
 
-					if(receiveMessagesHandler_v1 != null)
+					if (receiveMessagesHandler_v1 != null)
 						receiveMessagesHandler_v1.Dispose();
 
 					_hubConnection?.DisposeAsync();

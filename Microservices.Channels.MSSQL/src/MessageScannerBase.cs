@@ -43,9 +43,15 @@ namespace Microservices.Channels.MSSQL
 
 
 		#region Events
+		/// <summary>
+		/// 
+		/// </summary>
 		public event Func<Message[], bool> NewMessages;
 
-		public event Action<Exception> Error;
+		///// <summary>
+		///// 
+		///// </summary>
+		//public event Action<Exception> Error;
 		#endregion
 
 
@@ -92,6 +98,7 @@ namespace Microservices.Channels.MSSQL
 			if (_started)
 			{
 				var messages = new List<Message>();
+				bool sending = false;
 
 				try
 				{
@@ -111,9 +118,12 @@ namespace Microservices.Channels.MSSQL
 						{
 							if (this.NewMessages.Invoke(messages.ToArray()))
 							{
-								string statusInfo = "Сообщение отправлено.";
-								//string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.SENDING}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE LINK={msg.LINK}";
-								//int count = _dataAdapter.ExecuteUpdate(sql);
+								sending = true;
+								string links = String.Join(",", messages.Select(msg => msg.LINK));
+								string statusInfo = "Сообщение доставляется.";
+								string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+								string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.SENDING}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE LINK IN ({links})";
+								int count = _dataAdapter.ExecuteUpdate(sql);
 							}
 						}
 					}
@@ -122,13 +132,13 @@ namespace Microservices.Channels.MSSQL
 				{
 					var error = new InvalidOperationException("Ошибка сканирования новых сообщений.", ex);
 					_logger.LogError(ex);
-					this.Error?.Invoke(error);
+					//this.Error?.Invoke(error);
 				}
 				finally
 				{
 					if (_started)
 					{
-						if (messages.Count > 0)
+						if (sending)
 							_queryTimer.Interval = 1;
 						else
 							_queryTimer.Interval = _interval.TotalMilliseconds;
