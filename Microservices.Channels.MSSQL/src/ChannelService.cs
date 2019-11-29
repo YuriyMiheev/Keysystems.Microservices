@@ -14,23 +14,27 @@ using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels.MSSQL
 {
+	/// <summary>
+	/// 
+	/// </summary>
 	public class ChannelService : IChannelService, IDisposable
 	{
 		private bool _initialized;
-		private IAppSettingsConfiguration _appConfig;
-		private ILogger _logger;
+		private readonly IAppSettingsConfiguration _appConfig;
+		private readonly ILogger _logger;
 		//private IServiceProvider _serviceProvider;
-		private IDatabase _database;
-		private IMessageDataAdapter _dataAdapter;
+		private readonly IDatabase _database;
+		private readonly IMessageDataAdapter _dataAdapter;
 		private CancellationTokenSource _cancellationSource;
-		private ISendMessageScanner _scanner;
-		private IMessageReceiver _receiver;
+		private readonly ISendMessageScanner _scanner;
+		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
-		private InfoSettings _infoSettings;
-		private ChannelSettings _channelSettings;
-		private DatabaseSettings _databaseSettings;
-		private MessageSettings _messageSettings;
-		private ServiceSettings _serviceSettings;
+		private readonly InfoSettings _infoSettings;
+		private readonly ChannelSettings _channelSettings;
+		private readonly DatabaseSettings _databaseSettings;
+		private readonly MessageSettings _messageSettings;
+		//private readonly ServiceSettings _serviceSettings;
+		private readonly ChannelStatus _channelStatus;
 
 
 		#region Ctor
@@ -45,6 +49,7 @@ namespace Microservices.Channels.MSSQL
 			_dataAdapter = serviceProvider.GetRequiredService<IMessageDataAdapter>();
 			_scanner = serviceProvider.GetRequiredService<ISendMessageScanner>();
 			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
+			_channelStatus = serviceProvider.GetRequiredService<ChannelStatus>();
 			//_publisher = new MessagePublisher(this);
 
 			_scanner.NewMessages += scanner_NewMessages;
@@ -53,7 +58,7 @@ namespace Microservices.Channels.MSSQL
 			_channelSettings = _appConfig.ChannelSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();
 			_messageSettings = _appConfig.MessageSettings();
-			_serviceSettings = _appConfig.ServiceSettings();
+			//_serviceSettings = _appConfig.ServiceSettings();
 
 			this.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
 			this.VirtAddress = _infoSettings.VirtAddress;
@@ -65,7 +70,7 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// 
 		/// </summary>
-		public event Func<Message[], bool> OutMessages;
+		public event Func<Message[], bool> SendMessages;
 		#endregion
 
 
@@ -83,17 +88,10 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public bool Opened { get; private set; }
-
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public bool Running { get; private set; }
-
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public bool? Online { get; private set; }
+		public ChannelStatus Status
+		{
+			get { return _channelStatus; }
+		}
 		#endregion
 
 
@@ -102,7 +100,7 @@ namespace Microservices.Channels.MSSQL
 		{
 			Initialize();
 
-			this.Opened = true;
+			_channelStatus.Opened = true;
 			//UpdateMyselfContact(this.Info);
 
 			//ServiceInfo serviceInfo = this.MessageService.GetInfo();
@@ -209,7 +207,7 @@ namespace Microservices.Channels.MSSQL
 				//		this.scanSubscriber.Start(this.MessageSettings.ScanThreads, this.cancelToken);
 			}
 
-			this.Running = true;
+			_channelStatus.Running = true;
 
 			//UpdateMyselfContact(this.Info);
 		}
@@ -218,8 +216,8 @@ namespace Microservices.Channels.MSSQL
 		{
 			_cancellationSource.Token.Register(() =>
 				{
-					this.Running = false;
-					this.Online = null;
+					_channelStatus.Running = false;
+					_channelStatus.Online = null;
 				});
 			_cancellationSource.Cancel();
 			//OnStopping();
@@ -246,7 +244,7 @@ namespace Microservices.Channels.MSSQL
 		{
 			_cancellationSource.Token.Register(() =>
 				{
-					this.Opened = false;
+					_channelStatus.Opened = false;
 					//this.Running = false;
 					//this.Online = null;
 				});
@@ -273,13 +271,13 @@ namespace Microservices.Channels.MSSQL
 			if (_database.TryConnect(out ex))
 			{
 				error = null;
-				this.Online = true;
+				_channelStatus.Online = true;
 				return true;
 			}
 			else
 			{
 				error = ex;
-				this.Online = false;
+				_channelStatus.Online = false;
 				return false;
 			}
 		}
@@ -711,14 +709,14 @@ namespace Microservices.Channels.MSSQL
 
 		private void CheckOpened()
 		{
-			if (!this.Opened)
+			if (!_channelStatus.Opened)
 				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
 
 		private bool scanner_NewMessages(Message[] messages)
 		{
-			if (this.OutMessages != null)
-				return this.OutMessages.Invoke(messages);
+			if (this.SendMessages != null)
+				return this.SendMessages.Invoke(messages);
 			else
 				return false;
 		}
@@ -736,6 +734,7 @@ namespace Microservices.Channels.MSSQL
 				{
 					// TODO: dispose managed state (managed objects).
 					_cancellationSource.Cancel();
+					_cancellationSource.Dispose();
 					//OnClosing();
 
 					//this.Stopping = null;
@@ -761,9 +760,9 @@ namespace Microservices.Channels.MSSQL
 
 					_database.Close();
 
-					this.Opened = false;
-					this.Running = false;
-					this.Online = null;
+					_channelStatus.Opened = false;
+					_channelStatus.Running = false;
+					_channelStatus.Online = null;
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

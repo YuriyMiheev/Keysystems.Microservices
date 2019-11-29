@@ -17,12 +17,13 @@ namespace Microservices.Channels.MSSQL.Hubs
 {
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
-		private IChannelService _channelService;
-		private IAppSettingsConfiguration _appConfig;
-		private IMessageDataAdapter _dataAdapter;
-		private IHubClientConnections _connections;
-		private ServiceSettings _serviceSettings;
-		private ILogger _logger;
+		private readonly IChannelService _channelService;
+		private readonly IAppSettingsConfiguration _appConfig;
+		private readonly IMessageDataAdapter _dataAdapter;
+		private readonly IHubClientConnections _connections;
+		private readonly ServiceSettings _serviceSettings;
+		private readonly ILogger _logger;
+		private readonly ChannelStatus _channelStatus;
 
 
 		#region Ctor
@@ -34,6 +35,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 
+			_channelStatus = channelService.Status;
 			_serviceSettings = _appConfig.ServiceSettings();
 		}
 		#endregion
@@ -51,7 +53,8 @@ namespace Microservices.Channels.MSSQL.Hubs
 					connection = new HubClientConnection(connectionId, client);
 					_connections.Add(connection);
 
-					_channelService.OutMessages += SendMessages;
+					_channelService.SendMessages += SendMessages;
+					_channelService.Status.PropertyChanged += channelStatus_Changed;
 				}
 
 				return this.Context.ConnectionId;
@@ -446,6 +449,16 @@ namespace Microservices.Channels.MSSQL.Hubs
 		private bool SendMessages(Message[] messages)
 		{
 			return _connections.SendMessagesToClient(messages);
+		}
+
+		private void channelStatus_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			var status = new Dictionary<string, object>();
+			status.Add("Opened", _channelStatus.Opened);
+			status.Add("Running", _channelStatus.Running);
+			status.Add("Online", _channelStatus.Online);
+
+			_connections.SendStatusToClient(status);
 		}
 		#endregion
 

@@ -8,14 +8,11 @@ namespace Microservices.Channels.Hubs
 	public interface IChannelHubCallback
 	{
 
-		#region Messages
-		Task OutMessages(Message[] messages);
-		#endregion
+		Task ReceiveMessages(Message[] messages);
 
-
-		#region Logging
-		Task Log(IDictionary<string, string> record);
-		#endregion
+		Task ReceiveStatus(IDictionary<string, object> status);
+		
+		Task ReceiveLog(IDictionary<string, string> record);
 
 	}
 }

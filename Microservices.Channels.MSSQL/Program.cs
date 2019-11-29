@@ -54,6 +54,7 @@ namespace Microservices.Channels.MSSQL
 					services.AddSingleton<IHubClientConnections, HubClientConnections>();
 					services.AddSingleton<ISendMessageScanner, SendMessageScanner>();
 					services.AddSingleton<IMessageReceiver, MessageReceiver>();
+					services.AddSingleton<ChannelStatus>();
 					services.AddSingleton<IChannelService>(serviceProvider =>
 						{
 							return new ChannelService(serviceProvider);

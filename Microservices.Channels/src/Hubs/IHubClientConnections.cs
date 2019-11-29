@@ -16,5 +16,7 @@ namespace Microservices.Channels.Hubs
 		bool SendLogToClient(IDictionary<string, string> record);
 
 		bool SendMessagesToClient(Message[] messages);
+
+		void SendStatusToClient(IDictionary<string, object> status);
 	}
 }

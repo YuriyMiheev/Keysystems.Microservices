@@ -11,7 +11,7 @@ namespace Microservices.Channels
 	{
 
 		#region Events
-		event Func<Message[], bool> OutMessages;
+		event Func<Message[], bool> SendMessages;
 		#endregion
 
 
@@ -20,11 +20,7 @@ namespace Microservices.Channels
 
 		string VirtAddress { get; }
 
-		bool Opened { get; }
-
-		bool Running { get; }
-
-		bool? Online { get; }
+		ChannelStatus Status { get; }
 		#endregion
 
 
