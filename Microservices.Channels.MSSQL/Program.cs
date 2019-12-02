@@ -40,7 +40,7 @@ namespace Microservices.Channels.MSSQL
 				.ConfigureServices(services =>
 				{
 					var appConfig = (XmlConfigFileConfigurationProvider)appConfiguration.Providers.Single();
-					services.AddSingleton<IAppSettingsConfiguration>(appConfig);
+					services.AddSingleton<IAppSettingsConfig>(appConfig);
 
 					//IDatabase database = new ChannelDatabase();
 					//database.Schema = _databaseSettings.Schema;

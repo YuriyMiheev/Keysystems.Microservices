@@ -160,10 +160,10 @@ namespace Microservices.Channels.Client
 			this.Connected?.Invoke(this);
 
 			receiveLogAction_v1 = new ActionBlock<IDictionary<string, string>>(ReceiveLogAction_v1, new ExecutionDataflowBlockOptions() { });
-			receiveLogHandler_v1 = _hubConnection.On<IDictionary<string, string>>("Log", OnReceiveLog_v1);
+			receiveLogHandler_v1 = _hubConnection.On<IDictionary<string, string>>("ReceiveLog", OnReceiveLog_v1);
 
 			receiveMessagesAction_v1 = new ActionBlock<Message[]>(ReceiveMessagesAction_v1, new ExecutionDataflowBlockOptions() { });
-			receiveMessagesHandler_v1 = _hubConnection.On<Message[]>("OutMessages", OnReceiveMessages_v1);
+			receiveMessagesHandler_v1 = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages_v1);
 		}
 
 		Task IChannelHub_v1.LogoutAsync(CancellationToken cancellationToken)

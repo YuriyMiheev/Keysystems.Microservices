@@ -18,7 +18,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
 		private readonly IChannelService _channelService;
-		private readonly IAppSettingsConfiguration _appConfig;
+		private readonly IAppSettingsConfig _appConfig;
 		private readonly IMessageDataAdapter _dataAdapter;
 		private readonly IHubClientConnections _connections;
 		private readonly ServiceSettings _serviceSettings;
@@ -27,7 +27,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 
 
 		#region Ctor
-		public ChannelHub(IChannelService channelService, IAppSettingsConfiguration appConfig, IMessageDataAdapter dataAdapter, ILogger logger, IHubClientConnections connections)
+		public ChannelHub(IChannelService channelService, IAppSettingsConfig appConfig, IMessageDataAdapter dataAdapter, ILogger logger, IHubClientConnections connections)
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));

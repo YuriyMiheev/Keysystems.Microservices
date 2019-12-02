@@ -11,11 +11,11 @@ namespace Microservices.Channels.MSSQL.Controllers
 	public class ChannelController : Controller
 	{
 		private IChannelService _channelService;
-		private IAppSettingsConfiguration _appConfig;
+		private IAppSettingsConfig _appConfig;
 		private IHubContext<ChannelHub, IChannelHubClient> _hubContext;
 
 
-		public ChannelController(IChannelService channelService, IAppSettingsConfiguration appConfig, IHubContext<ChannelHub, IChannelHubClient> hubContext)
+		public ChannelController(IChannelService channelService, IAppSettingsConfig appConfig, IHubContext<ChannelHub, IChannelHubClient> hubContext)
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));

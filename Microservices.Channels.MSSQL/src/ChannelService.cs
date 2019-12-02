@@ -20,7 +20,7 @@ namespace Microservices.Channels.MSSQL
 	public class ChannelService : IChannelService, IDisposable
 	{
 		private bool _initialized;
-		private readonly IAppSettingsConfiguration _appConfig;
+		private readonly IAppSettingsConfig _appConfig;
 		private readonly ILogger _logger;
 		//private IServiceProvider _serviceProvider;
 		private readonly IDatabase _database;
@@ -43,7 +43,7 @@ namespace Microservices.Channels.MSSQL
 			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 			_cancellationSource = new CancellationTokenSource();
 
-			_appConfig = serviceProvider.GetRequiredService<IAppSettingsConfiguration>();
+			_appConfig = serviceProvider.GetRequiredService<IAppSettingsConfig>();
 			_logger = serviceProvider.GetRequiredService<ILogger>();
 			_database = serviceProvider.GetRequiredService<IDatabase>();
 			_dataAdapter = serviceProvider.GetRequiredService<IMessageDataAdapter>();
@@ -166,8 +166,9 @@ namespace Microservices.Channels.MSSQL
 			{
 				try
 				{
-					string statusInfo = new ChannelException(this, "Отправка сообщения была прервана.").ToString();
-					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
+					string statusInfo = "Отправка сообщения была прервана.";
+					string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
 					int count = _dataAdapter.ExecuteUpdate(sql);
 					_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
 				}
@@ -181,8 +182,9 @@ namespace Microservices.Channels.MSSQL
 			{
 				try
 				{
-					string statusInfo = new ChannelException(this, "Прием сообщения был прерван.").ToString();
-					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss")}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
+					string statusInfo = "Прием сообщения был прерван.";
+					string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
 					int count = _dataAdapter.ExecuteUpdate(sql);
 					_logger.LogTrace($"Найдено непринятых сообщений: {count}");
 				}
@@ -193,8 +195,8 @@ namespace Microservices.Channels.MSSQL
 			}
 
 			DeleteDeletedMessages();
-			ResetSendingMessages();
-			ResetReceivingMessages();
+			//ResetSendingMessages();
+			//ResetReceivingMessages();
 
 			if (_messageSettings.ScanEnabled)
 			{

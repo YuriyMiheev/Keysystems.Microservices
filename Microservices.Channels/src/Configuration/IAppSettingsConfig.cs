@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Microservices.Channels.Configuration
 {
-	public interface IAppSettingsConfiguration
+	public interface IAppSettingsConfig
 	{
 		IDictionary<string, ConfigFileSetting> GetAppSettings();
 

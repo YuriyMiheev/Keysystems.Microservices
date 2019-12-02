@@ -11,7 +11,7 @@ namespace Microservices.Channels.Configuration
 	/// <summary>
 	/// 
 	/// </summary>
-	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider, IAppSettingsConfiguration
+	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider, IAppSettingsConfig
 	{
 		private IDictionary<string, ConfigFileSetting> _appSettings;
 
