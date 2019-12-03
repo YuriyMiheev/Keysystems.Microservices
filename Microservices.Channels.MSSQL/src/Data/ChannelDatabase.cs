@@ -116,7 +116,7 @@ namespace Microservices.Channels.MSSQL.Data
 			catch (Exception ex)
 			{
 				//System.ComponentModel.Win32Exception
-				throw new ConnectionException(String.Format("Ошибка подключения к БД: {0}.", this), ex);
+				throw new ConnectionException($"Ошибка подключения к БД: {this}.", ex);
 			}
 		}
 
@@ -133,7 +133,7 @@ namespace Microservices.Channels.MSSQL.Data
 			}
 			catch (Exception ex)
 			{
-				throw new InvalidOperationException(String.Format("Ошибка открытия БД: {0}.", this), ex);
+				throw new DatabaseException($"Ошибка открытия БД: {this}.", ex);
 			}
 		}
 
@@ -171,7 +171,7 @@ namespace Microservices.Channels.MSSQL.Data
 			}
 			catch (Exception ex)
 			{
-				throw new DatabaseException(String.Format("Некорректная структура таблиц БД: {0}.", this), ex);
+				throw new DatabaseException($"Некорректная структура таблиц БД: {this}.", ex);
 			}
 		}
 
@@ -194,7 +194,7 @@ namespace Microservices.Channels.MSSQL.Data
 			}
 			catch (Exception ex)
 			{
-				throw new DatabaseException(String.Format("Ошибка создания/обновления схемы БД: {0}.", this), ex);
+				throw new DatabaseException($"Ошибка создания/обновления схемы БД: {this}.", ex);
 			}
 		}
 
@@ -217,7 +217,7 @@ namespace Microservices.Channels.MSSQL.Data
 			}
 			catch (Exception ex)
 			{
-				throw new DatabaseException(String.Format("Ошибка пересоздания схемы БД: {0}.", this), ex);
+				throw new DatabaseException($"Ошибка пересоздания схемы БД: {this}.", ex);
 			}
 		}
 

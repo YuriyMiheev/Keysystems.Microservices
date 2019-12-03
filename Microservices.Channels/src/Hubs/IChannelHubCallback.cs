@@ -10,9 +10,9 @@ namespace Microservices.Channels.Hubs
 
 		Task ReceiveMessages(Message[] messages);
 
-		Task ReceiveStatus(IDictionary<string, object> status);
+		Task ReceiveStatus(string statusName, object statusValue);
 		
-		Task ReceiveLog(IDictionary<string, string> record);
+		Task ReceiveLog(IDictionary<string, object> record);
 
 	}
 }

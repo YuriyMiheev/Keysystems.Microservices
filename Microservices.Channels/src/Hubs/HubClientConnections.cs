@@ -17,10 +17,6 @@ namespace Microservices.Channels.Hubs
 		}
 
 
-		//public  ConcurrentDictionary<string, ClientConnection> Connections
-		//{
-		//	get { return _connections; }
-		//}
 
 		public void Add(HubClientConnection connection)
 		{
@@ -37,7 +33,7 @@ namespace Microservices.Channels.Hubs
 			return _connections.TryRemove(connectionId, out connection);
 		}
 
-		public bool SendLogToClient(IDictionary<string, string> record)
+		public bool SendLogToClient(IDictionary<string, object> record)
 		{
 			if (_connections.Count == 0)
 				return false;
@@ -61,11 +57,11 @@ namespace Microservices.Channels.Hubs
 			return true;
 		}
 
-		public void SendStatusToClient(IDictionary<string, object> status)
+		public void SendStatusToClient(string statusName, object statusValue)
 		{
 			_connections.Values.AsParallel().ForAll(async conn =>
 				{
-					await conn.Client.ReceiveStatus(status);
+					await conn.Client.ReceiveStatus(statusName, statusValue);
 				});
 		}
 

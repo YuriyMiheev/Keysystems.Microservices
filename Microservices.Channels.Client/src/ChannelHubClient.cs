@@ -13,9 +13,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microservices.Channels.Client
 {
-	public class ChannelHubClient : IChannelHubClient, IChannelHub_v1
+	public class ChannelHubClient : IChannelHubClient
 	{
 		private HubConnection _hubConnection;
+		private IDictionary<string, object> _channelInfo;
+		private ChannelStatus _channelStatus;
+		private IDisposable _logHandler;
+		private IDisposable _messagesHandler;
+		private IDisposable _statusHandler;
+		private ActionBlock<IDictionary<string, object>> _logAction;
+		private ActionBlock<Message[]> _messagesAction;
+		private ActionBlock<(string, object)> _statusAction;
 
 
 		#region Ctor
@@ -30,6 +38,8 @@ namespace Microservices.Channels.Client
 		public ChannelHubClient(Uri serviceUrl)
 		{
 			this.HubUrl = new UriBuilder(serviceUrl);
+			_channelInfo = new Dictionary<string, object>();
+			_channelStatus = new ChannelStatus();
 		}
 		#endregion
 
@@ -53,7 +63,18 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public string ConnectionId { get; private set; }
+		public IDictionary<string, object> ChannelInfo
+		{
+			get => _channelInfo;
+		}
+
+		/// <summary>
+		/// {Get}
+		/// </summary>
+		public ChannelStatus ChannelStatus
+		{
+			get => _channelStatus;
+		}
 		#endregion
 
 
@@ -65,81 +86,15 @@ namespace Microservices.Channels.Client
 		public event Func<IChannelHubClient, string, Task> Reconnected;
 
 		public event Func<IChannelHubClient, Exception, Task> Disconnected;
-		#endregion
 
+		public event Action<IChannelHubClient, IDictionary<string, object>> LogReceived;
 
-		#region IChannelHub_v1
-
-		#region Events/Callbacks
-		private IDisposable receiveLogHandler_v1;
-		private ActionBlock<IDictionary<string, string>> receiveLogAction_v1;
-		private object _serviceLogReceivedLock = new Object();
-		private event Action<IChannelHubClient, IDictionary<string, string>> serviceLogReceived_v1;
-		event Action<IChannelHubClient, IDictionary<string, string>> IChannelHub_v1.LogReceived
-		{
-			add
-			{
-				lock (_serviceLogReceivedLock)
-				{
-					serviceLogReceived_v1 += value;
-				}
-			}
-			remove
-			{
-				lock (_serviceLogReceivedLock)
-				{
-					serviceLogReceived_v1 -= value;
-				}
-			}
-		}
-
-		void OnReceiveLog_v1(IDictionary<string, string> logRecord)
-		{
-			receiveLogAction_v1.Post(logRecord);
-		}
-
-		void ReceiveLogAction_v1(IDictionary<string, string> logRecord)
-		{
-			serviceLogReceived_v1?.Invoke(this, logRecord);
-		}
-
-
-		private IDisposable receiveMessagesHandler_v1;
-		private ActionBlock<Message[]> receiveMessagesAction_v1;
-		private object _sendMessagesReceivedLock = new Object();
-		private event Action<IChannelHubClient, Message[]> sendMessagesReceived_v1;
-		event Action<IChannelHubClient, Message[]> IChannelHub_v1.SendMessagesReceived
-		{
-			add
-			{
-				lock (_sendMessagesReceivedLock)
-				{
-					sendMessagesReceived_v1 += value;
-				}
-			}
-			remove
-			{
-				lock (_sendMessagesReceivedLock)
-				{
-					sendMessagesReceived_v1 -= value;
-				}
-			}
-		}
-
-		void OnReceiveMessages_v1(Message[] messages)
-		{
-			receiveMessagesAction_v1.Post(messages);
-		}
-
-		void ReceiveMessagesAction_v1(Message[] messages)
-		{
-			sendMessagesReceived_v1?.Invoke(this, messages);
-		}
+		public event Action<IChannelHubClient, Message[]> MessagesReceived;
 		#endregion
 
 
 		#region Login/Logout
-		async Task IChannelHub_v1.LoginAsync(string accessKey, CancellationToken cancellationToken)
+		public async Task LoginAsync(string accessKey, CancellationToken cancellationToken = default)
 		{
 			if (this.IsConnected)
 				throw new InvalidOperationException($"Подключение к хабу {this.HubUrl} уже выполнено.");
@@ -150,23 +105,32 @@ namespace Microservices.Channels.Client
 			_hubConnection = CreateConnection(uri.Uri);
 			await _hubConnection.StartAsync(cancellationToken);
 
-			this.ConnectionId = await _hubConnection.InvokeAsync<string>("Login", accessKey, cancellationToken);
-			if (this.ConnectionId == null)
+			var result = await _hubConnection.InvokeAsync<IDictionary<string, object>>("Login", accessKey, cancellationToken);
+			if (result == null)
 			{
 				await _hubConnection.StopAsync();
 				throw new InvalidOperationException("Неверный ключ доступа.");
 			}
 
+			_channelInfo.Clear();
+			foreach (string key in result.Keys)
+			{
+				_channelInfo[key] = result[key];
+			}
+
 			this.Connected?.Invoke(this);
 
-			receiveLogAction_v1 = new ActionBlock<IDictionary<string, string>>(ReceiveLogAction_v1, new ExecutionDataflowBlockOptions() { });
-			receiveLogHandler_v1 = _hubConnection.On<IDictionary<string, string>>("ReceiveLog", OnReceiveLog_v1);
+			_logAction = new ActionBlock<IDictionary<string, object>>(ReceiveLogAction_v1, new ExecutionDataflowBlockOptions() { });
+			_logHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveLog", OnReceiveLog_v1);
 
-			receiveMessagesAction_v1 = new ActionBlock<Message[]>(ReceiveMessagesAction_v1, new ExecutionDataflowBlockOptions() { });
-			receiveMessagesHandler_v1 = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages_v1);
+			_messagesAction = new ActionBlock<Message[]>(ReceiveMessagesAction_v1, new ExecutionDataflowBlockOptions() { });
+			_messagesHandler = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages_v1);
+
+			_statusAction = new ActionBlock<(string, object)>(ReceiveStatusAction_v1, new ExecutionDataflowBlockOptions() { });
+			_statusHandler = _hubConnection.On<string, object>("ReceiveStatus", OnReceiveStatus_v1);
 		}
 
-		Task IChannelHub_v1.LogoutAsync(CancellationToken cancellationToken)
+		public Task LogoutAsync(CancellationToken cancellationToken = default)
 		{
 			if (this.IsConnected)
 				return _hubConnection.StopAsync(cancellationToken);
@@ -177,25 +141,25 @@ namespace Microservices.Channels.Client
 
 
 		#region Control
-		Task IChannelHub_v1.OpenChannelAsync(CancellationToken cancellationToken)
+		public Task OpenChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("OpenChannel", cancellationToken);
 		}
 
-		Task IChannelHub_v1.CloseChannelAsync(CancellationToken cancellationToken)
+		public Task CloseChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("CloseChannel", cancellationToken);
 		}
 
-		Task IChannelHub_v1.RunChannelAsync(CancellationToken cancellationToken)
+		public Task RunChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("RunChannel", cancellationToken);
 		}
 
-		Task IChannelHub_v1.StopChannelAsync(CancellationToken cancellationToken)
+		public Task StopChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("StopChannel", cancellationToken);
@@ -204,25 +168,25 @@ namespace Microservices.Channels.Client
 
 
 		#region Diagnostic
-		Task<Exception> IChannelHub_v1.TryConnectAsync(CancellationToken cancellationToken)
+		public Task<Exception> TryConnectAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<Exception>("TryConnect", cancellationToken);
 		}
 
-		Task<Exception> IChannelHub_v1.CheckStateAsync(CancellationToken cancellationToken)
+		public Task<Exception> CheckStateAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<Exception>("CheckState", cancellationToken);
 		}
 
-		Task IChannelHub_v1.RepairAsync(CancellationToken cancellationToken)
+		public Task RepairAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("Repair", cancellationToken);
 		}
 
-		Task IChannelHub_v1.PingAsync(CancellationToken cancellationToken)
+		public Task PingAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("Ping", cancellationToken);
@@ -231,88 +195,88 @@ namespace Microservices.Channels.Client
 
 
 		#region Settings
-		Task<IDictionary<string, SettingItem>> IChannelHub_v1.GetSettingsAsync(CancellationToken cancellationToken)
+		public Task<IDictionary<string, SettingItem>> GetSettingsAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("GetSettings", cancellationToken);
 		}
 
-		Task IChannelHub_v1.SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken)
+		public Task SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SetSettings", cancellationToken);
+			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SetSettings", settings, cancellationToken);
 		}
 
-		Task IChannelHub_v1.SaveSettings(CancellationToken cancellationToken)
+		public Task SaveSettings(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SaveSettings", cancellationToken);
+			return _hubConnection.InvokeAsync("SaveSettings", cancellationToken);
 		}
 		#endregion
 
 
 		#region Messages
-		Task<List<Message>> IChannelHub_v1.SelectMessagesAsync(QueryParams queryParams, CancellationToken cancellationToken)
+		public Task<List<Message>> SelectMessagesAsync(QueryParams queryParams, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<List<Message>>("SelectMessages", queryParams, cancellationToken);
 		}
 
-		Task<(List<Message>, int)> IChannelHub_v1.GetMessagesAsync(string status, int? skip, int? take, CancellationToken cancellationToken)
+		public Task<(List<Message>, int)> GetMessagesAsync(string status, int? skip, int? take, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<(List<Message>, int)>("GetMessages", status, skip, take, cancellationToken);
 		}
 
-		Task<(List<Message>, int)> IChannelHub_v1.GetLastMessagesAsync(string status, int? skip, int? take, CancellationToken cancellationToken)
+		public Task<(List<Message>, int)> GetLastMessagesAsync(string status, int? skip, int? take, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<(List<Message>, int)>("GetLastMessages", status, skip, take, cancellationToken);
 		}
 
-		Task<Message> IChannelHub_v1.GetMessageAsync(int msgLink, CancellationToken cancellationToken)
+		public Task<Message> GetMessageAsync(int msgLink, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<Message>("GetMessage", msgLink, cancellationToken);
 		}
 
-		//Task<Message> IChannelHub_v1.FindMessageAsync(int msgLink, CancellationToken cancellationToken)
+		//Task<Message> IChannelHub_v1.FindMessageAsync(int msgLink, CancellationToken cancellationToken = default)
 		//{
 		//	CheckConnected();
 		//	return _hubConnection.InvokeAsync<Message>("FindMessage", msgLink, cancellationToken);
 		//}
 
-		Task<Message> IChannelHub_v1.FindMessageByGuidAsync(string msgGuid, string direction, CancellationToken cancellationToken)
+		public Task<Message> FindMessageByGuidAsync(string msgGuid, string direction, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<Message>("FindMessageByGuid", msgGuid, direction, cancellationToken);
 		}
 
-		Task IChannelHub_v1.SaveMessageAsync(Message msg, CancellationToken cancellationToken)
+		public Task SaveMessageAsync(Message msg, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("SaveMessage", msg, cancellationToken);
 		}
 
-		Task IChannelHub_v1.DeleteMessageAsync(int msgLink, CancellationToken cancellationToken)
+		public Task DeleteMessageAsync(int msgLink, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("DeleteMessage", msgLink, cancellationToken);
 		}
 
-		//Task IChannelHub_v1.DeleteExpiredMessagesAsync(DateTime expiredDate, List<string> statuses, CancellationToken cancellationToken)
+		//Task IChannelHub_v1.DeleteExpiredMessagesAsync(DateTime expiredDate, List<string> statuses, CancellationToken cancellationToken = default)
 		//{
 		//	CheckConnected();
 		//	return _hubConnection.InvokeAsync("DeleteExpiredMessages", expiredDate, statuses, cancellationToken);
 		//}
 
-		Task IChannelHub_v1.DeleteMessagesAsync(IEnumerable<int> msgLinks, CancellationToken cancellationToken)
+		public Task DeleteMessagesAsync(IEnumerable<int> msgLinks, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("DeleteMessages", msgLinks, cancellationToken);
 		}
 
-		Task<int?> IChannelHub_v1.ReceiveMessageAsync(int msgLink, CancellationToken cancellationToken)
+		public Task<int?> ReceiveMessageAsync(int msgLink, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<int?>("ReceiveMessage", msgLink, cancellationToken);
@@ -320,14 +284,14 @@ namespace Microservices.Channels.Client
 
 
 		#region Body
-		Task<TextReader> IChannelHub_v1.ReadMessageBodyAsync(int msgLink, CancellationToken cancellationToken)
+		public Task<TextReader> ReadMessageBodyAsync(int msgLink, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			IAsyncEnumerable<char[]> bodyStream = _hubConnection.StreamAsync<char[]>("ReadMessageBody", msgLink, cancellationToken);
 			return Task.Run<TextReader>(() => new AsyncStreamTextReader(bodyStream), cancellationToken);
 		}
 
-		Task IChannelHub_v1.SaveMessageBodyAsync(MessageBodyInfo bodyInfo, TextReader bodyStream, CancellationToken cancellationToken)
+		public Task SaveMessageBodyAsync(MessageBodyInfo bodyInfo, TextReader bodyStream, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			async IAsyncEnumerable<char[]> streamData()
@@ -347,14 +311,14 @@ namespace Microservices.Channels.Client
 		#endregion
 
 		#region Content
-		Task<TextReader> IChannelHub_v1.ReadMessageContentAsync(int contentLink, CancellationToken cancellationToken)
+		public Task<TextReader> ReadMessageContentAsync(int contentLink, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			IAsyncEnumerable<char[]> contentStream = _hubConnection.StreamAsync<char[]>("ReadMessageContent", contentLink, cancellationToken);
 			return Task.Run<TextReader>(() => new AsyncStreamTextReader(contentStream), cancellationToken);
 		}
 
-		Task IChannelHub_v1.SaveMessageContentAsync(MessageContentInfo contentInfo, TextReader contentStream, CancellationToken cancellationToken)
+		public Task SaveMessageContentAsync(MessageContentInfo contentInfo, TextReader contentStream, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			async IAsyncEnumerable<char[]> streamData()
@@ -371,8 +335,6 @@ namespace Microservices.Channels.Client
 
 			return _hubConnection.InvokeAsync("SaveMessageContent", contentInfo, streamData(), cancellationToken);
 		}
-		#endregion
-
 		#endregion
 
 		#endregion
@@ -395,7 +357,7 @@ namespace Microservices.Channels.Client
 			hubConnection.Reconnecting += (error) => this.Reconnecting?.Invoke(this, error);
 			hubConnection.Reconnected += (connectionId) =>
 				{
-					this.ConnectionId = connectionId;
+					this.ChannelInfo["ConnectionId"] = connectionId;
 					return this.Reconnected?.Invoke(this, connectionId);
 				};
 			return hubConnection;
@@ -405,6 +367,50 @@ namespace Microservices.Channels.Client
 		{
 			if (!this.IsConnected)
 				throw new InvalidOperationException($"Отсутствует подключение к хабу: {this.HubUrl}");
+		}
+
+		void OnReceiveMessages_v1(Message[] messages)
+		{
+			_messagesAction.Post(messages);
+		}
+
+		void ReceiveMessagesAction_v1(Message[] messages)
+		{
+			this.MessagesReceived?.Invoke(this, messages);
+		}
+
+		void OnReceiveLog_v1(IDictionary<string, object> logRecord)
+		{
+			_logAction.Post(logRecord);
+		}
+
+		void ReceiveLogAction_v1(IDictionary<string, object> logRecord)
+		{
+			this.LogReceived?.Invoke(this, logRecord);
+		}
+
+		void OnReceiveStatus_v1(string statusName, object statusValue)
+		{
+			_statusAction.Post((statusName, statusValue));
+		}
+
+		void ReceiveStatusAction_v1((string, object) status)
+		{
+			string statusName = status.Item1;
+			object statusValue = status.Item2;
+
+			switch (statusName)
+			{
+				case nameof(_channelStatus.Opened):
+					_channelStatus.Opened = (bool)statusValue;
+					break;
+				case nameof(_channelStatus.Running):
+					_channelStatus.Running = (bool)statusValue;
+					break;
+				case nameof(_channelStatus.Online):
+					_channelStatus.Online = (bool?)statusValue;
+					break;
+			}
 		}
 		#endregion
 
@@ -419,11 +425,11 @@ namespace Microservices.Channels.Client
 				if (disposing)
 				{
 					// TODO: dispose managed state (managed objects).
-					if (receiveLogHandler_v1 != null)
-						receiveLogHandler_v1.Dispose();
+					if (_logHandler != null)
+						_logHandler.Dispose();
 
-					if (receiveMessagesHandler_v1 != null)
-						receiveMessagesHandler_v1.Dispose();
+					if (_messagesHandler != null)
+						_messagesHandler.Dispose();
 
 					_hubConnection?.DisposeAsync();
 					_hubConnection = null;
@@ -431,8 +437,8 @@ namespace Microservices.Channels.Client
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
 				// TODO: set large fields to null.
-				serviceLogReceived_v1 = null;
-				sendMessagesReceived_v1 = null;
+				//serviceLogReceived_v1 = null;
+				//messagesReceived_v1 = null;
 				this.Connected = null;
 				this.Disconnected = null;
 

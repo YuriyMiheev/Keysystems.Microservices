@@ -20,12 +20,12 @@ namespace Microservices.Channels.MSSQL
 	public class ChannelService : IChannelService, IDisposable
 	{
 		private bool _initialized;
+		private CancellationTokenSource _cancellationSource;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly ILogger _logger;
 		//private IServiceProvider _serviceProvider;
 		private readonly IDatabase _database;
 		private readonly IMessageDataAdapter _dataAdapter;
-		private CancellationTokenSource _cancellationSource;
 		private readonly ISendMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
@@ -53,6 +53,7 @@ namespace Microservices.Channels.MSSQL
 			//_publisher = new MessagePublisher(this);
 
 			_scanner.NewMessages += scanner_NewMessages;
+			_channelStatus.PropertyChanged += channelStatus_Changed;
 
 			_infoSettings = _appConfig.InfoSettings();
 			_channelSettings = _appConfig.ChannelSettings();
@@ -71,6 +72,11 @@ namespace Microservices.Channels.MSSQL
 		/// 
 		/// </summary>
 		public event Func<Message[], bool> SendMessages;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public event Action<string, object> StatusChanged;
 		#endregion
 
 
@@ -90,7 +96,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		public ChannelStatus Status
 		{
-			get { return _channelStatus; }
+			get => _channelStatus;
 		}
 		#endregion
 
@@ -721,6 +727,22 @@ namespace Microservices.Channels.MSSQL
 				return this.SendMessages.Invoke(messages);
 			else
 				return false;
+		}
+
+		private void channelStatus_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			switch (e.PropertyName)
+			{
+				case nameof(_channelStatus.Opened):
+					this.StatusChanged?.Invoke(e.PropertyName, _channelStatus.Opened);
+					break;
+				case nameof(_channelStatus.Running):
+					this.StatusChanged?.Invoke(e.PropertyName, _channelStatus.Running);
+					break;
+				case nameof(_channelStatus.Online):
+					this.StatusChanged?.Invoke(e.PropertyName, _channelStatus.Online);
+					break;
+			}
 		}
 		#endregion
 

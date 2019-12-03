@@ -494,9 +494,9 @@ namespace Microservices.Channels.Adapters
 						query.SetParameterList("messages", links);
 						query.ExecuteUpdate();
 
-						query = work.CreateSQLQuery(String.Format("DELETE FROM {0} WHERE MESSAGE_LINK IN (:messages)", Database.Tables.MESSAGE_POSTS));
-						query.SetParameterList("messages", links);
-						query.ExecuteUpdate();
+						//query = work.CreateSQLQuery(String.Format("DELETE FROM {0} WHERE MESSAGE_LINK IN (:messages)", Database.Tables.MESSAGE_POSTS));
+						//query.SetParameterList("messages", links);
+						//query.ExecuteUpdate();
 
 						query = work.CreateSQLQuery(String.Format("DELETE FROM {0} WHERE LINK IN (:messages)", Database.Tables.MESSAGES));
 						query.SetParameterList("messages", links);

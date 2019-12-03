@@ -12,6 +12,8 @@ namespace Microservices.Channels
 
 		#region Events
 		event Func<Message[], bool> SendMessages;
+
+		event Action<string, object> StatusChanged;
 		#endregion
 
 

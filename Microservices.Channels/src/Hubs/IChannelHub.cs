@@ -13,7 +13,7 @@ namespace Microservices.Channels.Hubs
 	public interface IChannelHub
 	{
 
-		string Login(string accessKey);
+		IDictionary<string, object> Login(string accessKey);
 
 
 		#region Control

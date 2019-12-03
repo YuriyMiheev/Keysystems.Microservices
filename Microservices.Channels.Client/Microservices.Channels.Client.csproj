@@ -14,6 +14,7 @@
     <Compile Remove="src\HubClientFactory.cs" />
     <Compile Remove="src\HubClient_v1.cs" />
     <Compile Remove="src\IHubClient_v2.cs" />
+    <Compile Remove="src\~IChannelHubClient.cs" />
   </ItemGroup>
 
   <ItemGroup>

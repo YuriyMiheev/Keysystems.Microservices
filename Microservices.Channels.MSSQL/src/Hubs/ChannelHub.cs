@@ -23,7 +23,6 @@ namespace Microservices.Channels.MSSQL.Hubs
 		private readonly IHubClientConnections _connections;
 		private readonly ServiceSettings _serviceSettings;
 		private readonly ILogger _logger;
-		private readonly ChannelStatus _channelStatus;
 
 
 		#region Ctor
@@ -35,16 +34,15 @@ namespace Microservices.Channels.MSSQL.Hubs
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 
-			_channelStatus = channelService.Status;
 			_serviceSettings = _appConfig.ServiceSettings();
 		}
 		#endregion
 
 
 		//[HubMethodName("")]
-		public string Login(string accessKey)
+		public IDictionary<string, object> Login(string accessKey)
 		{
-			if (String.IsNullOrWhiteSpace(accessKey))
+			if ((accessKey ?? "") == _serviceSettings.AccessKey)
 			{
 				string connectionId = this.Context.ConnectionId;
 				if (!_connections.TryGet(connectionId, out HubClientConnection connection))
@@ -54,14 +52,19 @@ namespace Microservices.Channels.MSSQL.Hubs
 					_connections.Add(connection);
 
 					_channelService.SendMessages += SendMessages;
-					_channelService.Status.PropertyChanged += channelStatus_Changed;
+					_channelService.StatusChanged += StatusChanged;
 				}
 
-				return this.Context.ConnectionId;
+				var result = new Dictionary<string, object>();
+				result.Add("MachineName", Environment.MachineName);
+				result.Add("ProcessId", _channelService.ProcessId);
+				result.Add("ConnectionId", this.Context.ConnectionId);
+				result.Add("VirtAddress", _channelService.VirtAddress);
+				return result;
 			}
 			else
 			{
-				this.Context.Abort();
+				//this.Context.Abort();
 				return null;
 			}
 		}
@@ -184,9 +187,6 @@ namespace Microservices.Channels.MSSQL.Hubs
 
 		public void SetSettings(IDictionary<string, string> settings)
 		{
-			//if (_channelService.Opened)
-			//	throw new InvalidOperationException("Операция недопустима для открытого сервис-канала.");
-
 			_appConfig.SetAppSettings(settings);
 		}
 
@@ -409,7 +409,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		void LogError(Exception error)
 		{
 			_logger.LogError(error);
-			SendLog("ERROR", error);
+			SendLog("ERROR", error.ToString());
 		}
 
 		void LogError(string text, Exception error)
@@ -433,15 +433,15 @@ namespace Microservices.Channels.MSSQL.Hubs
 
 
 		#region Helper
-		private bool SendLog(string logLevel, object text)
+		private bool SendLog(string logLevel, string text)
 		{
-			var record = new Dictionary<string, string>();
+			var record = new Dictionary<string, object>();
 			record.Add("MachineName", Environment.MachineName);
 			record.Add("ProcessId", _channelService.ProcessId);
 			record.Add("ConnectionId", this.Context.ConnectionId);
 			record.Add("VirtAddress", _channelService.VirtAddress);
 			record.Add("LogLevel", logLevel);
-			record.Add("Text", text.ToString());
+			record.Add("Text", text);
 
 			return _connections.SendLogToClient(record);
 		}
@@ -451,14 +451,9 @@ namespace Microservices.Channels.MSSQL.Hubs
 			return _connections.SendMessagesToClient(messages);
 		}
 
-		private void channelStatus_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void StatusChanged(string statusName, object statusValue)
 		{
-			var status = new Dictionary<string, object>();
-			status.Add("Opened", _channelStatus.Opened);
-			status.Add("Running", _channelStatus.Running);
-			status.Add("Online", _channelStatus.Online);
-
-			_connections.SendStatusToClient(status);
+			_connections.SendStatusToClient(statusName, statusValue);
 		}
 		#endregion
 

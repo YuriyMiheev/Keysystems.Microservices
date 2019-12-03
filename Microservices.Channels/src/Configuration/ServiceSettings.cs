@@ -30,9 +30,14 @@ namespace Microservices.Channels.Configuration
 
 
 		#region Properties
+		public string AccessKey
+		{
+			get => Parser.ParseString(PropertyValue("X.AccessKey"), "");
+		}
+
 		public int BufferSize
 		{
-			get { return Parser.ParseInt(PropertyValue("X.BufferSize"), 4096) * 1024; }
+			get => Parser.ParseInt(PropertyValue("X.BufferSize"), 4096) * 1024;
 		}
 
 		/// <summary>
@@ -40,7 +45,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool LogHttpRequest
 		{
-			get { return Parser.ParseBool(PropertyValue("X.Log.HttpRequest"), false); }
+			get => Parser.ParseBool(PropertyValue("X.Log.HttpRequest"), false);
 		}
 
 		/// <summary>
@@ -48,29 +53,9 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool DebugEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("X.Debug.Enabled"), false); }
+			get => Parser.ParseBool(PropertyValue("X.Debug.Enabled"), false);
 		}
 		#endregion
-
-
-		//#region Methods
-		//public IDictionary<string, ConfigFileSetting> GetAppSettings()
-		//{
-		//	return _configuration.AppSettings;
-		//}
-
-		//public void SetAppSettings(IDictionary<string, string> settings)
-		//{
-		//	foreach (string key in settings.Keys)
-		//	{
-		//		if (_configuration.AppSettings.ContainsKey(key))
-		//			_configuration.AppSettings[key].Value = settings[key];
-		//	}
-		//}
-
-		////public void Save()
-		////{ }
-		//#endregion
 
 	}
 }

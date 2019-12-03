@@ -13,10 +13,10 @@ namespace Microservices.Channels.Hubs
 
 		bool TryRemove(string connectionId, out HubClientConnection connection);
 
-		bool SendLogToClient(IDictionary<string, string> record);
+		bool SendLogToClient(IDictionary<string, object> record);
 
 		bool SendMessagesToClient(Message[] messages);
 
-		void SendStatusToClient(IDictionary<string, object> status);
+		void SendStatusToClient(string statusName, object statusValue);
 	}
 }

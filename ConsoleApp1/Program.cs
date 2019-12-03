@@ -47,31 +47,34 @@ namespace ConsoleApp1
 				//	_processId = process.Id;
 
 
-				using (var hubClient = new ChannelHubClient("http://localhost:5005"))
+				using (IChannelHubClient hub = new ChannelHubClient("http://localhost:5005"))
 				{
-					hubClient.Connected += hubClient_Connected;
-					hubClient.Disconnected += hubClient_Disconnected;
+					hub.Connected += Connected;
+					hub.Disconnected += Disconnected;
+					hub.LogReceived += LogReceived;
+					hub.MessagesReceived += MessagesReceived;
+					hub.ChannelStatus.PropertyChanged += StatusChanged;
 
-					var api = hubClient as IChannelHub_v1;
-					api.LogReceived += log_Received;
-					api.SendMessagesReceived += sendMessages_Received;
+					await hub.LoginAsync("FD0CFC4A-3D0F-4EA8-B1D4-6FC306FCD73D");
+					IDictionary<string, SettingItem> settings = await hub.GetSettingsAsync();
+					//var newSettings = new Dictionary<string, string>();
+					//newSettings[".RealAddress"] = @"Data Source=.\SQLEXPRESS; Initial Catalog=EsbliteClient_v3.8; User ID=rms; Password=rms";
+					//await hub.SetSettingsAsync(newSettings);
 
-					await api.LoginAsync("");
-					IDictionary<string, SettingItem> settings = await api.GetSettingsAsync();
-					await api.OpenChannelAsync();
-					await api.RunChannelAsync();
-					(List<Message>, int) messages = await api.GetMessagesAsync(null, null, null);
+					await hub.OpenChannelAsync();
+					await hub.RunChannelAsync();
+					(List<Message>, int) messages = await hub.GetMessagesAsync(null, null, null);
 					if (messages.Item1.Count > 0)
 					{
-						Message msg = await api.GetMessageAsync(messages.Item1.First().LINK.Value);
-						//int? resMsg = await api.ReceiveMessage(msg.LINK.Value);
-						using (TextReader bodyReader = await api.ReadMessageBodyAsync(msg.LINK.Value))
+						Message msg = await hub.GetMessageAsync(messages.Item1.First().LINK.Value);
+						//int? resMsg = await hub.ReceiveMessage(msg.LINK.Value);
+						using (TextReader bodyReader = await hub.ReadMessageBodyAsync(msg.LINK.Value))
 						{
 							string body = await bodyReader.ReadToEndAsync();
 						}
 
 						MessageContentInfo contentInfo = msg.Contents[0];
-						using (TextReader contentReader = await api.ReadMessageContentAsync(contentInfo.LINK))
+						using (TextReader contentReader = await hub.ReadMessageContentAsync(contentInfo.LINK))
 						{
 							string content = await contentReader.ReadToEndAsync();
 							byte[] data = Convert.FromBase64String(content);
@@ -86,11 +89,11 @@ namespace ConsoleApp1
 					//	Name = "Новый2"
 					//};
 					//var contentStream = new StringReader("Hello, World!");
-					//await api.SaveMessageContent(contentInfo, contentStream);
+					//await hub.SaveMessageContent(contentInfo, contentStream);
 
 					Console.ReadLine();
-					await api.CloseChannelAsync();
-					await api.LogoutAsync();
+					await hub.CloseChannelAsync();
+					await hub.LogoutAsync();
 				}
 
 				//Console.ReadLine();
@@ -108,31 +111,36 @@ namespace ConsoleApp1
 			}
 		}
 
+		private static void StatusChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			Console.WriteLine($"Изменился статус: {e.PropertyName}");
+		}
+
 		private static int _count = 0;
-		private static void sendMessages_Received(IChannelHubClient hubClient, Message[] messages)
+		private static void MessagesReceived(IChannelHubClient hubClient, Message[] messages)
 		{
 			_count++;
 			Console.WriteLine($"{_count}. Messages: {messages.Length}");
 		}
 
-		private static void log_Received(IChannelHubClient hubClient, IDictionary<string, string> logRecord)
+		private static void LogReceived(IChannelHubClient hubClient, IDictionary<string, object> logRecord)
 		{
-			string machineName = logRecord["MachineName"];
-			string processId = logRecord["ProcessId"];
-			string connectionId = logRecord["ConnectionId"];
-			string virtAddress = logRecord["VirtAddress"];
-			string logLevel = logRecord["LogLevel"];
-			string text = logRecord["Text"];
+			var machineName = logRecord["MachineName"];
+			var processId = logRecord["ProcessId"];
+			var connectionId = logRecord["ConnectionId"];
+			var virtAddress = logRecord["VirtAddress"];
+			var logLevel = logRecord["LogLevel"];
+			var text = logRecord["Text"];
 			Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] [{machineName}] [{processId}] [{connectionId}] [{virtAddress}] [{logLevel}]");
 			Console.WriteLine($"{text}");
 		}
 
-		private static void hubClient_Connected(IChannelHubClient hubClient)
+		private static void Connected(IChannelHubClient hubClient)
 		{
 			Console.WriteLine("Connected");
 		}
 
-		private static Task hubClient_Disconnected(IChannelHubClient hubClient, Exception error)
+		private static Task Disconnected(IChannelHubClient hubClient, Exception error)
 		{
 			Console.WriteLine("Disconnected");
 			return Task.CompletedTask;
