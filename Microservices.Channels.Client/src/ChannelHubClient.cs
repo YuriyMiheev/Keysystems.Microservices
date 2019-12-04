@@ -16,8 +16,6 @@ namespace Microservices.Channels.Client
 	public class ChannelHubClient : IChannelHubClient
 	{
 		private HubConnection _hubConnection;
-		private IDictionary<string, object> _channelInfo;
-		private ChannelStatus _channelStatus;
 		private IDisposable _logHandler;
 		private IDisposable _messagesHandler;
 		private IDisposable _statusHandler;
@@ -38,8 +36,8 @@ namespace Microservices.Channels.Client
 		public ChannelHubClient(Uri serviceUrl)
 		{
 			this.HubUrl = new UriBuilder(serviceUrl);
-			_channelInfo = new Dictionary<string, object>();
-			_channelStatus = new ChannelStatus();
+			this.ChannelInfo = new Dictionary<string, object>();
+			this.ChannelStatus = new ChannelStatus();
 		}
 		#endregion
 
@@ -63,18 +61,12 @@ namespace Microservices.Channels.Client
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public IDictionary<string, object> ChannelInfo
-		{
-			get => _channelInfo;
-		}
+		public IDictionary<string, object> ChannelInfo { get; }
 
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public ChannelStatus ChannelStatus
-		{
-			get => _channelStatus;
-		}
+		public ChannelStatus ChannelStatus { get; }
 		#endregion
 
 
@@ -112,22 +104,22 @@ namespace Microservices.Channels.Client
 				throw new InvalidOperationException("Неверный ключ доступа.");
 			}
 
-			_channelInfo.Clear();
+			this.ChannelInfo.Clear();
 			foreach (string key in result.Keys)
 			{
-				_channelInfo[key] = result[key];
+				this.ChannelInfo[key] = result[key];
 			}
 
 			this.Connected?.Invoke(this);
 
-			_logAction = new ActionBlock<IDictionary<string, object>>(ReceiveLogAction_v1, new ExecutionDataflowBlockOptions() { });
-			_logHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveLog", OnReceiveLog_v1);
+			_logAction = new ActionBlock<IDictionary<string, object>>(ReceiveLogAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+			_logHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveLog", OnReceiveLog);
 
-			_messagesAction = new ActionBlock<Message[]>(ReceiveMessagesAction_v1, new ExecutionDataflowBlockOptions() { });
-			_messagesHandler = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages_v1);
+			_messagesAction = new ActionBlock<Message[]>(ReceiveMessagesAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+			_messagesHandler = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages);
 
-			_statusAction = new ActionBlock<(string, object)>(ReceiveStatusAction_v1, new ExecutionDataflowBlockOptions() { });
-			_statusHandler = _hubConnection.On<string, object>("ReceiveStatus", OnReceiveStatus_v1);
+			_statusAction = new ActionBlock<(string, object)>(ReceiveStatusAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+			_statusHandler = _hubConnection.On<string, object>("ReceiveStatus", OnReceiveStatus);
 		}
 
 		public Task LogoutAsync(CancellationToken cancellationToken = default)
@@ -369,46 +361,46 @@ namespace Microservices.Channels.Client
 				throw new InvalidOperationException($"Отсутствует подключение к хабу: {this.HubUrl}");
 		}
 
-		void OnReceiveMessages_v1(Message[] messages)
+		void OnReceiveMessages(Message[] messages)
 		{
 			_messagesAction.Post(messages);
 		}
 
-		void ReceiveMessagesAction_v1(Message[] messages)
+		void ReceiveMessagesAction(Message[] messages)
 		{
 			this.MessagesReceived?.Invoke(this, messages);
 		}
 
-		void OnReceiveLog_v1(IDictionary<string, object> logRecord)
+		void OnReceiveLog(IDictionary<string, object> logRecord)
 		{
 			_logAction.Post(logRecord);
 		}
 
-		void ReceiveLogAction_v1(IDictionary<string, object> logRecord)
+		void ReceiveLogAction(IDictionary<string, object> logRecord)
 		{
 			this.LogReceived?.Invoke(this, logRecord);
 		}
 
-		void OnReceiveStatus_v1(string statusName, object statusValue)
+		void OnReceiveStatus(string statusName, object statusValue)
 		{
 			_statusAction.Post((statusName, statusValue));
 		}
 
-		void ReceiveStatusAction_v1((string, object) status)
+		void ReceiveStatusAction((string, object) status)
 		{
 			string statusName = status.Item1;
 			object statusValue = status.Item2;
 
 			switch (statusName)
 			{
-				case nameof(_channelStatus.Opened):
-					_channelStatus.Opened = (bool)statusValue;
+				case nameof(this.ChannelStatus.Opened):
+					this.ChannelStatus.Opened = (bool)statusValue;
 					break;
-				case nameof(_channelStatus.Running):
-					_channelStatus.Running = (bool)statusValue;
+				case nameof(this.ChannelStatus.Running):
+					this.ChannelStatus.Running = (bool)statusValue;
 					break;
-				case nameof(_channelStatus.Online):
-					_channelStatus.Online = (bool?)statusValue;
+				case nameof(this.ChannelStatus.Online):
+					this.ChannelStatus.Online = (bool?)statusValue;
 					break;
 			}
 		}
@@ -431,16 +423,21 @@ namespace Microservices.Channels.Client
 					if (_messagesHandler != null)
 						_messagesHandler.Dispose();
 
+					if (_statusHandler != null)
+						_statusHandler.Dispose();
+
 					_hubConnection?.DisposeAsync();
-					_hubConnection = null;
+					//_hubConnection = null;
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
 				// TODO: set large fields to null.
-				//serviceLogReceived_v1 = null;
-				//messagesReceived_v1 = null;
 				this.Connected = null;
+				this.Reconnecting = null;
+				this.Reconnected = null;
 				this.Disconnected = null;
+				this.LogReceived = null;
+				this.MessagesReceived = null;
 
 				disposedValue = true;
 			}

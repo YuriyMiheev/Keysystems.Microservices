@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Microservices.Channels.Client
 {
+	[System.Diagnostics.DebuggerDisplay("{this.Value}")]
 	[Serializable]
 	public class SettingItem
 	{

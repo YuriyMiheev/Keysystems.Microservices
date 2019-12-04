@@ -61,7 +61,7 @@ namespace Microservices.Channels.MSSQL
 			_messageSettings = _appConfig.MessageSettings();
 			//_serviceSettings = _appConfig.ServiceSettings();
 
-			this.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+			this.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
 			this.VirtAddress = _infoSettings.VirtAddress;
 		}
 		#endregion
@@ -84,7 +84,7 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public string ProcessId { get; private set; }
+		public int ProcessId { get; private set; }
 
 		/// <summary>
 		/// {Get} Виртуальный адрес канала.
@@ -758,29 +758,9 @@ namespace Microservices.Channels.MSSQL
 				{
 					// TODO: dispose managed state (managed objects).
 					_cancellationSource.Cancel();
-					_cancellationSource.Dispose();
-					//OnClosing();
-
-					//this.Stopping = null;
-					//this.Closing = null;
 
 					if (_dataAdapter != null)
 						_dataAdapter.DbContext.Dispose();
-
-					//if (_scanner != null)
-					//	_scanner.Dispose();
-
-					//if (_publisher != null)
-					//	_publisher.Dispose();
-
-					//if (_scanSenders != null)
-					//	_scanSenders.ForEach(sender => sender.Dispose());
-
-					//if (_scanPublisher != null)
-					//	_scanPublisher.Dispose();
-
-					//if (_scanSubscriber != null)
-					//	_scanSubscriber.Dispose();
 
 					_database.Close();
 

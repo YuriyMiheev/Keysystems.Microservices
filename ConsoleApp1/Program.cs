@@ -18,6 +18,8 @@ namespace ConsoleApp1
 
 		static async Task Main(string[] args)
 		{
+			System.Threading.Thread.Sleep(1000);
+
 			//TaskScheduler.UnobservedTaskException += (s, e) =>
 			//{
 			//	if (e.Exception != null)
@@ -30,7 +32,6 @@ namespace ConsoleApp1
 
 			//	e.SetObserved();
 			//};
-			System.Threading.Thread.Sleep(1000);
 
 			try
 			{

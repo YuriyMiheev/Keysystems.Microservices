@@ -39,6 +39,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#endregion
 
 
+		#region Login/Logout
 		//[HubMethodName("")]
 		public IDictionary<string, object> Login(string accessKey)
 		{
@@ -55,19 +56,14 @@ namespace Microservices.Channels.MSSQL.Hubs
 					_channelService.StatusChanged += StatusChanged;
 				}
 
-				var result = new Dictionary<string, object>();
-				result.Add("MachineName", Environment.MachineName);
-				result.Add("ProcessId", _channelService.ProcessId);
-				result.Add("ConnectionId", this.Context.ConnectionId);
-				result.Add("VirtAddress", _channelService.VirtAddress);
-				return result;
+				return ChannelInfo();
 			}
 			else
 			{
-				//this.Context.Abort();
 				return null;
 			}
 		}
+		#endregion
 
 
 		#region Control
@@ -435,15 +431,21 @@ namespace Microservices.Channels.MSSQL.Hubs
 		#region Helper
 		private bool SendLog(string logLevel, string text)
 		{
-			var record = new Dictionary<string, object>();
-			record.Add("MachineName", Environment.MachineName);
-			record.Add("ProcessId", _channelService.ProcessId);
-			record.Add("ConnectionId", this.Context.ConnectionId);
-			record.Add("VirtAddress", _channelService.VirtAddress);
+			IDictionary<string, object> record = ChannelInfo();
 			record.Add("LogLevel", logLevel);
 			record.Add("Text", text);
 
 			return _connections.SendLogToClient(record);
+		}
+
+		private IDictionary<string, object> ChannelInfo()
+		{
+			var result = new Dictionary<string, object>();
+			result.Add("MachineName", Environment.MachineName);
+			result.Add("ProcessId", _channelService.ProcessId);
+			result.Add("ConnectionId", this.Context.ConnectionId);
+			result.Add("VirtAddress", _channelService.VirtAddress);
+			return result;
 		}
 
 		private bool SendMessages(Message[] messages)

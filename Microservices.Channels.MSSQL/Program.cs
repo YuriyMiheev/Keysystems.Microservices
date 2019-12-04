@@ -24,6 +24,7 @@ namespace Microservices.Channels.MSSQL
 				.AddJsonFile("appsettings.json", true, false)
 				.AddCommandLine(args)
 				.Build();
+			var s = hostConfiguration.GetValue<string>("Urls");
 			IConfigurationRoot appConfiguration = new ConfigurationBuilder()
 				.AddXmlConfigFile("appsettings.config")
 				.Build();

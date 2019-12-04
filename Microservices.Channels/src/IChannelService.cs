@@ -18,7 +18,7 @@ namespace Microservices.Channels
 
 
 		#region Properties
-		string ProcessId { get; }
+		int ProcessId { get; }
 
 		string VirtAddress { get; }
 
