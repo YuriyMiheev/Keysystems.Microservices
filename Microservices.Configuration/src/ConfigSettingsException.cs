@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	/// <summary>
 	/// 

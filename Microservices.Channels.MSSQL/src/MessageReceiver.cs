@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
-using Microservices.Channels.MSSQL.Adapters;
+using Microservices.Configuration;
 
 namespace Microservices.Channels.MSSQL
 {

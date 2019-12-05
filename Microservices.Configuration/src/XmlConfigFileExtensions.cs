@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	public static class XmlConfigFileExtensions
 	{

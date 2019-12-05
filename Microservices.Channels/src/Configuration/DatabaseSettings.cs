@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
+using Microservices.Configuration;
 
 namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// Настройки для работы с БД.
 	/// </summary>
-	public class DatabaseSettings : SettingsBase
+	public class DatabaseSettings : AppSettingsBase
 	{
 
 		#region Ctor

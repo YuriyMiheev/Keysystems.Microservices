@@ -1,7 +1,7 @@
 ﻿using System;
 
-using Microservices.Channels.Configuration;
 using Microservices.Channels.MSSQL.Hubs;
+using Microservices.Configuration;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;

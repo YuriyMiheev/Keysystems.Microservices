@@ -6,11 +6,6 @@
 
   <ItemGroup>
     <Compile Remove="CommonHub.cs" />
-    <Compile Remove="src\Configuration\ChannelServiceDependencyInjectionExtensions.cs" />
-    <Compile Remove="src\Configuration\IChannelConfigFileSettings.cs" />
-    <Compile Remove="src\Configuration\IServiceConfig.cs" />
-    <Compile Remove="src\Configuration\IServiceConfigFileSettings.cs" />
-    <Compile Remove="src\Configuration\ServiceConfig.cs" />
     <Compile Remove="src\Controllers\CommonHub.cs" />
     <Compile Remove="src\IChannelService.cs" />
     <Compile Remove="src\SendMessageProcessor.cs" />
@@ -33,10 +28,6 @@
     <Content Update="appsettings.config">
       <Generator></Generator>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="src\Configuration\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>

@@ -6,14 +6,15 @@ using System.Xml;
 
 using Microsoft.Extensions.Configuration;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider, IAppSettingsConfig
+	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider, IAppSettingsConfig, IConnectionStringsConfig
 	{
 		private IDictionary<string, ConfigFileSetting> _appSettings;
+		private IDictionary<string, ConnectionStringSetting> _connSettings;
 
 
 		/// <summary>
@@ -24,6 +25,7 @@ namespace Microservices.Channels.Configuration
 			: base(new XmlConfigFileConfigurationSource(configFile))
 		{
 			_appSettings = new Dictionary<string, ConfigFileSetting>();
+			_connSettings = new Dictionary<string, ConnectionStringSetting>();
 		}
 
 
@@ -48,7 +50,19 @@ namespace Microservices.Channels.Configuration
 			var xmldoc = new XmlDocument();
 			xmldoc.Load(stream);
 
-			XmlNodeList nodes = xmldoc.SelectNodes("configuration/appSettings/add");
+			XmlNodeList nodes = xmldoc.SelectNodes("configuration/connectionStrings/add");
+			foreach (XmlNode node in nodes)
+			{
+				string name = node.Attributes["name"].Value;
+				string provider = node.Attributes["providerName"].Value;
+				string connString = node.Attributes["connectionString"].Value;
+
+				var setting = new ConnectionStringSetting(name, connString) { Provider = provider };
+				_connSettings.Add(setting.Name, setting);
+			}
+
+
+			nodes = xmldoc.SelectNodes("configuration/appSettings/add");
 			foreach (XmlNode node in nodes)
 			{
 				string key = node.Attributes["key"].Value;
@@ -63,7 +77,7 @@ namespace Microservices.Channels.Configuration
 				var setting = new ConfigFileSetting(key, value) { Type = type, Format = format, Default = defaultValue, Comment = comment, ReadOnly = readOnly, Secret = secret };
 				_appSettings.Add(setting.Name, setting);
 
-				this.Data.Add(key, value);
+				//this.Data.Add(key, value);
 			}
 		}
 
@@ -83,6 +97,11 @@ namespace Microservices.Channels.Configuration
 
 		public void SaveAppSettings()
 		{
+		}
+
+		public IDictionary<string, ConnectionStringSetting> GetConnectionStrings()
+		{
+			return _connSettings;
 		}
 	}
 }

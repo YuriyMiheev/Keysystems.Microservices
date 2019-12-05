@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	[Serializable]
 	public class ConfigFileSetting
@@ -12,8 +12,8 @@ namespace Microservices.Channels.Configuration
 
 		public ConfigFileSetting(string name, string value)
 		{
-			Name = name ?? throw new ArgumentException(nameof(name));
-			Value = value;
+			this.Name = name ?? throw new ArgumentException(nameof(name));
+			this.Value = value;
 		}
 
 

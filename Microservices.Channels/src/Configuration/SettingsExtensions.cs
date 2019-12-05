@@ -1,6 +1,8 @@
-﻿namespace Microservices.Channels.Configuration
+﻿using Microservices.Configuration;
+
+namespace Microservices.Channels.Configuration
 {
-	public static class XmlConfigFileConfigurationExtensions
+	public static class SettingsExtensions
 	{
 		public static InfoSettings InfoSettings(this IAppSettingsConfig appConfig)
 		{
@@ -22,9 +24,9 @@
 			return new MessageSettings(appConfig.GetAppSettings());
 		}
 
-		public static ServiceSettings ServiceSettings(this IAppSettingsConfig appConfig)
+		public static XSettings XSettings(this IAppSettingsConfig appConfig)
 		{
-			return new ServiceSettings(appConfig.GetAppSettings());
+			return new XSettings(appConfig.GetAppSettings());
 		}
 	}
 }

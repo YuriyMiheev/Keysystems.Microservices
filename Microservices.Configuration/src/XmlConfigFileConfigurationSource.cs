@@ -4,7 +4,7 @@ using System.Text;
 
 using Microsoft.Extensions.Configuration;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	public class XmlConfigFileConfigurationSource : FileConfigurationSource
 	{

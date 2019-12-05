@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microservices.Channels.Adapters;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
-using Microservices.Channels.MSSQL.Adapters;
+using Microservices.Configuration;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

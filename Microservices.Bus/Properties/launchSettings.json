@@ -1,0 +1,30 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/Microservices.Bus",
+      "sslPort": 0
+    },
+    "iisExpress": {
+      "applicationUrl": "http://localhost:52911",
+      "sslPort": 0
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Microservices.Bus": {
+      "commandName": "Project",
+      "commandLineArgs": "--Urls=http://*:8181",
+      "launchBrowser": true,
+      "launchUrl": "hello",
+      "applicationUrl": "http://localhost:8181/"
+    }
+  }
+}

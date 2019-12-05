@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	/// <summary>
-	/// Дополнительные настройки канала.
+	/// Настройки.
 	/// </summary>
-	public abstract class SettingsBase
+	public abstract class AppSettingsBase
 	{
 		private IDictionary<string, ConfigFileSetting> _settings;
 
@@ -18,7 +17,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		/// <param name="prefix"></param>
 		/// <param name="settings"></param>
-		protected SettingsBase(string prefix, IDictionary<string, ConfigFileSetting> settings)
+		protected AppSettingsBase(string prefix, IDictionary<string, ConfigFileSetting> settings)
 		{
 			_settings = new Dictionary<string, ConfigFileSetting>(settings.Where(p => p.Key.StartsWith(prefix)));
 		}

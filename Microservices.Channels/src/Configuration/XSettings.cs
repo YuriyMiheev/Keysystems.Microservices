@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Net;
+﻿using System.Collections.Generic;
 
-//using Microservices.Channels.Configuration;
-//using Microsoft.Extensions.Configuration;
+using Microservices.Configuration;
 
 namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class ServiceSettings : SettingsBase
+	public class XSettings : AppSettingsBase
 	{
 		public const string TAG_PREFIX = "X.";
 
@@ -23,7 +17,7 @@ namespace Microservices.Channels.Configuration
 		/// 
 		/// </summary>
 		/// <param name="configuration"></param>
-		public ServiceSettings(IDictionary<string, ConfigFileSetting> appSettings)
+		public XSettings(IDictionary<string, ConfigFileSetting> appSettings)
 				: base(TAG_PREFIX, appSettings)
 		{ }
 		#endregion

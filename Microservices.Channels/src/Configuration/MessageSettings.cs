@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Microservices.Configuration;
+
 namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// Настройки обработки сообщений.
 	/// </summary>
-	public class MessageSettings : SettingsBase
+	public class MessageSettings : AppSettingsBase
 	{
 
 		#region Ctor

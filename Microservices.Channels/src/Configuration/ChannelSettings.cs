@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
+using Microservices.Configuration;
 
 namespace Microservices.Channels.Configuration
 {
 	/// <summary>
 	/// Дополнительные настройки канала.
 	/// </summary>
-	public class ChannelSettings : SettingsBase
+	public class ChannelSettings : AppSettingsBase
 	{
 		public const string TAG_PREFIX = "CHANNEL.";
 

@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.Clie
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{220ABE63-C557-4312-B6C2-90D3AAAB9D0C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus", "Microservices.Bus\Microservices.Bus.csproj", "{62F17808-96A0-4DA3-BF8D-2D9314DD9209}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Configuration", "Microservices.Configuration\Microservices.Configuration.csproj", "{137A3738-3C45-4F66-AEBF-58F9F22C6E9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{220ABE63-C557-4312-B6C2-90D3AAAB9D0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{220ABE63-C557-4312-B6C2-90D3AAAB9D0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{220ABE63-C557-4312-B6C2-90D3AAAB9D0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62F17808-96A0-4DA3-BF8D-2D9314DD9209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62F17808-96A0-4DA3-BF8D-2D9314DD9209}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62F17808-96A0-4DA3-BF8D-2D9314DD9209}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62F17808-96A0-4DA3-BF8D-2D9314DD9209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{137A3738-3C45-4F66-AEBF-58F9F22C6E9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{137A3738-3C45-4F66-AEBF-58F9F22C6E9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{137A3738-3C45-4F66-AEBF-58F9F22C6E9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{137A3738-3C45-4F66-AEBF-58F9F22C6E9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

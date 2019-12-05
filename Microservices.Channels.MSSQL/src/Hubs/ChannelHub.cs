@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,6 +9,8 @@ using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
 using Microservices.Channels.Logging;
+using Microservices.Configuration;
+
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 
@@ -21,7 +22,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly IMessageDataAdapter _dataAdapter;
 		private readonly IHubClientConnections _connections;
-		private readonly ServiceSettings _serviceSettings;
+		private readonly XSettings _serviceSettings;
 		private readonly ILogger _logger;
 
 
@@ -34,7 +35,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 
-			_serviceSettings = _appConfig.ServiceSettings();
+			_serviceSettings = _appConfig.XSettings();
 		}
 		#endregion
 

@@ -313,7 +313,7 @@ namespace Microservices.Channels.Client
 		public Task SaveMessageContentAsync(MessageContentInfo contentInfo, TextReader contentStream, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			async IAsyncEnumerable<char[]> streamData()
+			async IAsyncEnumerable<char[]> StreamData()
 			{
 				var buffer = new char[4096 * 1024];
 				int charsReaded;
@@ -325,7 +325,7 @@ namespace Microservices.Channels.Client
 				} while (charsReaded > 0);
 			}
 
-			return _hubConnection.InvokeAsync("SaveMessageContent", contentInfo, streamData(), cancellationToken);
+			return _hubConnection.InvokeAsync("SaveMessageContent", contentInfo, StreamData(), cancellationToken);
 		}
 		#endregion
 

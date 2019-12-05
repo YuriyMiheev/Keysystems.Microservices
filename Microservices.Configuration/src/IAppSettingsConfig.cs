@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microservices.Channels.Configuration
+namespace Microservices.Configuration
 {
 	public interface IAppSettingsConfig
 	{
