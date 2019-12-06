@@ -39,14 +39,14 @@ namespace Microservices.Bus
 			//app.UseMvc();
 
 			app.UseEndpoints(endpoints =>
-			{
-				endpoints.MapControllerRoute(name: "default", pattern: "{controller=Channel}/{action=Info}");
-				endpoints.MapGet("/hello", async context =>
-					{
-						//context.Response.ContentType = "text/plain";
-						await context.Response.WriteAsync("Hello World!");
-					});
-			});
+				{
+					endpoints.MapControllerRoute(name: "default", pattern: "{controller=Channel}/{action=Info}");
+					endpoints.MapGet("/hello", async context =>
+						{
+							//context.Response.ContentType = "text/plain";
+							await context.Response.WriteAsync("Hello World!");
+						});
+				});
 		}
 	}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microservices.Data;
 using Microservices.Channels.Data;
 using Microservices.Configuration;
 

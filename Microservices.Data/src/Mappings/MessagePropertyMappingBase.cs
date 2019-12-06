@@ -2,21 +2,19 @@
 
 using FluentNHibernate.Mapping;
 
-using Microservices.Data.Mappings;
-
-namespace Microservices.Channels.Data.Mappings
+namespace Microservices.Data.Mappings
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public abstract class ContactPropertyMappingBase : ClassMapBase<DAO.ContactProperty>
+	public abstract class MessagePropertyMappingBase : ClassMapBase<DAO.MessageProperty>
 	{
 		/// <summary>
 		/// 
 		/// </summary>
 		protected override void DefineTable()
 		{
-			Table(Database.Tables.CONTACT_PROPERTIES);
+			Table(Database.Tables.MESSAGE_PROPERTIES);
 		}
 
 		/// <summary>
@@ -32,9 +30,9 @@ namespace Microservices.Channels.Data.Mappings
 		/// </summary>
 		protected override void DefineColumns()
 		{
-			//Map(x => x.ContactLINK, "CONTACT_LINK").UniqueKey("UQ_rms_CONTACT_NAME").Index("IX_rms_CONTACT_LINK");
-			References(x => x.Contact, "CONTACT_LINK").UniqueKey("UQ_rms_CONTACT_NAME").Index("IX_rms_CONTACT_LINK").Cascade.SaveUpdate();
-			Map(x => x.Name, "NAME").Length(255).Not.Nullable().UniqueKey("UQ_rms_CONTACT_NAME").Index("IX_rms_NAME");
+			//Map(x => x.MessageLINK, "MESSAGE_LINK").UniqueKey("UQ_rms_MESSAGE_NAME").Index("IX_rms_MESSAGE_LINK");
+			References(x => x.Message, "MESSAGE_LINK").UniqueKey("UQ_rms_MESSAGE_NAME").Index("IX_rms_MESSAGE_LINK").Cascade.SaveUpdate();
+			Map(x => x.Name, "NAME").Length(255).Not.Nullable().UniqueKey("UQ_rms_MESSAGE_NAME").Index("IX_rms_NAME");
 			Map(x => x.Type, "TYPE").Length(255);
 			Map(x => x.Format, "FORMAT").Length(255);
 			Map(x => x.Comment, "COMMENTS").Length(1024);

@@ -35,6 +35,7 @@
     <Compile Remove="src\Hubs\IHubClient.cs" />
     <Compile Remove="IHubClient.cs" />
     <Compile Remove="src\MessageSender.cs" />
+    <Compile Remove="src\OrderableMessageQueue.cs" />
     <Compile Remove="src\Parser.cs" />
   </ItemGroup>
 
@@ -56,6 +57,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
+    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
+    <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 
 </Project>

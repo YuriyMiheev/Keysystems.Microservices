@@ -20,6 +20,9 @@ namespace Microservices.Bus.Configuration
 		public RmsSettings(IDictionary<string, ConfigFileSetting> appSettings, IDictionary<string, ConnectionStringSetting> connSettings)
 			: base(TAG_PREFIX, appSettings)
 		{
+			if (!connSettings.ContainsKey("SysDatabase"))
+				throw new ConfigSettingsException("Не найдена строка подключения к системной БД сервиса.", "SysDatabase");
+
 			_connSetting = connSettings["SysDatabase"];
 		}
 		#endregion
@@ -48,7 +51,7 @@ namespace Microservices.Bus.Configuration
 						Schema = schema,
 						Provider = _connSetting.Provider,
 						ConnectionString = _connSetting.ConnectionString //HttpUtility.UrlDecode(_connSetting.ConnectionString)
-				};
+					};
 			}
 		}
 
@@ -59,16 +62,16 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				KeyValueConfigurationElement configItem = this.configuration.AppSettings.Settings["Administrator"];
-				if (configItem != null)
+				string admin = Parser.ParseString(PropertyValue("Administrator"), null);
+				if (admin != null)
 				{
 					try
 					{
-						return CredentialInfo.Parse(configItem.Value);
+						return CredentialInfo.Parse(admin);
 					}
 					catch (Exception ex)
 					{
-						throw new ConfigException(String.Format("Некорректное значения св-ва Administrator=\"{0}\" в файле конфигурации \"{1}\".", configItem.Value, this.configuration.FilePath), ex);
+						throw new ConfigSettingsException("Некорректное значения св-ва.", "Administrator", ex);
 					}
 				}
 
@@ -143,12 +146,9 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				KeyValueConfigurationElement configElement = this.configuration.AppSettings.Settings["WinCrypto.LogLevel"];
-				if (configElement == null)
-					return Config.WinCryptoLogLevel.None;
-
-				string logLevel = configElement.Value;
-				return (String.IsNullOrWhiteSpace(logLevel) ? Config.WinCryptoLogLevel.None : logLevel);
+				string defaultValue = null;
+				string logLevel = Parser.ParseString(PropertyValue("WinCrypto.LogLevel"), defaultValue);
+				return (String.IsNullOrWhiteSpace(logLevel) ? "None" : logLevel);
 			}
 		}
 

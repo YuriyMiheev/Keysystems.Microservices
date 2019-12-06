@@ -2,6 +2,8 @@
 
 using FluentNHibernate.Mapping;
 
+using Microservices.Data.Mappings;
+
 namespace Microservices.Channels.Data.Mappings
 {
 	/// <summary>
