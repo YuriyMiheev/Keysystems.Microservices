@@ -3,9 +3,9 @@ using System.Linq;
 using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
 using Microservices.Channels.Logging;
-using Microservices.Channels.MSSQL.Adapters;
 using Microservices.Channels.MSSQL.Data;
 using Microservices.Configuration;
+using Microservices.Data;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -50,9 +50,9 @@ namespace Microservices.Channels.MSSQL
 						//DbContext dbContext = database.ValidateSchema();
 
 						services.AddSingleton<IDatabase, ChannelDatabase>();
-						services.AddSingleton<IMessageDataAdapter, MessageDataAdapter>();
-						services.AddSingleton<ILogger, ServiceLogger>();
-						services.AddSingleton<IHubClientConnections, HubClientConnections>();
+						services.AddSingleton<IChannelMessageDataAdapter, MessageDataAdapter>();
+						services.AddSingleton<ILogger, ChannelLogger>();
+						services.AddSingleton<IHubConnections, HubConnections>();
 						services.AddSingleton<ISendMessageScanner, SendMessageScanner>();
 						services.AddSingleton<IMessageReceiver, MessageReceiver>();
 						services.AddSingleton<ChannelStatus>();

@@ -10,6 +10,7 @@ using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
 using Microservices.Channels.Logging;
 using Microservices.Configuration;
+using Microservices.Data;
 
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
@@ -20,14 +21,14 @@ namespace Microservices.Channels.MSSQL.Hubs
 	{
 		private readonly IChannelService _channelService;
 		private readonly IAppSettingsConfig _appConfig;
-		private readonly IMessageDataAdapter _dataAdapter;
-		private readonly IHubClientConnections _connections;
+		private readonly IChannelMessageDataAdapter _dataAdapter;
+		private readonly IHubConnections _connections;
 		private readonly XSettings _serviceSettings;
 		private readonly ILogger _logger;
 
 
 		#region Ctor
-		public ChannelHub(IChannelService channelService, IAppSettingsConfig appConfig, IMessageDataAdapter dataAdapter, ILogger logger, IHubClientConnections connections)
+		public ChannelHub(IChannelService channelService, IAppSettingsConfig appConfig, IChannelMessageDataAdapter dataAdapter, ILogger logger, IHubConnections connections)
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
@@ -47,10 +48,10 @@ namespace Microservices.Channels.MSSQL.Hubs
 			if ((accessKey ?? "") == _serviceSettings.AccessKey)
 			{
 				string connectionId = this.Context.ConnectionId;
-				if (!_connections.TryGet(connectionId, out HubClientConnection connection))
+				if (!_connections.TryGet(connectionId, out HubConnection connection))
 				{
 					IChannelHubClient client = this.Clients.Client(connectionId);
-					connection = new HubClientConnection(connectionId, client);
+					connection = new HubConnection(connectionId, client);
 					_connections.Add(connection);
 
 					_channelService.SendMessages += SendMessages;
@@ -177,7 +178,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 
 
 		#region Settings
-		public IDictionary<string, ConfigFileSetting> GetSettings()
+		public IDictionary<string, AppConfigSetting> GetSettings()
 		{
 			return _appConfig.GetAppSettings();
 		}
@@ -388,7 +389,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				if (_connections.TryRemove(this.Context.ConnectionId, out HubClientConnection connection))
+				if (_connections.TryRemove(this.Context.ConnectionId, out HubConnection connection))
 					connection.Dispose();
 
 				return base.OnDisconnectedAsync(exception);

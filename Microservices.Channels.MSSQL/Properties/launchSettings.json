@@ -17,8 +17,10 @@
     "Microservice": {
       "commandName": "Project",
       "commandLineArgs": "--Urls=http://*:5005",
+      "launchBrowser": true,
+      "launchUrl": "hello",
       "nativeDebugging": false,
-      "applicationUrl": ""
+      "applicationUrl": "http://localhost:5005"
     }
   }
 }

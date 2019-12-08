@@ -8,7 +8,7 @@ namespace Microservices.Configuration
 	/// </summary>
 	public abstract class AppSettingsBase
 	{
-		private IDictionary<string, ConfigFileSetting> _settings;
+		private IDictionary<string, AppConfigSetting> _settings;
 
 
 		#region Ctor
@@ -17,9 +17,9 @@ namespace Microservices.Configuration
 		/// </summary>
 		/// <param name="prefix"></param>
 		/// <param name="settings"></param>
-		protected AppSettingsBase(string prefix, IDictionary<string, ConfigFileSetting> settings)
+		protected AppSettingsBase(string prefix, IDictionary<string, AppConfigSetting> settings)
 		{
-			_settings = new Dictionary<string, ConfigFileSetting>(settings.Where(p => p.Key.StartsWith(prefix)));
+			_settings = new Dictionary<string, AppConfigSetting>(settings.Where(p => p.Key.StartsWith(prefix)));
 		}
 		#endregion
 

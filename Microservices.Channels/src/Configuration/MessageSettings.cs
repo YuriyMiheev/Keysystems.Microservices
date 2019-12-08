@@ -17,7 +17,7 @@ namespace Microservices.Channels.Configuration
 		/// Конструктор.
 		/// </summary>
 		/// <param name="appSettings">Свойства канала.</param>
-		public MessageSettings(IDictionary<string, ConfigFileSetting> appSettings)
+		public MessageSettings(IDictionary<string, AppConfigSetting> appSettings)
 			: base(TAG_PREFIX, appSettings)
 		{ }
 		#endregion

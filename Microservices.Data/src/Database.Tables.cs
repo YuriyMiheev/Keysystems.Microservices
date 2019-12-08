@@ -28,6 +28,17 @@ namespace Microservices.Data
 			/// "rms_MESSAGE_POSTS"
 			/// </summary>
 			public const string MESSAGE_POSTS = "rms_MESSAGE_POSTS";
+
+			/// <summary>
+			/// "rms_CONTACTS"
+			/// </summary>
+			public const string CONTACTS = "rms_CONTACTS";
+
+			/// <summary>
+			/// "rms_CONTACT_PROPERTIES"
+			/// </summary>
+			public const string CONTACT_PROPERTIES = "rms_CONTACT_PROPERTIES";
+
 		}
 	}
 }

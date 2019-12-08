@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microservices.Data;
-using Microservices.Channels.Data;
 using Microservices.Configuration;
+using Microservices.Data;
 
 namespace Microservices.Channels.Hubs
 {
@@ -38,7 +37,7 @@ namespace Microservices.Channels.Hubs
 
 
 		#region Settings
-		IDictionary<string, ConfigFileSetting> GetSettings();
+		IDictionary<string, AppConfigSetting> GetSettings();
 
 		void SetSettings(IDictionary<string, string> settings);
 

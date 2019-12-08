@@ -7,6 +7,7 @@ using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Configuration;
+using Microservices.Data;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +25,7 @@ namespace Microservices.Channels.MSSQL
 		private readonly ILogger _logger;
 		//private IServiceProvider _serviceProvider;
 		private readonly IDatabase _database;
-		private readonly IMessageDataAdapter _dataAdapter;
+		private readonly IChannelMessageDataAdapter _dataAdapter;
 		private readonly ISendMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
@@ -45,7 +46,7 @@ namespace Microservices.Channels.MSSQL
 			_appConfig = serviceProvider.GetRequiredService<IAppSettingsConfig>();
 			_logger = serviceProvider.GetRequiredService<ILogger>();
 			_database = serviceProvider.GetRequiredService<IDatabase>();
-			_dataAdapter = serviceProvider.GetRequiredService<IMessageDataAdapter>();
+			_dataAdapter = serviceProvider.GetRequiredService<IChannelMessageDataAdapter>();
 			_scanner = serviceProvider.GetRequiredService<ISendMessageScanner>();
 			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
 			_channelStatus = serviceProvider.GetRequiredService<ChannelStatus>();

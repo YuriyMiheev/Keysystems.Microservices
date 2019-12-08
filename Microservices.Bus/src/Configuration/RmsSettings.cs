@@ -17,7 +17,7 @@ namespace Microservices.Bus.Configuration
 
 
 		#region Ctor
-		public RmsSettings(IDictionary<string, ConfigFileSetting> appSettings, IDictionary<string, ConnectionStringSetting> connSettings)
+		public RmsSettings(IDictionary<string, AppConfigSetting> appSettings, IDictionary<string, ConnectionStringSetting> connSettings)
 			: base(TAG_PREFIX, appSettings)
 		{
 			if (!connSettings.ContainsKey("SysDatabase"))

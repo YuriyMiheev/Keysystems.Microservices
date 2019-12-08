@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Linq;
-
-using NH = NHibernate;
-using NHibernate.Tool.hbm2ddl;
 
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 
-using Microservices.Channels.Data;
-using Microservices.Channels.Data.Mappings;
-using Microservices.Channels.MSSQL.Data.Mappings;
+using Microservices.Data;
+using Microservices.Data.Mappings;
+using Microservices.Data.MSSQL.Mappings;
+
+using NHibernate.Tool.hbm2ddl;
+
+using NH = NHibernate;
 
 namespace Microservices.Channels.MSSQL.Data
 {

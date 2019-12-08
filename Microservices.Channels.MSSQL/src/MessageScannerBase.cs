@@ -5,8 +5,10 @@ using System.Timers;
 
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
-
+using Microservices.Data;
 using NHibernate.Criterion;
+
+using DAO = Microservices.Data.DAO;
 
 namespace Microservices.Channels.MSSQL
 {
@@ -18,7 +20,7 @@ namespace Microservices.Channels.MSSQL
 		//private MessageSettings _settings;
 		private TimeSpan _interval;
 		private int _portion;
-		private IMessageDataAdapter _dataAdapter;
+		private IChannelMessageDataAdapter _dataAdapter;
 		private ILogger _logger;
 		private System.Threading.CancellationToken _cancellationToken;
 		private Timer _queryTimer;
@@ -31,7 +33,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		protected MessageScannerBase(IMessageDataAdapter dataAdapter, ILogger logger)
+		protected MessageScannerBase(IChannelMessageDataAdapter dataAdapter, ILogger logger)
 		{
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));

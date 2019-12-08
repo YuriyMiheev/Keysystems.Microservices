@@ -3,6 +3,8 @@ using Microservices.Channels.Logging;
 
 using NHibernate.Criterion;
 
+using DAO = Microservices.Data.DAO;
+
 namespace Microservices.Channels.MSSQL
 {
 	/// <summary>
@@ -17,7 +19,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		public SendMessageScanner(IMessageDataAdapter dataAdapter, ILogger logger)
+		public SendMessageScanner(IChannelMessageDataAdapter dataAdapter, ILogger logger)
 			: base(dataAdapter, logger)
 		{ }
 		#endregion

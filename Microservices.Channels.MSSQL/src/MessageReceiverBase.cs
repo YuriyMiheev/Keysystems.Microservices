@@ -12,7 +12,7 @@ namespace Microservices.Channels.MSSQL
 	/// </summary>
 	public abstract class MessageReceiverBase
 	{
-		private IMessageDataAdapter _dataAdapter;
+		private IChannelMessageDataAdapter _dataAdapter;
 		private ILogger _logger;
 
 
@@ -22,7 +22,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		protected MessageReceiverBase(IMessageDataAdapter dataAdapter, ILogger logger)
+		protected MessageReceiverBase(IChannelMessageDataAdapter dataAdapter, ILogger logger)
 		{
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException("dataAdapter");
 			_logger = logger ?? throw new ArgumentNullException("logger");

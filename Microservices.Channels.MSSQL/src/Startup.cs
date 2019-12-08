@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Text;
 
-using Microservices.Channels.Hubs;
 using Microservices.Channels.MSSQL.Hubs;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -42,6 +42,10 @@ namespace Microservices.Channels.MSSQL
 			app.UseWebSockets();
 			app.UseEndpoints(endpoints =>
 			{
+				endpoints.MapGet("hello", async context =>
+					{
+						await context.Response.WriteAsync("Hello World!");
+					});
 				endpoints.MapHub<ChannelHub>("/ChannelHub");
 				endpoints.MapControllerRoute(name: "default", pattern: "{controller=Channel}/{action=Info}");
 			});

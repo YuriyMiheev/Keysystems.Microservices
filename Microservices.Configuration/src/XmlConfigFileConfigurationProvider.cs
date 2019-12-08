@@ -13,7 +13,7 @@ namespace Microservices.Configuration
 	/// </summary>
 	public class XmlConfigFileConfigurationProvider : FileConfigurationProvider, IAppSettingsConfig, IConnectionStringsConfig
 	{
-		private IDictionary<string, ConfigFileSetting> _appSettings;
+		private IDictionary<string, AppConfigSetting> _appSettings;
 		private IDictionary<string, ConnectionStringSetting> _connSettings;
 
 
@@ -24,7 +24,7 @@ namespace Microservices.Configuration
 		public XmlConfigFileConfigurationProvider(string configFile)
 			: base(new XmlConfigFileConfigurationSource(configFile))
 		{
-			_appSettings = new Dictionary<string, ConfigFileSetting>();
+			_appSettings = new Dictionary<string, AppConfigSetting>();
 			_connSettings = new Dictionary<string, ConnectionStringSetting>();
 		}
 
@@ -74,14 +74,14 @@ namespace Microservices.Configuration
 				bool readOnly = Parser.ParseBool(node.Attributes["readonly"]?.Value, false);
 				bool secret = Parser.ParseBool(node.Attributes["readonly"]?.Value, false);
 
-				var setting = new ConfigFileSetting(key, value) { Type = type, Format = format, Default = defaultValue, Comment = comment, ReadOnly = readOnly, Secret = secret };
+				var setting = new AppConfigSetting(key, value) { Type = type, Format = format, Default = defaultValue, Comment = comment, ReadOnly = readOnly, Secret = secret };
 				_appSettings.Add(setting.Name, setting);
 
 				//this.Data.Add(key, value);
 			}
 		}
 
-		public IDictionary<string, ConfigFileSetting> GetAppSettings()
+		public IDictionary<string, AppConfigSetting> GetAppSettings()
 		{
 			return _appSettings;
 		}

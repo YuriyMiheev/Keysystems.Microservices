@@ -17,7 +17,7 @@ namespace Microservices.Channels.Configuration
 		/// 
 		/// </summary>
 		/// <param name="configuration"></param>
-		public XSettings(IDictionary<string, ConfigFileSetting> appSettings)
+		public XSettings(IDictionary<string, AppConfigSetting> appSettings)
 				: base(TAG_PREFIX, appSettings)
 		{ }
 		#endregion

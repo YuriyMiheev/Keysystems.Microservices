@@ -5,15 +5,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views1\**" />
+    <Content Remove="Views1\**" />
+    <EmbeddedResource Remove="Views1\**" />
+    <None Remove="Views1\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Microservices.Channels.Client\Microservices.Channels.Client.csproj" />
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="wwwroot\" />
     <Folder Include="Views\" />
     <Folder Include="src\Controllers\" />
-    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

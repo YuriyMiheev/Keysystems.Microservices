@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Microservices.Channels.Hubs;
 using Microservices.Channels.MSSQL.Hubs;
 using Microservices.Configuration;
 
@@ -10,9 +11,9 @@ namespace Microservices.Channels.MSSQL.Controllers
 {
 	public class ChannelController : Controller
 	{
-		private IChannelService _channelService;
-		private IAppSettingsConfig _appConfig;
-		private IHubContext<ChannelHub, IChannelHubClient> _hubContext;
+		private readonly IChannelService _channelService;
+		private readonly IAppSettingsConfig _appConfig;
+		private readonly IHubContext<ChannelHub, IChannelHubClient> _hubContext;
 
 
 		public ChannelController(IChannelService channelService, IAppSettingsConfig appConfig, IHubContext<ChannelHub, IChannelHubClient> hubContext)

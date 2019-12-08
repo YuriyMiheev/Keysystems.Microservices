@@ -23,15 +23,8 @@
     <Compile Remove="src\Configuration\XmlConfigFileConfigurationSource.cs" />
     <Compile Remove="src\Configuration\XmlConfigFileException.cs" />
     <Compile Remove="src\Configuration\XmlConfigFileExtensions.cs" />
-    <Compile Remove="src\Controllers\ChannelControllerBase.cs" />
-    <Compile Remove="src\DAO\MessagePost.cs" />
-    <Compile Remove="src\Data\Mappings\MessagePostMapping.cs" />
-    <Compile Remove="src\Data\MessageBodyAsyncReader.cs" />
-    <Compile Remove="src\Data\MessageContentAsyncReader.cs" />
-    <Compile Remove="src\Data\MessageTables.cs" />
     <Compile Remove="src\Hubs\ChannelHubBase.cs" />
     <Compile Remove="src\Hubs\CommonHubClient.cs" />
-    <Compile Remove="src\Hubs\IChannelHubClient.cs" />
     <Compile Remove="src\Hubs\IHubClient.cs" />
     <Compile Remove="IHubClient.cs" />
     <Compile Remove="src\MessageSender.cs" />
@@ -48,11 +41,6 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.0.0" />
     <PackageReference Include="NHibernate" Version="5.2.6" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="src\Controllers\" />
-    <Folder Include="src\DAO\" />
   </ItemGroup>
 
   <ItemGroup>
