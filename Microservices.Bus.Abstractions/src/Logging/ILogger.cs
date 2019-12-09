@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microservices.Bus.Logging
 {
-	public interface IBusLogger
+	public interface ILogger
 	{
 	}
 }
