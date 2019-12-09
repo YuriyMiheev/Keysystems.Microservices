@@ -10,16 +10,17 @@ namespace Microservices.Bus.Configuration
 	/// <summary>
 	/// 
 	/// </summary>
-	public class RmsSettings : AppSettingsBase
+	public class BusSettings : AppSettingsBase
 	{
-		public const string TAG_PREFIX = "";
+		public const string TAG_PREFIX = ".";
 		private ConnectionStringSetting _connSetting;
 
 
 		#region Ctor
-		public RmsSettings(IDictionary<string, AppConfigSetting> appSettings, IDictionary<string, ConnectionStringSetting> connSettings)
-			: base(TAG_PREFIX, appSettings)
+		public BusSettings(IAppSettingsConfig appConfig, IConnectionStringsConfig connConfig)
+			: base(TAG_PREFIX, appConfig.GetAppSettings())
 		{
+			IDictionary<string, ConnectionStringSetting> connSettings = connConfig.GetConnectionStrings();
 			if (!connSettings.ContainsKey("SysDatabase"))
 				throw new ConfigSettingsException("Не найдена строка подключения к системной БД сервиса.", "SysDatabase");
 
@@ -62,7 +63,7 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				string admin = Parser.ParseString(PropertyValue("Administrator"), null);
+				string admin = Parser.ParseString(PropertyValue(".Administrator"), null);
 				if (admin != null)
 				{
 					try
@@ -87,7 +88,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = false;
-				return Parser.ParseBool(PropertyValue("Debug.Enabled"), defaultValue);
+				return Parser.ParseBool(PropertyValue(".Debug.Enabled"), defaultValue);
 			}
 		}
 
@@ -99,7 +100,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = true;
-				return Parser.ParseBool(PropertyValue("Authorization.Required"), defaultValue);
+				return Parser.ParseBool(PropertyValue(".Authorization.Required"), defaultValue);
 			}
 		}
 
@@ -111,7 +112,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				int defaultValue = (2 * 1024 * 1024 * 1023);
-				return Parser.ParseInt(PropertyValue("MaxUploadFileSize"), defaultValue);
+				return Parser.ParseInt(PropertyValue(".MaxUploadFileSize"), defaultValue);
 			}
 		}
 
@@ -123,7 +124,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				int defaultValue = (1024 * 1024); // ServiceEnvironment.DefaultMessageBufferSize;
-				return Parser.ParseInt(PropertyValue("MessageBufferSize"), defaultValue);
+				return Parser.ParseInt(PropertyValue(".MessageBufferSize"), defaultValue);
 			}
 		}
 
@@ -135,20 +136,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = false;
-				return Parser.ParseBool(PropertyValue("CheckInstanceID"), defaultValue);
-			}
-		}
-
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public string WinCryptoLogLevel
-		{
-			get
-			{
-				string defaultValue = null;
-				string logLevel = Parser.ParseString(PropertyValue("WinCrypto.LogLevel"), defaultValue);
-				return (String.IsNullOrWhiteSpace(logLevel) ? "None" : logLevel);
+				return Parser.ParseBool(PropertyValue(".CheckInstanceID"), defaultValue);
 			}
 		}
 
@@ -159,8 +147,9 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				string defaultValue = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "rms.lic"));
-				return Parser.ParseString(PropertyValue("LicenseFile"), defaultValue);
+				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "rms.lic");
+				string licenseFile = Parser.ParseString(PropertyValue(".LicenseFile"), defaultValue);
+				return Path.GetFullPath(licenseFile);
 			}
 		}
 
@@ -171,8 +160,9 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				string defaultValue = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "TEMP"));
-				return Parser.ParseString(PropertyValue("TempDir"), defaultValue);
+				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "TEMP");
+				string tempDir = Parser.ParseString(PropertyValue(".TempDir"), defaultValue);
+				return Path.GetFullPath(tempDir);
 			}
 		}
 
@@ -183,22 +173,24 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				string defaultValue = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "ADDINS"));
-				return Parser.ParseString(PropertyValue("AddinsDir"), defaultValue);
+				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "ADDINS");
+				string addinsDir = Parser.ParseString(PropertyValue(".AddinsDir"), defaultValue);
+				return Path.GetFullPath(addinsDir);
 			}
 		}
 
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public string PluginsDir
-		{
-			get
-			{
-				string defaultValue = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "PLUGINS"));
-				return Parser.ParseString(PropertyValue("PluginsDir"), defaultValue);
-			}
-		}
+		///// <summary>
+		///// {Get}
+		///// </summary>
+		//public string PluginsDir
+		//{
+		//	get
+		//	{
+		//		string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "PLUGINS");
+		//		string pluginsDir = Parser.ParseString(PropertyValue(".PluginsDir"), defaultValue);
+		//		return Path.GetFullPath(pluginsDir);
+		//	}
+		//}
 
 		/// <summary>
 		/// {Get}
@@ -207,8 +199,9 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				string defaultValue = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "TOOLS"));
-				return Parser.ParseString(PropertyValue("ToolsDir"), defaultValue);
+				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "TOOLS");
+				string toolsDir = Parser.ParseString(PropertyValue(".ToolsDir"), defaultValue);
+				return Path.GetFullPath(toolsDir);
 			}
 		}
 		#endregion

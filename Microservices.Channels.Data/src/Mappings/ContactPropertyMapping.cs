@@ -3,7 +3,7 @@
 using FluentNHibernate.Mapping;
 using Microservices.Channels.Data.Mappings;
 
-namespace Microservices.Data.MSSQL.Mappings
+namespace Microservices.Channels.Data.MSSQL.Mappings
 {
 	/// <summary>
 	/// 

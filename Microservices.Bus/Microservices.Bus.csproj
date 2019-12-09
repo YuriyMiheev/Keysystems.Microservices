@@ -12,8 +12,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Configuration\AppSettingsConfigExtensions.cs" />
+    <Compile Remove="src\Configuration\XSettings.cs" />
+    <Compile Remove="src\ServiceDescription.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj" />
+    <ProjectReference Include="..\Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj" />
     <ProjectReference Include="..\Microservices.Channels.Client\Microservices.Channels.Client.csproj" />
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
+    <ProjectReference Include="..\Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj" />
+    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
+    <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 
   <ItemGroup>

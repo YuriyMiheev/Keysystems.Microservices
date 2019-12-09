@@ -42,13 +42,6 @@ namespace Microservices.Channels.MSSQL
 					{
 						var appConfig = (XmlConfigFileConfigurationProvider)appConfiguration.Providers.Single();
 						services.AddSingleton<IAppSettingsConfig>(appConfig);
-
-						//IDatabase database = new ChannelDatabase();
-						//database.Schema = _databaseSettings.Schema;
-						//database.ConnectionString = _infoSettings.RealAddress;
-						//DbContext dbContext = database.CreateOrUpdateSchema();
-						//DbContext dbContext = database.ValidateSchema();
-
 						services.AddSingleton<IDatabase, ChannelDatabase>();
 						services.AddSingleton<IChannelMessageDataAdapter, MessageDataAdapter>();
 						services.AddSingleton<ILogger, ChannelLogger>();

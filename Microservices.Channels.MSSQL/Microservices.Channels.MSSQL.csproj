@@ -21,6 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj" />
+    <ProjectReference Include="..\Microservices.Bus.Data\Microservices.Bus.Data.csproj" />
     <ProjectReference Include="..\Microservices.Channels\Microservices.Channels.csproj" />
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
     <ProjectReference Include="..\Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj" />
