@@ -230,25 +230,27 @@ namespace Microservices.Bus.Data.MSSQL
 
 		private List<Type> GetMappings()
 		{
-			var mappings = new List<Type>();
-			mappings.Add(typeof(MessageMapping));
-			mappings.Add(typeof(MessageBodyMapping));
-			mappings.Add(typeof(MessageBodyInfoMapping));
-			mappings.Add(typeof(MessageBodyInfoComponentMapping));
-			mappings.Add(typeof(MessageStatusMapping));
-			mappings.Add(typeof(MessagePropertyMapping));
-			mappings.Add(typeof(MessageContentMapping));
-			mappings.Add(typeof(MessageContentInfoMapping));
+			var mappings = new List<Type>
+			{
+				typeof(MessageMapping),
+				typeof(MessageBodyMapping),
+				typeof(MessageBodyInfoMapping),
+				typeof(MessageBodyInfoComponentMapping),
+				typeof(MessageStatusMapping),
+				typeof(MessagePropertyMapping),
+				typeof(MessageContentMapping),
+				typeof(MessageContentInfoMapping),
 
-			mappings.Add(typeof(ServiceInfoMapping));
-			mappings.Add(typeof(ServicePropertyMapping));
-			mappings.Add(typeof(ChannelInfoMapping));
-			mappings.Add(typeof(ChannelPropertyMapping));
-			//mappings.Add(typeof(JobInfoMapping));
-			//mappings.Add(typeof(JobPropertyMapping));
-			//mappings.Add(typeof(PubSubMapping));
-			mappings.Add(typeof(GroupInfoMapping));
-			mappings.Add(typeof(GroupChannelMapping));
+				typeof(ServiceInfoMapping),
+				typeof(ServicePropertyMapping),
+				typeof(ChannelInfoMapping),
+				typeof(ChannelPropertyMapping),
+				//mappings.Add(typeof(JobInfoMapping));
+				//mappings.Add(typeof(JobPropertyMapping));
+				//mappings.Add(typeof(PubSubMapping));
+				typeof(GroupInfoMapping),
+				typeof(GroupChannelMapping)
+			};
 
 			return mappings;
 		}

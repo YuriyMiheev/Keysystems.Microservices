@@ -7,7 +7,7 @@ namespace Microservices.Channels
 	/// <summary>
 	/// Информация о контакте.
 	/// </summary>
-	public sealed class Contact : MarshalByRefObject
+	public class Contact
 	{
 
 		#region Ctor
@@ -102,7 +102,7 @@ namespace Microservices.Channels
 		public ContactProperty[] Properties
 		{
 			get { return this.properties.ToArray(); }
-			internal set { this.properties = value.ToList(); }
+			set { this.properties = value.ToList(); }
 		}
 		#endregion
 
@@ -212,17 +212,5 @@ namespace Microservices.Channels
 		}
 		#endregion
 
-
-		#region MarshalByRefObject
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public override object InitializeLifetimeService()
-		{
-			return null;
-		}
-		#endregion
-	
 	}
 }

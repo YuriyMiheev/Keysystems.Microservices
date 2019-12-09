@@ -6,27 +6,27 @@ namespace Microservices.Channels.Hubs
 {
 	public class HubConnections : IHubConnections
 	{
-		private ConcurrentDictionary<string, HubConnection> _connections;
+		private ConcurrentDictionary<string, IHubConnection> _connections;
 
 
 		public HubConnections()
 		{
-			_connections = new ConcurrentDictionary<string, HubConnection>();
+			_connections = new ConcurrentDictionary<string, IHubConnection>();
 		}
 
 
 
-		public void Add(HubConnection connection)
+		public void Add(IHubConnection connection)
 		{
 			_connections.TryAdd(connection.ConnectionId, connection);
 		}
 
-		public bool TryGet(string connectionId, out HubConnection client)
+		public bool TryGet(string connectionId, out IHubConnection connection)
 		{
-			return _connections.TryGetValue(connectionId, out client);
+			return _connections.TryGetValue(connectionId, out connection);
 		}
 
-		public bool TryRemove(string connectionId, out HubConnection connection)
+		public bool TryRemove(string connectionId, out IHubConnection connection)
 		{
 			return _connections.TryRemove(connectionId, out connection);
 		}

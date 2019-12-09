@@ -4,11 +4,11 @@ namespace Microservices.Channels.Hubs
 {
 	public interface IHubConnections
 	{
-		void Add(HubConnection connection);
+		void Add(IHubConnection connection);
 
-		bool TryGet(string connectionId, out HubConnection connection);
+		bool TryGet(string connectionId, out IHubConnection connection);
 
-		bool TryRemove(string connectionId, out HubConnection connection);
+		bool TryRemove(string connectionId, out IHubConnection connection);
 
 		bool SendLogToClient(IDictionary<string, object> record);
 

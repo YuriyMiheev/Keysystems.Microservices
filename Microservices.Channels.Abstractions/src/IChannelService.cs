@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-
-using Microservices.Channels.Configuration;
 
 using Microsoft.Extensions.Hosting;
 

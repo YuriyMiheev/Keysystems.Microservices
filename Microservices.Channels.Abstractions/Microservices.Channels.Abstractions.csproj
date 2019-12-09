@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RootNamespace>Microservices.Channels</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
+    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
+  </ItemGroup>
+
+</Project>

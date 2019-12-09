@@ -20,7 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj" />
     <ProjectReference Include="..\Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj" />
-    <ProjectReference Include="..\Microservices.Channels.Client\Microservices.Channels.Client.csproj" />
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
     <ProjectReference Include="..\Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj" />
     <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />

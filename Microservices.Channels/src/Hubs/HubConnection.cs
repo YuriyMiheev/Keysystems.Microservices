@@ -7,7 +7,7 @@ namespace Microservices.Channels.Hubs
 	/// 
 	/// </summary>
 	[DebuggerDisplay("{this.ConnectionId}")]
-	public class HubConnection : IDisposable
+	public class HubConnection : IHubConnection
 	{
 		/// <summary>
 		/// 

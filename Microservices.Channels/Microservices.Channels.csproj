@@ -44,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microservices.Channels.Abstractions\Microservices.Channels.Abstractions.csproj" />
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
     <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
     <ProjectReference Include="..\Microservices\Microservices.csproj" />

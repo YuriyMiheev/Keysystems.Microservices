@@ -18,7 +18,7 @@
       "commandName": "Project",
       "commandLineArgs": "--Urls=http://*:5005",
       "launchBrowser": true,
-      "launchUrl": "hello",
+      "launchUrl": "Channel/Info",
       "nativeDebugging": false,
       "applicationUrl": "http://localhost:5005"
     }

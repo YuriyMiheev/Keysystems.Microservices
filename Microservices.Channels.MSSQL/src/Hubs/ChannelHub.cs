@@ -48,7 +48,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 			if ((accessKey ?? "") == _serviceSettings.AccessKey)
 			{
 				string connectionId = this.Context.ConnectionId;
-				if (!_connections.TryGet(connectionId, out HubConnection connection))
+				if (!_connections.TryGet(connectionId, out IHubConnection connection))
 				{
 					IChannelHubClient client = this.Clients.Client(connectionId);
 					connection = new HubConnection(connectionId, client);
@@ -389,7 +389,7 @@ namespace Microservices.Channels.MSSQL.Hubs
 		{
 			try
 			{
-				if (_connections.TryRemove(this.Context.ConnectionId, out HubConnection connection))
+				if (_connections.TryRemove(this.Context.ConnectionId, out IHubConnection connection))
 					connection.Dispose();
 
 				return base.OnDisconnectedAsync(exception);

@@ -19,13 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices", "Microservi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Data.MSSQL", "Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj", "{19C1B4B2-0459-4BA4-8724-EAE60E81F696}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Bus.Data.MSSQL", "Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj", "{08988493-A473-4D8E-B57B-4E11E3B676AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Data.MSSQL", "Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj", "{08988493-A473-4D8E-B57B-4E11E3B676AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Bus.Data", "Microservices.Bus.Data\Microservices.Bus.Data.csproj", "{3E8C99EC-3AC1-4CD9-972E-FFF8CF00EBDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Data", "Microservices.Bus.Data\Microservices.Bus.Data.csproj", "{3E8C99EC-3AC1-4CD9-972E-FFF8CF00EBDE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus", "Microservices.Bus\Microservices.Bus.csproj", "{2D1EA0C0-E453-4F80-BA9C-20A67AD5E9A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Bus.Abstractions", "Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj", "{D0F618D2-2CE8-448E-8F08-D232109FA20E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Abstractions", "Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj", "{D0F618D2-2CE8-448E-8F08-D232109FA20E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Channels.Abstractions", "Microservices.Channels.Abstractions\Microservices.Channels.Abstractions.csproj", "{073B1414-17D7-428F-A40F-3E16D3CABB67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{D0F618D2-2CE8-448E-8F08-D232109FA20E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0F618D2-2CE8-448E-8F08-D232109FA20E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0F618D2-2CE8-448E-8F08-D232109FA20E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

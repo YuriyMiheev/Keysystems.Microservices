@@ -49,6 +49,11 @@ namespace Microservices.Bus
 		#region IHostedService
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
+			_database.Schema = _busSettings.Database.Schema;
+			_database.ConnectionString = _busSettings.Database.ConnectionString;
+			//_dataAdapter.ExecuteTimeout = (int)_busSettings.ExecuteTimeout.TotalSeconds;
+			DbContext dbContext =_database.ValidateSchema();
+
 			_addinManager.LoadAddins();
 			return Task.CompletedTask;
 		}
