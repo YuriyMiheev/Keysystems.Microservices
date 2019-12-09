@@ -17,6 +17,7 @@ namespace Microservices.Configuration
 		private IDictionary<string, ConnectionStringSetting> _connSettings;
 
 
+		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
@@ -27,9 +28,10 @@ namespace Microservices.Configuration
 			_appSettings = new Dictionary<string, AppConfigSetting>();
 			_connSettings = new Dictionary<string, ConnectionStringSetting>();
 		}
+		#endregion
 
 
-
+		#region Methods
 		/// <summary>
 		/// 
 		/// </summary>
@@ -103,5 +105,7 @@ namespace Microservices.Configuration
 		{
 			return _connSettings;
 		}
+		#endregion
+
 	}
 }

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\IMssqlSysDatabase.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microservices.Bus.Data\Microservices.Bus.Data.csproj" />
+    <ProjectReference Include="..\Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj" />
+    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
+    <ProjectReference Include="..\Microservices\Microservices.csproj" />
+  </ItemGroup>
+
+</Project>
