@@ -7,5 +7,24 @@ namespace Microservices.Bus.Logging
 {
 	public class BusLogger : ILogger
 	{
+		public void InitializeLogger()
+		{
+		}
+
+		public void LogError(Exception error)
+		{
+		}
+
+		public void LogError(string text, Exception error)
+		{
+		}
+
+		public void LogInfo(string text)
+		{
+		}
+
+		public void LogTrace(string text)
+		{
+		}
 	}
 }

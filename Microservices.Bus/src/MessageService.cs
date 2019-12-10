@@ -27,6 +27,9 @@ namespace Microservices.Bus
 		private readonly ILicenseManager _licManager;
 		private readonly ServiceInfo _serviceInfo;
 		private readonly IServiceInfoManager _serviceInfoManager;
+		private DateTime? _startTime;
+		private Exception _startupError;
+		private bool _started;
 
 
 		#region Ctor
@@ -60,22 +63,36 @@ namespace Microservices.Bus
 						_database.Schema = _busSettings.Database.Schema;
 						_database.ConnectionString = _busSettings.Database.ConnectionString;
 						//_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
-						//using DbContext dbContext = _database.ValidateSchema();
 
-						_addinManager.LoadAddins();
+						using DbContext dbContext = _database.ValidateSchema();
+						//using DbContext dbContext = _database.CreateOrUpdateSchema();
+
+						try
+						{
+							_addinManager.LoadAddins();
+						}
+						catch (Exception ex)
+						{
+							throw new InvalidOperationException("Ошибка загрузки дополнений.", ex);
+						}
 
 						//_licManager.LoadLicenses();
 						//_channelManager.LoadChannels();
 
-						//SetCurrentParamsTo(_serviceInfo);
-						//_serviceInfoManager.SaveInfo(false);
 					}
 					catch (Exception ex)
 					{
-						//_logger.LogError(ex);
-						//this.startupError = new InvalidOperationException("Ошибка запуска сервиса.", ex);
-						//throw this.startupError;
-						throw;
+						_logger.LogError(ex);
+						_startupError = ex;
+					}
+					finally
+					{
+						_startTime = DateTime.Now;
+						_started = true;
+
+						SetCurrentParamsTo(_serviceInfo);
+						if (!(_startupError is DatabaseException))
+							_serviceInfoManager.SaveInfo(false);
 					}
 				}, cancellationToken);
 		}
@@ -94,10 +111,10 @@ namespace Microservices.Bus
 			//serviceInfo.ServiceName = SERVICE_NAME;
 			serviceInfo.MachineName = Environment.MachineName;
 			//serviceInfo.Version = MessageServiceVersion.Current.Version;
-			//serviceInfo.StartTime = (this.startTime ?? DateTime.Now);
+			//serviceInfo.StartTime = (_startTime ?? DateTime.Now);
 			//serviceInfo.ShutdownTime = this.shutdownTime;
 			//serviceInfo.ShutdownReason = this.shutdownReason;
-			//serviceInfo.Running = this.started;
+			//serviceInfo.Running = _started;
 			//serviceInfo.ConfigFileName = _busSettings.ConfigFileName;
 			//serviceInfo.BaseDir = _busSettings.BaseDir;
 			//serviceInfo.LogFilesDir = _busSettings.LogFilesDir;
@@ -110,7 +127,7 @@ namespace Microservices.Bus
 			serviceInfo.DebugEnabled = _busSettings.DebugEnabled;
 			serviceInfo.AuthorizeEnabled = _busSettings.AuthorizationRequired;
 			serviceInfo.MaxUploadSize = _busSettings.MaxUploadFileSize;
-			//serviceInfo.StartupError = (this.startupError != null ? this.startupError.Wrap() : null);
+			serviceInfo.StartupError = _startupError;
 		}
 		#endregion
 

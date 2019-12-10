@@ -42,7 +42,11 @@ namespace Microservices.Bus
 				{
 					try
 					{
-						LoadAddin(dir);
+						ChannelDescription channelDescription = LoadAddin(dir);
+						lock (_registeredChannels)
+						{
+							_registeredChannels.Add(channelDescription);
+						}
 					}
 					catch (Exception ex)
 					{
@@ -60,7 +64,7 @@ namespace Microservices.Bus
 
 
 		#region Helpers
-		private void LoadAddin(string dir)
+		private ChannelDescription LoadAddin(string dir)
 		{
 			string configFile = Path.Combine(dir, "appsettings.config");
 			using var appConfguration = new XmlConfigFileConfigurationProvider(configFile);
@@ -68,10 +72,7 @@ namespace Microservices.Bus
 
 			var channelDescription = new ChannelDescription(appConfguration.GetAppSettings());
 			channelDescription.BinPath = Path.Combine(dir, channelDescription.Type);
-			lock (_registeredChannels)
-			{
-				_registeredChannels.Add(channelDescription);
-			}
+			return channelDescription;
 		}
 		#endregion
 

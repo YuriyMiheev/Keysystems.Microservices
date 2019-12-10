@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 using Microservices.Configuration;
 
@@ -25,15 +26,19 @@ namespace Microservices.Bus
 			: base(".", appSettings)
 		{
 			_appSettings = new Dictionary<string, AppConfigSetting>(appSettings);
-			_appSettings.Remove(".Provider");
-			_appSettings.Remove(".Type");
-			_appSettings.Remove(".Version");
-			_appSettings.Remove(".RealAddress");
-			_appSettings.Remove(".Timeout");
-			_appSettings.Remove(".Comment");
-			_appSettings.Remove(".Icon");
-			_appSettings.Remove(".CanSyncContacts");
-			_appSettings.Remove(".AllowMultipleInstances");
+			foreach (var pair in _appSettings.Where(kvp => kvp.Key.StartsWith(".")).ToList())
+			{
+				_appSettings.Remove(pair);
+			}
+			//_appSettings.Remove(".Provider");
+			//_appSettings.Remove(".Type");
+			//_appSettings.Remove(".Version");
+			//_appSettings.Remove(".RealAddress");
+			//_appSettings.Remove(".Timeout");
+			//_appSettings.Remove(".Comment");
+			//_appSettings.Remove(".Icon");
+			//_appSettings.Remove(".CanSyncContacts");
+			//_appSettings.Remove(".AllowMultipleInstances");
 
 			_properties = new List<ChannelDescriptionProperty>();
 			foreach (string key in _appSettings.Keys)
