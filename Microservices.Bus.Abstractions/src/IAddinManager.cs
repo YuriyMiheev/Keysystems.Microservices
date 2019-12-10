@@ -7,6 +7,8 @@ namespace Microservices.Bus
 {
 	public interface IAddinManager
 	{
+		ChannelDescription[] RegisteredChannels { get; }
+
 		void LoadAddins();
 	}
 }

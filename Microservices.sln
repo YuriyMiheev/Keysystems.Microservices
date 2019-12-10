@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.MSSQL", "Microservices.Channels.MSSQL\Microservices.Channels.MSSQL.csproj", "{7A717F05-2001-4FFF-8463-8E6C8B643ED0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels", "Microservices.Channels\Microservices.Channels.csproj", "{DEA8A578-FCF0-4978-A590-2E6936D97C43}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.Client", "Microservices.Channels.Client\Microservices.Channels.Client.csproj", "{5BDDBDAD-0A88-4EE3-A4BF-631BD33924B9}"
@@ -27,7 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus", "Micros
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Abstractions", "Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj", "{D0F618D2-2CE8-448E-8F08-D232109FA20E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Channels.Abstractions", "Microservices.Channels.Abstractions\Microservices.Channels.Abstractions.csproj", "{073B1414-17D7-428F-A40F-3E16D3CABB67}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.Abstractions", "Microservices.Channels.Abstractions\Microservices.Channels.Abstractions.csproj", "{073B1414-17D7-428F-A40F-3E16D3CABB67}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ADDINS", "ADDINS", "{4CC48F6A-7B79-4492-B054-824D8184F386}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.MSSQL", "Microservices.Channels.MSSQL\Microservices.Channels.MSSQL.csproj", "{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +37,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7A717F05-2001-4FFF-8463-8E6C8B643ED0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7A717F05-2001-4FFF-8463-8E6C8B643ED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7A717F05-2001-4FFF-8463-8E6C8B643ED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7A717F05-2001-4FFF-8463-8E6C8B643ED0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DEA8A578-FCF0-4978-A590-2E6936D97C43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DEA8A578-FCF0-4978-A590-2E6936D97C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEA8A578-FCF0-4978-A590-2E6936D97C43}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -87,6 +85,10 @@ Global
 		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{073B1414-17D7-428F-A40F-3E16D3CABB67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -131,7 +131,7 @@ namespace Microservices.Data
 		public virtual IQueryOver<DAO.Message, DAO.Message> QueryMessages(IDataQuery dataQuery)
 		{
 			#region Validate parameters
-			if ( dataQuery == null )
+			if (dataQuery == null)
 				throw new ArgumentNullException("dataQuery");
 			#endregion
 
@@ -140,10 +140,14 @@ namespace Microservices.Data
 
 		public virtual int ExecuteUpdate(string sql)
 		{
-			using (IDataQuery dataQuery = OpenQuery())
+			using (UnitOfWork work = BeginWork())
 			{
-				ISQLQuery sqlQuery = dataQuery.CreateSQLQuery(sql);
-				return sqlQuery.ExecuteUpdate();
+				ISQLQuery sqlQuery = work.CreateSQLQuery(sql);
+				sqlQuery.SetTimeout(this.ExecuteTimeout);
+				int res = sqlQuery.ExecuteUpdate();
+
+				work.End();
+				return res;
 			}
 		}
 
@@ -155,34 +159,34 @@ namespace Microservices.Data
 		public virtual List<Message> SelectMessages(QueryParams queryParams)
 		{
 			#region Validate parameters
-			if ( queryParams == null )
+			if (queryParams == null)
 				throw new ArgumentNullException("queryParams");
 
-			if ( String.IsNullOrEmpty(queryParams.Query) )
+			if (String.IsNullOrEmpty(queryParams.Query))
 				throw new ArgumentException("Отсутствует текст запроса.", "queryParams");
 			#endregion
 
-			using ( IDataQuery dataQuery = OpenQuery() )
+			using (IDataQuery dataQuery = OpenQuery())
 			{
 				IQuery query;
-				if ( queryParams.Params is IDictionary<string, object> )
+				if (queryParams.Params is IDictionary<string, object>)
 				{
 					query = dataQuery.Open(queryParams.Query);
-					foreach ( KeyValuePair<string, object> pair in (IDictionary<string, object>)queryParams.Params )
+					foreach (KeyValuePair<string, object> pair in (IDictionary<string, object>)queryParams.Params)
 					{
 						query.SetParameter(pair.Key, pair.Value);
 					}
 				}
-				else if ( queryParams.Params is IEnumerable<object> )
+				else if (queryParams.Params is IEnumerable<object>)
 				{
 					query = dataQuery.Open(queryParams.Query);
-					for ( int i = 0; i < ((IEnumerable<object>)queryParams.Params).Count(); i++ )
+					for (int i = 0; i < ((IEnumerable<object>)queryParams.Params).Count(); i++)
 					{
 						object value = ((IEnumerable<object>)queryParams.Params).ToArray()[i];
 						query.SetParameter(i, value);
 					}
 				}
-				else if ( queryParams.Params == null )
+				else if (queryParams.Params == null)
 				{
 					query = dataQuery.Open(queryParams.Query);
 				}
@@ -192,22 +196,22 @@ namespace Microservices.Data
 					query.SetProperties(queryParams.Params);
 				}
 
-				if ( queryParams.Skip != null && queryParams.Skip > 0 )
+				if (queryParams.Skip != null && queryParams.Skip > 0)
 					query.SetFirstResult(queryParams.Skip.Value);
 
-				if ( queryParams.Take != null )
+				if (queryParams.Take != null)
 					query.SetMaxResults(queryParams.Take.Value);
 
 				IList list = query.List();
-				if ( list.Count == 0 )
+				if (list.Count == 0)
 				{
 					return new List<Message>();
 				}
 				else
 				{
-					if ( list[0] is DAO.Message )
+					if (list[0] is DAO.Message)
 						return list.OfType<DAO.Message>().Select(msg => msg.ToObj()).ToList();
-					else if ( list[0] is Array )
+					else if (list[0] is Array)
 						return list.OfType<object[]>().Select(arr => ((DAO.Message)arr[0]).ToObj()).ToList();
 					else
 						return new List<Message>();
@@ -226,7 +230,7 @@ namespace Microservices.Data
 		/// <returns></returns>
 		public virtual List<Message> GetMessages(string status, int? skip, int? take, out int totalCount)
 		{
-			using ( IDataQuery dataQuery = OpenQuery() )
+			using (IDataQuery dataQuery = OpenQuery())
 			{
 				var query = dataQuery.Open<DAO.Message>();
 				//if (String.IsNullOrEmpty(channel))
@@ -234,11 +238,11 @@ namespace Microservices.Data
 				//else if (channel != "*")
 				//	query.Where(msg => msg.Channel == channel);
 
-				if ( status == MessageStatus.DRAFT )
+				if (status == MessageStatus.DRAFT)
 				{
 					query.AndRestrictionOn(msg => msg.Status.Value).IsNull();
 				}
-				else if ( !String.IsNullOrWhiteSpace(status) )
+				else if (!String.IsNullOrWhiteSpace(status))
 				{
 					string[] statuses = status.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 					query.AndRestrictionOn(msg => msg.Status.Value).IsIn(statuses);
@@ -257,10 +261,10 @@ namespace Microservices.Data
 				//	query.AndRestrictionOn(msg => msg.Status.Value).IsIn(statuses);
 				//}
 
-				if ( skip != null && skip > 0 )
+				if (skip != null && skip > 0)
 					query.Skip(skip.Value);
 
-				if ( take != null )
+				if (take != null)
 					query.Take(take.Value);
 
 				//if ( String.IsNullOrEmpty(channel) )
@@ -284,7 +288,7 @@ namespace Microservices.Data
 		/// <returns></returns>
 		public virtual List<Message> GetLastMessages(string status, int? skip, int? take, out int totalCount)
 		{
-			using ( IDataQuery dataQuery = OpenQuery() )
+			using (IDataQuery dataQuery = OpenQuery())
 			{
 				var query = dataQuery.Open<DAO.Message>();
 				//if (String.IsNullOrEmpty(channel))
@@ -292,11 +296,11 @@ namespace Microservices.Data
 				//else if (channel != "*")
 				//	query.Where(msg => msg.Channel == channel);
 
-				if ( status == MessageStatus.DRAFT )
+				if (status == MessageStatus.DRAFT)
 				{
 					query.AndRestrictionOn(msg => msg.Status.Value).IsNull();
 				}
-				else if ( !String.IsNullOrWhiteSpace(status) )
+				else if (!String.IsNullOrWhiteSpace(status))
 				{
 					string[] statuses = status.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 					query.AndRestrictionOn(msg => msg.Status.Value).IsIn(statuses);
@@ -315,10 +319,10 @@ namespace Microservices.Data
 				//	query.AndRestrictionOn(msg => msg.Status.Value).IsIn(statuses);
 				//}
 
-				if ( skip != null && skip > 0 )
+				if (skip != null && skip > 0)
 					query.Skip(skip.Value);
 
-				if ( take != null )
+				if (take != null)
 					query.Take(take.Value);
 
 				//if ( String.IsNullOrEmpty(channel) )
@@ -338,7 +342,7 @@ namespace Microservices.Data
 		/// <returns></returns>
 		public virtual Message GetMessage(int msgLink)
 		{
-			using ( IDataQuery dataQuery = OpenQuery() )
+			using (IDataQuery dataQuery = OpenQuery())
 			{
 				return dataQuery.Get<DAO.Message>(msgLink).ToObj();
 			}
@@ -353,7 +357,7 @@ namespace Microservices.Data
 		/// <returns></returns>
 		public virtual Message FindMessage(string msgGuid, string direction)
 		{
-			using ( IDataQuery dataQuery = OpenQuery() )
+			using (IDataQuery dataQuery = OpenQuery())
 			{
 				var query = dataQuery.Open<DAO.Message>();
 				//if ( String.IsNullOrEmpty(channel) )
@@ -373,15 +377,15 @@ namespace Microservices.Data
 		public virtual void SaveMessage(Message msg)
 		{
 			#region Validate parameters
-			if ( msg == null )
+			if (msg == null)
 				throw new ArgumentNullException("msg");
 			#endregion
 
 			DAO.Message dao = msg.ToDao();
 
-			using ( UnitOfWork work = BeginWork() )
+			using (UnitOfWork work = BeginWork())
 			{
-				if ( dao.LINK == 0 )
+				if (dao.LINK == 0)
 					work.Save(dao);
 				else
 					work.Update<DAO.Message>(ref dao);
@@ -398,10 +402,10 @@ namespace Microservices.Data
 		/// <param name="msgLink"></param>
 		public virtual void DeleteMessage(int msgLink)
 		{
-			using ( UnitOfWork work = BeginWork() )
+			using (UnitOfWork work = BeginWork())
 			{
 				var dao = work.Get<DAO.Message>(msgLink);
-				if ( dao == null )
+				if (dao == null)
 					return;
 
 				work.Delete(dao);
@@ -474,20 +478,20 @@ namespace Microservices.Data
 		public virtual void DeleteMessages(IEnumerable<int> msgLinks)
 		{
 			#region Validate parameters
-			if ( msgLinks == null )
+			if (msgLinks == null)
 				throw new ArgumentNullException("msgLinks");
 			#endregion
 
 			int count = msgLinks.Count();
-			if ( count > 0 )
+			if (count > 0)
 			{
 				int skip = 0;
-				while ( skip < count )
+				while (skip < count)
 				{
 					List<int> links = msgLinks.Skip(skip).Take(1000).ToList();
 					skip += links.Count;
 
-					using ( UnitOfWork work = BeginWork() )
+					using (UnitOfWork work = BeginWork())
 					{
 						ISQLQuery query = work.CreateSQLQuery(String.Format("DELETE FROM {0} WHERE MESSAGE_LINK IN (:messages)", Database.Tables.MESSAGE_PROPERTIES));
 						query.SetParameterList("messages", links);
@@ -523,13 +527,13 @@ namespace Microservices.Data
 			UnitOfWork work = BeginWork();
 
 			MessageBodyInfo bodyInfo = work.Get<DAO.MessageBodyInfo>(msgLink).ToObj();
-			if ( bodyInfo == null )
+			if (bodyInfo == null)
 				return null;
 
 			MessageBodyStreamBase stream = ConstructMessageBodyStream(msgLink, work, DataStreamMode.READ, bodyInfo.ContentType().Encoding());
 			stream.ReadTimeout = this.ExecuteTimeout;
 
-			if ( bodyInfo.Length == null )
+			if (bodyInfo.Length == null)
 				bodyInfo.Length = (int)stream.Length;
 
 			var body = new MessageBody();
@@ -548,7 +552,7 @@ namespace Microservices.Data
 		public virtual void SaveMessageBody(MessageBody body)
 		{
 			#region Validate parameters
-			if ( body == null )
+			if (body == null)
 				throw new ArgumentNullException("body");
 			#endregion
 
@@ -558,7 +562,7 @@ namespace Microservices.Data
 
 			DAO.MessageBodyInfo dao = bodyInfo.ToDao();
 
-			using ( UnitOfWork work = BeginWork() )
+			using (UnitOfWork work = BeginWork())
 			{
 				work.Update<DAO.MessageBodyInfo>(ref dao);
 
@@ -571,11 +575,11 @@ namespace Microservices.Data
 					do
 					{
 						charsReaded = body.Value.Read(buffer, 0, buffer.Length);
-						if ( charsReaded > 0 )
+						if (charsReaded > 0)
 							stream.Write(buffer, 0, charsReaded);
-					} while ( charsReaded > 0 );
+					} while (charsReaded > 0);
 
-					if ( dao.Length == null )
+					if (dao.Length == null)
 					{
 						dao.Length = (int)stream.Length;
 						work.Update<DAO.MessageBodyInfo>(ref dao);
@@ -595,10 +599,10 @@ namespace Microservices.Data
 		/// <param name="msgLink"></param>
 		public virtual void DeleteMessageBody(int msgLink)
 		{
-			using ( UnitOfWork work = BeginWork() )
+			using (UnitOfWork work = BeginWork())
 			{
 				var dao = work.Get<DAO.MessageBody>(msgLink);
-				if ( dao == null )
+				if (dao == null)
 					throw new MessageNotFoundException(msgLink);
 
 				dao.FileSize = null;
@@ -625,13 +629,13 @@ namespace Microservices.Data
 			UnitOfWork work = BeginWork();
 
 			MessageContentInfo contentInfo = work.Get<DAO.MessageContentInfo>(contentLink).ToObj();
-			if ( contentInfo == null )
+			if (contentInfo == null)
 				return null;
 
 			MessageContentStreamBase stream = ConstructMessageContentStream(contentInfo.LINK, work, DataStreamMode.READ, contentInfo.ContentType().Encoding());
 			stream.ReadTimeout = this.ExecuteTimeout;
 
-			if ( contentInfo.Length == null )
+			if (contentInfo.Length == null)
 				contentInfo.Length = (int)stream.Length;
 
 			var content = new MessageContent();
@@ -650,7 +654,7 @@ namespace Microservices.Data
 		public virtual void SaveMessageContent(MessageContent content)
 		{
 			#region Validate parameters
-			if ( content == null )
+			if (content == null)
 				throw new ArgumentNullException("content");
 			#endregion
 
@@ -658,16 +662,16 @@ namespace Microservices.Data
 			ContentType contentType = contentInfo.ContentType();
 			Encoding encoding = contentType.Encoding();
 
-			using ( UnitOfWork work = BeginWork() )
+			using (UnitOfWork work = BeginWork())
 			{
 				int msgLink = content.MessageLINK.Value;
 				var msg = work.Get<DAO.Message>(msgLink);
-				if ( msg == null )
+				if (msg == null)
 					throw new MessageNotFoundException(msgLink);
 
 				DAO.MessageContentInfo dao = contentInfo.ToDao(msg);
 
-				if ( dao.LINK == 0 )
+				if (dao.LINK == 0)
 					work.Save(dao);
 				else
 					work.Update<DAO.MessageContentInfo>(ref dao);
@@ -712,10 +716,10 @@ namespace Microservices.Data
 		/// <param name="contentLink"></param>
 		public virtual void DeleteMessageContent(int contentLink)
 		{
-			using ( UnitOfWork work = BeginWork() )
+			using (UnitOfWork work = BeginWork())
 			{
 				var dao = work.Get<DAO.MessageContentInfo>(contentLink);
-				if ( dao == null )
+				if (dao == null)
 					return;
 
 				work.Delete(dao);
@@ -733,13 +737,13 @@ namespace Microservices.Data
 		/// <returns></returns>
 		public virtual List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end)
 		{
-			using ( IDataQuery dataQuery = OpenQuery() )
+			using (IDataQuery dataQuery = OpenQuery())
 			{
 				var query = dataQuery.Open<DAO.DateStatMessage>();
-				if ( end != null )
+				if (end != null)
 					query.Where(msg => msg.Date <= end);
 
-				if ( begin != null )
+				if (begin != null)
 					query.Where(msg => msg.Date >= begin);
 
 				return query.List().ToList();

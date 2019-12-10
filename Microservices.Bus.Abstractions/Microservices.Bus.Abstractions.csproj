@@ -6,7 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Configuration\AddinSettings.cs" />
+    <Compile Remove="src\Configuration\XSettings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
+    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
   </ItemGroup>
 
 </Project>

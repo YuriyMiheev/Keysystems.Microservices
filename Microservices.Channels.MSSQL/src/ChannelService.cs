@@ -25,7 +25,7 @@ namespace Microservices.Channels.MSSQL
 		private readonly ILogger _logger;
 		//private IServiceProvider _serviceProvider;
 		private readonly IDatabase _database;
-		private readonly IChannelMessageDataAdapter _dataAdapter;
+		private readonly IChannelDataAdapter _dataAdapter;
 		private readonly ISendMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
@@ -46,14 +46,14 @@ namespace Microservices.Channels.MSSQL
 			_appConfig = serviceProvider.GetRequiredService<IAppSettingsConfig>();
 			_logger = serviceProvider.GetRequiredService<ILogger>();
 			_database = serviceProvider.GetRequiredService<IDatabase>();
-			_dataAdapter = serviceProvider.GetRequiredService<IChannelMessageDataAdapter>();
+			_dataAdapter = serviceProvider.GetRequiredService<IChannelDataAdapter>();
 			_scanner = serviceProvider.GetRequiredService<ISendMessageScanner>();
 			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
 			_channelStatus = serviceProvider.GetRequiredService<ChannelStatus>();
 			//_publisher = new MessagePublisher(this);
 
-			_scanner.NewMessages += scanner_NewMessages;
-			_channelStatus.PropertyChanged += channelStatus_Changed;
+			_scanner.NewMessages += Scanner_NewMessages;
+			_channelStatus.PropertyChanged += ChannelStatus_Changed;
 
 			_infoSettings = _appConfig.InfoSettings();
 			_channelSettings = _appConfig.ChannelSettings();
@@ -721,7 +721,7 @@ namespace Microservices.Channels.MSSQL
 				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
 
-		private bool scanner_NewMessages(Message[] messages)
+		private bool Scanner_NewMessages(Message[] messages)
 		{
 			if (this.SendMessages != null)
 				return this.SendMessages.Invoke(messages);
@@ -729,7 +729,7 @@ namespace Microservices.Channels.MSSQL
 				return false;
 		}
 
-		private void channelStatus_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void ChannelStatus_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{

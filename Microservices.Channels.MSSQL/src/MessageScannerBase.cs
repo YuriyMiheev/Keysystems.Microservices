@@ -20,7 +20,7 @@ namespace Microservices.Channels.MSSQL
 		//private MessageSettings _settings;
 		private TimeSpan _interval;
 		private int _portion;
-		private IChannelMessageDataAdapter _dataAdapter;
+		private IChannelDataAdapter _dataAdapter;
 		private ILogger _logger;
 		private System.Threading.CancellationToken _cancellationToken;
 		private Timer _queryTimer;
@@ -33,7 +33,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		protected MessageScannerBase(IChannelMessageDataAdapter dataAdapter, ILogger logger)
+		protected MessageScannerBase(IChannelDataAdapter dataAdapter, ILogger logger)
 		{
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));

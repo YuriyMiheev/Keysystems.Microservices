@@ -8,7 +8,7 @@ namespace Microservices.Configuration
 	/// </summary>
 	public abstract class AppSettingsBase
 	{
-		private IDictionary<string, AppConfigSetting> _settings;
+		private IDictionary<string, AppConfigSetting> _appSettings;
 
 
 		#region Ctor
@@ -16,10 +16,10 @@ namespace Microservices.Configuration
 		/// 
 		/// </summary>
 		/// <param name="prefix"></param>
-		/// <param name="settings"></param>
-		protected AppSettingsBase(string prefix, IDictionary<string, AppConfigSetting> settings)
+		/// <param name="appSettings"></param>
+		protected AppSettingsBase(string prefix, IDictionary<string, AppConfigSetting> appSettings)
 		{
-			_settings = new Dictionary<string, AppConfigSetting>(settings.Where(p => p.Key.StartsWith(prefix)));
+			_appSettings = new Dictionary<string, AppConfigSetting>(appSettings.Where(p => p.Key.StartsWith(prefix)));
 		}
 		#endregion
 
@@ -41,8 +41,8 @@ namespace Microservices.Configuration
 		/// <returns></returns>
 		protected virtual string PropertyValue(string propName)
 		{
-			if (_settings.ContainsKey(propName) )
-				return _settings[propName].Value;
+			if (_appSettings.ContainsKey(propName) )
+				return _appSettings[propName].Value;
 
 			return null;
 		}

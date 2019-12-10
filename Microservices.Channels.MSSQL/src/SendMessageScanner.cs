@@ -19,7 +19,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		public SendMessageScanner(IChannelMessageDataAdapter dataAdapter, ILogger logger)
+		public SendMessageScanner(IChannelDataAdapter dataAdapter, ILogger logger)
 			: base(dataAdapter, logger)
 		{ }
 		#endregion

@@ -12,8 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="src\Configuration\AppSettingsConfigExtensions.cs" />
-    <Compile Remove="src\Configuration\XSettings.cs" />
     <Compile Remove="src\ServiceDescription.cs" />
   </ItemGroup>
 

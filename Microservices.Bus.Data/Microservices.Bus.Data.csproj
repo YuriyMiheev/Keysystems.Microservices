@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj" />
     <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
   </ItemGroup>
 

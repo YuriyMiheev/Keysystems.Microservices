@@ -7,25 +7,8 @@ namespace Microservices.Data
 	/// <summary>
 	/// Адаптер хранилища сообщений.
 	/// </summary>
-	public interface IMessageDataAdapter
+	public interface IMessageDataAdapter : IDataAdapter
 	{
-
-		#region Properties
-		DbContext DbContext { get; }
-
-		int ExecuteTimeout { get; set; }
-		#endregion
-
-
-		#region Methods
-		bool CheckConnection(out ConnectionException error);
-
-		IDataQuery OpenQuery();
-
-		IDataQuery OpenQuery(IsolationLevel transaction);
-
-		UnitOfWork BeginWork();
-
 
 		#region Messages
 		/// <summary>
@@ -154,15 +137,6 @@ namespace Microservices.Data
 		/// <param name="end"></param>
 		/// <returns></returns>
 		List<DAO.DateStatMessage> GetMessagesByDate(DateTime? begin, DateTime? end);
-		#endregion
-
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sql"></param>
-		/// <returns></returns>
-		int ExecuteUpdate(string sql);
 		#endregion
 
 	}

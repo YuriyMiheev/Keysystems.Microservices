@@ -1,6 +1,7 @@
 using System.Linq;
 
 using Microservices.Bus.Configuration;
+using Microservices.Bus.Data;
 using Microservices.Bus.Data.MSSQL;
 using Microservices.Bus.Logging;
 using Microservices.Configuration;
@@ -42,6 +43,7 @@ namespace Microservices.Bus
 						services.AddSingleton<IConnectionStringsConfig>(appConfig);
 						services.AddSingleton<BusSettings>();
 						services.AddSingleton<IDatabase, SysDatabase>();
+						services.AddSingleton<IBusDataAdapter, BusDataAdapter>();
 						services.AddSingleton<ILogger, BusLogger>();
 						services.AddSingleton<IAuthManager, AuthManager>();
 						services.AddSingleton<IChannelManager, ChannelManager>();

@@ -21,14 +21,14 @@ namespace Microservices.Channels.MSSQL.Hubs
 	{
 		private readonly IChannelService _channelService;
 		private readonly IAppSettingsConfig _appConfig;
-		private readonly IChannelMessageDataAdapter _dataAdapter;
+		private readonly IChannelDataAdapter _dataAdapter;
 		private readonly IHubConnections _connections;
 		private readonly XSettings _serviceSettings;
 		private readonly ILogger _logger;
 
 
 		#region Ctor
-		public ChannelHub(IChannelService channelService, IAppSettingsConfig appConfig, IChannelMessageDataAdapter dataAdapter, ILogger logger, IHubConnections connections)
+		public ChannelHub(IChannelService channelService, IAppSettingsConfig appConfig, IChannelDataAdapter dataAdapter, ILogger logger, IHubConnections connections)
 		{
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));

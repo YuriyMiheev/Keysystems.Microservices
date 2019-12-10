@@ -141,7 +141,7 @@ namespace Microservices.Bus
 		public int MaxUploadSize { get; set; }
 
 		/// <summary>
-		/// {Get} Ошибка при запуске.
+		/// {Get,Set} Ошибка при запуске.
 		/// </summary>
 		public Exception StartupError { get; set; }
 		#endregion

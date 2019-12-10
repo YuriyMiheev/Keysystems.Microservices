@@ -43,7 +43,7 @@ namespace Microservices.Channels.MSSQL
 						var appConfig = (XmlConfigFileConfigurationProvider)appConfiguration.Providers.Single();
 						services.AddSingleton<IAppSettingsConfig>(appConfig);
 						services.AddSingleton<IDatabase, ChannelDatabase>();
-						services.AddSingleton<IChannelMessageDataAdapter, MessageDataAdapter>();
+						services.AddSingleton<IChannelDataAdapter, ChannelDataAdapter>();
 						services.AddSingleton<ILogger, ChannelLogger>();
 						services.AddSingleton<IHubConnections, HubConnections>();
 						services.AddSingleton<ISendMessageScanner, SendMessageScanner>();
