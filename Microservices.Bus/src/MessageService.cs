@@ -73,8 +73,9 @@ namespace Microservices.Bus
 					catch (Exception ex)
 					{
 						//_logger.LogError(ex);
-						_serviceInfo.StartupError = new InvalidOperationException("Ошибка запуска сервиса.", ex);
-						throw _serviceInfo.StartupError;
+						//this.startupError = new InvalidOperationException("Ошибка запуска сервиса.", ex);
+						//throw this.startupError;
+						throw;
 					}
 				}, cancellationToken);
 		}
@@ -85,6 +86,33 @@ namespace Microservices.Bus
 		}
 		#endregion
 
+
+		#region Helpers
+		private void SetCurrentParamsTo(ServiceInfo serviceInfo)
+		{
+			//serviceInfo.InstanceID = this.instanceId;
+			//serviceInfo.ServiceName = SERVICE_NAME;
+			serviceInfo.MachineName = Environment.MachineName;
+			//serviceInfo.Version = MessageServiceVersion.Current.Version;
+			//serviceInfo.StartTime = (this.startTime ?? DateTime.Now);
+			//serviceInfo.ShutdownTime = this.shutdownTime;
+			//serviceInfo.ShutdownReason = this.shutdownReason;
+			//serviceInfo.Running = this.started;
+			//serviceInfo.ConfigFileName = _busSettings.ConfigFileName;
+			//serviceInfo.BaseDir = _busSettings.BaseDir;
+			//serviceInfo.LogFilesDir = _busSettings.LogFilesDir;
+			serviceInfo.TempDir = _busSettings.TempDir;
+			serviceInfo.AddinsDir = _busSettings.AddinsDir;
+			serviceInfo.ToolsDir = _busSettings.ToolsDir;
+			serviceInfo.LicenseFile = _busSettings.LicenseFile;
+			serviceInfo.Database = _busSettings.Database;
+			serviceInfo.Administrator = _busSettings.Administrator;
+			serviceInfo.DebugEnabled = _busSettings.DebugEnabled;
+			serviceInfo.AuthorizeEnabled = _busSettings.AuthorizationRequired;
+			serviceInfo.MaxUploadSize = _busSettings.MaxUploadFileSize;
+			//serviceInfo.StartupError = (this.startupError != null ? this.startupError.Wrap() : null);
+		}
+		#endregion
 
 	}
 }
