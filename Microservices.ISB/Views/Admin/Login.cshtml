@@ -1,0 +1,159 @@
+﻿@using Microservices.Bus;
+@{
+   this.Layout = null;
+   
+   ServiceInfo service = this.ViewBag.Service;
+   string localTime = service.CurrentTime.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+   string utcTime = service.CurrentTime.ToUniversalTime().ToString("dd.MM.yyyy HH:mm");
+   string userName = this.ViewBag.UserName;
+   Exception loginError = this.ViewBag.LoginError;
+}
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta charset="utf-8" />
+      <meta name="robots" content="none" />
+      <title></title>
+      <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" />
+      <link type="text/css" href="@Url.Content("~/ext-3.4.1/resources/css/ext-all.css")" rel="stylesheet" />
+      <link type="text/css" href="@Url.Content("~/Content/images.css")" rel="stylesheet" />
+      <style type="text/css">
+         .content-header
+         {
+            font-size: 14px;
+         }
+         .content-header h1
+         {
+            font-size: 16px;
+            color: #C0272B;
+         }
+      </style>
+      <script type="text/javascript" src="@Url.Content("~/ext-3.4.1/adapter/ext/ext-base.js")"></script>
+      <script type="text/javascript" src="@Url.Content("~/ext-3.4.1/ext-all.js")"></script>
+      <script type="text/javascript">
+         Ext.BLANK_IMAGE_URL = '@Url.Content("~/ext-3.4.1/resources/images/default/s.gif")';
+         Ext.QuickTips.init();
+
+         Ext.onReady(function() {
+            var loginError = @Html.Raw(Json.Serialize(loginError));
+
+            var fieldsetServiceInfo = new Ext.form.FieldSet({
+               title: 'Integration Service Bus',
+               labelWidth: 85,
+               style: 'margin: 5px 0 0 0;',
+               items: [
+                  { xtype: 'displayfield', fieldLabel: 'Version', value: '<b>@service.Version</b>' },
+                  { xtype: 'displayfield', fieldLabel: 'Server Time', value: '@localTime' },
+                  { xtype: 'displayfield', fieldLabel: 'Utc Time', value: '@utcTime' }
+               ]
+            });
+
+            var fieldsetLogin = new Ext.form.FieldSet({
+               title: 'Administrator',
+               labelWidth: 60,
+               style: 'margin: 5px 0 0 0',
+               items: [
+                  {
+                     xtype: 'compositefield',
+                     items: [
+                        { xtype: 'box', width: 25, height: 25, cls: 'ico_user' },
+                        { xtype: 'textfield', id: 'txtUserName', name: 'userName', fieldLabel: 'Name', width: 120, value: '@userName' }
+                     ]
+                  },
+                  {
+                     xtype: 'compositefield',
+                     items: [
+                        { xtype: 'box', width: 25, height: 25, cls: 'ico_password' },
+                        { xtype: 'textfield', id: 'txtPassword', name: 'password', inputType: 'password', width: 120, fieldLabel: 'Password' }
+                     ]
+                  }
+               ],
+               buttons: [
+                  { id: 'btnLogin', text: 'Login', handler: btnLogin_Click }
+               ]
+            });
+
+            var formLogin = new Ext.FormPanel({
+               id: 'formLogin',
+               border: false,
+               style: 'padding: 0 0 5px 5px',
+               standardSubmit: true,
+               url: '@Url.Action("Login")',
+               items: [
+                  fieldsetLogin
+               ]
+            });
+
+            new Ext.Viewport({
+               id: 'panelForm',
+               renderTo: document.body,
+               border: false,
+               layout: 'border',
+               items: [
+                  {
+                     region: 'west',
+                     id: 'panelWest',
+                     width: 255,
+                     border: false,
+                     items: [
+                        {
+                           xtype: 'panel',
+                           border: false,
+                           style: 'padding: 0 0 0 5px',
+                           items: [
+                              fieldsetServiceInfo
+                           ]
+                        },
+                        formLogin
+                     ]
+                  },
+                  {
+                     region: 'center',
+                     id: 'panelCenter',
+                     border: false,
+                     items: [
+                        { xtype: 'panel', border: false, bodyStyle: 'padding: 5px', bodyCssClass: 'ico_keysystems' },
+                        {
+                           xtype: 'panel',
+                           border: false,
+                           bodyStyle: 'padding: 10px',
+                           autoLoad: {
+                              url: '@Url.Action("LoginContent")',
+                              method: 'GET'
+                           }
+                        }
+                     ]
+                  }
+               ]
+            });
+
+            new Ext.KeyMap(document, {
+               key: 13,
+               fn: btnLogin_Click
+            });
+
+            Ext.getCmp('txtUserName').focus(false);
+
+            if (loginError) {
+               Ext.Msg.show({
+                  title: 'Login Failed!',
+                  msg: loginError.Message,
+                  icon: Ext.Msg.ERROR,
+                  buttons: Ext.Msg.OK
+               });
+            }
+         });
+
+
+         @*-- Event Handlers --*@
+         function btnLogin_Click(button, e) {
+            var progress = new Ext.LoadMask(document.body, { msg: 'Please wait...' });
+            progress.show();
+
+            Ext.getCmp('formLogin').getForm().submit();
+         }
+      </script>
+   </head>
+   <body>
+   </body>
+</html>

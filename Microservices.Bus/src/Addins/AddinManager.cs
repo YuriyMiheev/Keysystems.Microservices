@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
 using Microservices.Configuration;
 
-namespace Microservices.Bus
+namespace Microservices.Bus.Addins
 {
 	public class AddinManager : IAddinManager
 	{
@@ -52,13 +53,14 @@ namespace Microservices.Bus
 					{
 						lock (errors)
 						{
-							errors.Add(ex);
+							var error = new InvalidOperationException($"Ошибка загрузки дополнения из каталога \"{dir}\".", ex);
+							errors.Add(error);
 						}
 					}
 				});
 
 			if (errors.Count > 0)
-				throw new AggregateException("Ошибка загрузки дополнений.", errors);
+				throw new AggregateException(errors);
 		}
 		#endregion
 

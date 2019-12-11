@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 
 namespace Microservices.Configuration
 {
+	[DebuggerDisplay("{this.Value}")]
 	[Serializable]
 	public class AppConfigSetting
 	{

@@ -21,8 +21,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Data.MSSQ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Data", "Microservices.Bus.Data\Microservices.Bus.Data.csproj", "{3E8C99EC-3AC1-4CD9-972E-FFF8CF00EBDE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus", "Microservices.Bus\Microservices.Bus.csproj", "{2D1EA0C0-E453-4F80-BA9C-20A67AD5E9A0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Bus.Abstractions", "Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj", "{D0F618D2-2CE8-448E-8F08-D232109FA20E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.Abstractions", "Microservices.Channels.Abstractions\Microservices.Channels.Abstractions.csproj", "{073B1414-17D7-428F-A40F-3E16D3CABB67}"
@@ -30,6 +28,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ADDINS", "ADDINS", "{4CC48F6A-7B79-4492-B054-824D8184F386}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.Channels.MSSQL", "Microservices.Channels.MSSQL\Microservices.Channels.MSSQL.csproj", "{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservices.ISB", "Microservices.ISB\Microservices.ISB.csproj", "{6B8BEE71-F266-48A5-982D-BA4E8F7B0C50}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microservices.Bus", "Microservices.Bus\Microservices.Bus.csproj", "{F418E793-2FF1-48F0-AFAC-A1B72A915E9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,10 +75,6 @@ Global
 		{3E8C99EC-3AC1-4CD9-972E-FFF8CF00EBDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E8C99EC-3AC1-4CD9-972E-FFF8CF00EBDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E8C99EC-3AC1-4CD9-972E-FFF8CF00EBDE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D1EA0C0-E453-4F80-BA9C-20A67AD5E9A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D1EA0C0-E453-4F80-BA9C-20A67AD5E9A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D1EA0C0-E453-4F80-BA9C-20A67AD5E9A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D1EA0C0-E453-4F80-BA9C-20A67AD5E9A0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0F618D2-2CE8-448E-8F08-D232109FA20E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0F618D2-2CE8-448E-8F08-D232109FA20E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0F618D2-2CE8-448E-8F08-D232109FA20E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -89,6 +87,14 @@ Global
 		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{003F704E-DA5E-45CC-B1B2-C7DB9A307CA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B8BEE71-F266-48A5-982D-BA4E8F7B0C50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B8BEE71-F266-48A5-982D-BA4E8F7B0C50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B8BEE71-F266-48A5-982D-BA4E8F7B0C50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B8BEE71-F266-48A5-982D-BA4E8F7B0C50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F418E793-2FF1-48F0-AFAC-A1B72A915E9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F418E793-2FF1-48F0-AFAC-A1B72A915E9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F418E793-2FF1-48F0-AFAC-A1B72A915E9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F418E793-2FF1-48F0-AFAC-A1B72A915E9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

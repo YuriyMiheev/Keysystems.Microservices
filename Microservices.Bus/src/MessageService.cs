@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microservices.Bus.Addins;
+using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
+using Microservices.Bus.Licensing;
 using Microservices.Bus.Logging;
 using Microservices.Configuration;
 using Microservices.Data;
@@ -28,8 +30,8 @@ namespace Microservices.Bus
 		private readonly ServiceInfo _serviceInfo;
 		private readonly IServiceInfoManager _serviceInfoManager;
 		private DateTime? _startTime;
+		private DateTime? _shutdownTime;
 		private Exception _startupError;
-		private bool _started;
 
 
 		#region Ctor
@@ -88,7 +90,6 @@ namespace Microservices.Bus
 					finally
 					{
 						_startTime = DateTime.Now;
-						_started = true;
 
 						SetCurrentParamsTo(_serviceInfo);
 						if (!(_startupError is DatabaseException))
@@ -99,6 +100,7 @@ namespace Microservices.Bus
 
 		public Task StopAsync(CancellationToken cancellationToken)
 		{
+			_shutdownTime = DateTime.Now;
 			return Task.CompletedTask;
 		}
 		#endregion
@@ -107,16 +109,16 @@ namespace Microservices.Bus
 		#region Helpers
 		private void SetCurrentParamsTo(ServiceInfo serviceInfo)
 		{
-			//serviceInfo.InstanceID = this.instanceId;
-			//serviceInfo.ServiceName = SERVICE_NAME;
+			//serviceInfo.InstanceID =  //this.instanceId;
+			serviceInfo.ServiceName = "Integration Service Bus";
 			serviceInfo.MachineName = Environment.MachineName;
-			//serviceInfo.Version = MessageServiceVersion.Current.Version;
-			//serviceInfo.StartTime = (_startTime ?? DateTime.Now);
-			//serviceInfo.ShutdownTime = this.shutdownTime;
+			serviceInfo.Version = "1.0"; //MessageServiceVersion.Current.Version;
+			serviceInfo.StartTime = _startTime.Value;
+			serviceInfo.ShutdownTime = _shutdownTime;
 			//serviceInfo.ShutdownReason = this.shutdownReason;
-			//serviceInfo.Running = _started;
-			//serviceInfo.ConfigFileName = _busSettings.ConfigFileName;
-			//serviceInfo.BaseDir = _busSettings.BaseDir;
+			serviceInfo.Running = true;
+			serviceInfo.ConfigFileName = _appConfig.ConfigFile;
+			serviceInfo.BaseDir = AppDomain.CurrentDomain.BaseDirectory; //_busSettings.BaseDir;
 			//serviceInfo.LogFilesDir = _busSettings.LogFilesDir;
 			serviceInfo.TempDir = _busSettings.TempDir;
 			serviceInfo.AddinsDir = _busSettings.AddinsDir;

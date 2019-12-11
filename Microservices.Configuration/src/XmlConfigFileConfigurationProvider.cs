@@ -31,6 +31,14 @@ namespace Microservices.Configuration
 		#endregion
 
 
+		#region Properties
+		/// <summary>
+		/// {Get}
+		/// </summary>
+		public string ConfigFile => base.Source.Path;
+		#endregion
+
+
 		#region Methods
 		/// <summary>
 		/// 

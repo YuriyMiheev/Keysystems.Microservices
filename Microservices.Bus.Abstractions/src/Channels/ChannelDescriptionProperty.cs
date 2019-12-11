@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Microservices.Bus
+namespace Microservices.Bus.Channels
 {
 	/// <summary>
 	/// Дополнительное свойство канала.

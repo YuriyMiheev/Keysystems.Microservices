@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microservices.Bus
+namespace Microservices.Bus.Licensing
 {
-	public interface IChannelManager
+	public interface ILicenseManager
 	{
 	}
 }

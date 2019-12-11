@@ -5,15 +5,15 @@ using System.Linq;
 
 using Microservices.Configuration;
 
-namespace Microservices.Bus
+namespace Microservices.Bus.Channels
 {
 	/// <summary>
 	/// Описание канала.
 	/// </summary>
 	[DebuggerDisplay("{this.Provider}")]
-	public class ChannelDescription : AppSettingsBase
+	public class ChannelDescription
 	{
-		private readonly IDictionary<string, AppConfigSetting> _appSettings;
+		private readonly IDictionary<string, AppConfigSetting> _addinSettings;
 		private readonly List<ChannelDescriptionProperty> _properties;
 
 
@@ -23,27 +23,13 @@ namespace Microservices.Bus
 		/// </summary>
 		/// <param name="_appSettings"></param>
 		public ChannelDescription(IDictionary<string, AppConfigSetting> appSettings)
-			: base(".", appSettings)
 		{
-			_appSettings = new Dictionary<string, AppConfigSetting>(appSettings);
-			foreach (var pair in _appSettings.Where(kvp => kvp.Key.StartsWith(".")).ToList())
-			{
-				_appSettings.Remove(pair);
-			}
-			//_appSettings.Remove(".Provider");
-			//_appSettings.Remove(".Type");
-			//_appSettings.Remove(".Version");
-			//_appSettings.Remove(".RealAddress");
-			//_appSettings.Remove(".Timeout");
-			//_appSettings.Remove(".Comment");
-			//_appSettings.Remove(".Icon");
-			//_appSettings.Remove(".CanSyncContacts");
-			//_appSettings.Remove(".AllowMultipleInstances");
-
+			string prefix = ".";
+			_addinSettings = new Dictionary<string, AppConfigSetting>(appSettings.Where(p => p.Key.StartsWith(prefix)));
 			_properties = new List<ChannelDescriptionProperty>();
-			foreach (string key in _appSettings.Keys)
+			foreach (string key in appSettings.Keys.Where(k => !k.StartsWith(prefix)))
 			{
-				AppConfigSetting setting = _appSettings[key];
+				AppConfigSetting setting = _addinSettings[key];
 				var descProp = new ChannelDescriptionProperty()
 					{
 						Comment = setting.Comment,
@@ -147,6 +133,15 @@ namespace Microservices.Bus
 			get { return _properties.ToArray(); }
 		}
 		#endregion
+
+
+		private string PropertyValue(string propName)
+		{
+			if (_addinSettings.ContainsKey(propName))
+				return _addinSettings[propName].Value;
+
+			return null;
+		}
 
 	}
 }

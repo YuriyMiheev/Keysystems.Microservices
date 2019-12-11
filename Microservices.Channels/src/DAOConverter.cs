@@ -1,27 +1,23 @@
 ﻿using System;
 using System.Linq;
-using System.Linq.Expressions;
 
 using AutoMapper;
-using AutoMapper.Configuration;
 
-using Microservices.Channels.Data;
 using DAO = Microservices.Data.DAO;
-//using DTO = Microservices.Channels.DTO;
 
 namespace Microservices.Channels
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public static class DomainObjectConverter
+	public static class DAOConverter
 	{
 		private static IMapper mapper;
 
 		/// <summary>
 		/// Type initializer.
 		/// </summary>
-		static DomainObjectConverter()
+		static DAOConverter()
 		{
 			var config = new MapperConfiguration(cfg =>
 				{

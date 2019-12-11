@@ -23,7 +23,7 @@
       "commandName": "Project",
       "commandLineArgs": "--Urls=http://*:8181",
       "launchBrowser": true,
-      "launchUrl": "hello",
+      "launchUrl": "Admin/Login",
       "applicationUrl": "http://localhost:8181/"
     }
   }

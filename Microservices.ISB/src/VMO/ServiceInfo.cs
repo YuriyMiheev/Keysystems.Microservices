@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 
-using Microservices.Configuration;
-
-namespace Microservices.Bus
+namespace Microservices.Bus.VMO
 {
 	/// <summary>
 	/// Информация о сервисе.
@@ -10,84 +9,88 @@ namespace Microservices.Bus
 	public class ServiceInfo
 	{
 
+		#region Ctor
+		/// <summary>
+		/// 
+		/// </summary>
+		public ServiceInfo()
+		{ }
+		#endregion
+
+
 		#region Properties
 		/// <summary>
-		/// {Get} Внутренний ID.
+		/// {Get,Set} Внутренний ID.
 		/// </summary>
 		public int LINK { get; set; }
 
 		/// <summary>
-		/// {Get} Идентификатор экземпляра сервиса сообщений.
+		/// {Get,Set} Идентификатор экземпляра сервиса сообщений.
 		/// </summary>
 		public string InstanceID { get; set; }
 
 		/// <summary>
-		/// {Get} Имя сервиса.
+		/// {Get,Set} Имя сервиса.
 		/// </summary>
 		public string ServiceName { get; set; }
 
 		/// <summary>
-		/// {Get} Имя компьютера.
+		/// {Get,Set} Имя компьютера.
 		/// </summary>
 		public string MachineName { get; set; }
 
 		/// <summary>
-		/// {Get} Версия сервиса.
+		/// {Get,Set} Версия сервиса.
 		/// </summary>
 		public string Version { get; set; }
 
-		private DateTime? currentTime;
 		/// <summary>
-		/// {Get} Текущее время на сервисе.
+		/// {Get,Set} Текущее время на сервисе.
 		/// </summary>
-		public DateTime CurrentTime
-		{
-			get { return (currentTime ?? DateTime.Now); }
-			set { currentTime = value; }
-		}
+		public DateTime CurrentTime { get; set; }
 
 		/// <summary>
-		/// {Get} Время запуска сервиса.
+		/// {Get,Set} Время запуска сервиса.
 		/// </summary>
 		public DateTime StartTime { get; set; }
 
 		/// <summary>
-		/// {Get} Время остановки сервиса.
+		/// {Get,Set} Время остановки сервиса.
 		/// </summary>
 		public DateTime? ShutdownTime { get; set; }
 
 		/// <summary>
-		/// {Get} Причина остановки.
+		/// {Get,Set} Причина остановки.
 		/// </summary>
 		public string ShutdownReason { get; set; }
 
 		/// <summary>
-		/// {Get} Сервис запущен.
+		/// {Get,Set} Сервис запущен.
 		/// </summary>
 		public bool Running { get; set; }
 
 		/// <summary>
-		/// {Get} Сервис доступен.
+		/// {Get,Set} Сервис доступен.
 		/// </summary>
 		public bool Online { get; set; }
 
 		/// <summary>
-		/// {Get} Имя конфигурационного файла.
+		/// {Get,Set} Имя конфигурационного файла.
 		/// </summary>
 		public string ConfigFileName { get; set; }
 
 		/// <summary>
-		/// {Get} Базовый каталог.
+		/// {Get,Set} Базовый каталог.
 		/// </summary>
 		public string BaseDir { get; set; }
 
 		/// <summary>
-		/// {Get} Путь к каталогу лог файлов.
+		/// {Get,Set} Путь к каталогу лог файлов.
 		/// </summary>
 		public string LogFilesDir { get; set; }
 
 		/// <summary>
-		/// {Get} Путь к временному каталогу.
+		/// {Get,Set} Путь к временному каталогу.
 		/// </summary>
 		public string TempDir { get; set; }
 
@@ -97,22 +100,22 @@ namespace Microservices.Bus
 		public string AddinsDir { get; set; }
 
 		/// <summary>
-		/// {Get} Путь к каталогу утилит.
+		/// {Get,Set} Путь к каталогу утилит.
 		/// </summary>
 		public string ToolsDir { get; set; }
 
 		/// <summary>
-		/// {Get} Путь к файлу лицензий.
+		/// {Get,Set} Путь к файлу лицензий.
 		/// </summary>
 		public string LicenseFile { get; set; }
 
 		/// <summary>
-		/// {Get} Служебная БД сервиса.
+		/// {Get,Set} Служебная БД сервиса.
 		/// </summary>
 		public DatabaseInfo Database { get; set; }
 
 		/// <summary>
-		/// {Get} Данные администратора.
+		/// {Get,Set} Данные администратора.
 		/// </summary>
 		public CredentialInfo Administrator { get; set; }
 
@@ -137,15 +140,37 @@ namespace Microservices.Bus
 		public bool AuthorizeEnabled { get; set; }
 
 		/// <summary>
-		/// {Get} Максимальный загружаемый на сервис размер файла.
+		/// {Get,Set} Максимальный загружаемый на сервис размер файла.
 		/// </summary>
 		public int MaxUploadSize { get; set; }
 
 		/// <summary>
 		/// {Get,Set} Ошибка при запуске.
 		/// </summary>
-		public Exception StartupError { get; set; }
+		public ExceptionWrapper StartupError { get; set; }
+
+		/// <summary>
+		/// {Get,Set}
+		/// </summary>
+		public List<ServiceProperty> Properties { get; set; }
 		#endregion
+
+
+		#region Methods
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		public ServiceInfo Clear()
+		{
+			if ( this.Properties != null )
+				this.Properties.Clear();
+
+			return this;
+		}
+		#endregion
+
+
 
 	}
 }

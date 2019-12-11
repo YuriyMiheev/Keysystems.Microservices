@@ -1,8 +1,11 @@
 using System.Linq;
 
+using Microservices.Bus.Addins;
+using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
 using Microservices.Bus.Data.MSSQL;
+using Microservices.Bus.Licensing;
 using Microservices.Bus.Logging;
 using Microservices.Configuration;
 using Microservices.Data;

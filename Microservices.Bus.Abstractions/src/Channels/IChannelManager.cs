@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Microservices.Bus
+namespace Microservices.Bus.Channels
 {
-	public class LicenseManager : ILicenseManager
+	public interface IChannelManager
 	{
+		void LoadChannels();
 	}
 }

@@ -1,34 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Views1\**" />
-    <Content Remove="Views1\**" />
-    <EmbeddedResource Remove="Views1\**" />
-    <None Remove="Views1\**" />
+    <Compile Remove="src\VMOConverter.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="src\ServiceDescription.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj" />
     <ProjectReference Include="..\Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj" />
-    <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
     <ProjectReference Include="..\Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj" />
     <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
     <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="App_Data\" />
-    <Folder Include="wwwroot\" />
-    <Folder Include="Views\" />
-    <Folder Include="src\Controllers\" />
+    <Folder Include="src\Configuration\" />
   </ItemGroup>
 
 </Project>
