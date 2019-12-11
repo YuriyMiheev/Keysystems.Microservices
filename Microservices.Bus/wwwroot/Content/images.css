@@ -1,0 +1,566 @@
+﻿.ico_keysystems {
+   background-image: url(Images/keysystems.jpg) !important;
+   background: no-repeat;
+   width: 297px; height: 55px;
+}
+.ico_ks {
+   background-image: url(Images/ks.png) !important;
+   background: no-repeat;
+}
+.ico_user {
+   background-image: url(Images/user.png) !important;
+   background: no-repeat;
+}
+.ico_password {
+   background-image: url(Images/password.png) !important;
+   background: no-repeat;
+}
+.ico_userpassword {
+   background-image: url(Images/userpassword.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_checked {
+   background-image: url(Images/checked.png) !important;
+   background: no-repeat;
+}
+.ico_unchecked {
+   background-image: url(Images/unchecked.png) !important;
+   background: no-repeat;
+}
+.ico_myself {
+   background-image: url(Images/myself.png) !important;
+   background: no-repeat;
+}
+.ico_folder {
+   background-image: url(Images/folder.png) !important;
+   background: no-repeat;
+}
+.ico_folderopen {
+   background-image: url(Images/folder_open.png) !important;
+   background: no-repeat;
+}
+.ico_file {
+   background-image: url(Images/file.png) !important;
+   background: no-repeat;
+}
+.ico_explorer {
+   background-image: url(Images/explorer.png) !important;
+   background: no-repeat;
+}
+
+
+/* Message Status */ 
+.ico_new {
+   background-image: url(Images/new.png) !important;
+   background: no-repeat;
+}
+.ico_waiting {
+   background-image: url(Images/waiting.gif) !important;
+   background: no-repeat;
+}
+.ico_sending {
+   background-image: url(Images/sending.png) !important;
+   background: no-repeat;
+}
+.ico_delivered {
+   background-image: url(Images/delivered.png) !important;
+   background: no-repeat;
+}
+.ico_receiving {
+   background-image: url(Images/receiving.png) !important;
+   background: no-repeat;
+}
+.ico_completed {
+   background-image: url(Images/completed.png) !important;
+   background: no-repeat;
+}
+.ico_waiting {
+   background-image: url(Images/waiting.png) !important;
+   background: no-repeat;
+}
+.ico_error {
+   background-image: url(Images/error.png) !important;
+   background: no-repeat;
+}
+.ico_deleted {
+   background-image: url(Images/deleted.png) !important;
+   background: no-repeat;
+}
+.ico_backup {
+   background-image: url(Images/backup.png) !important;
+   background: no-repeat;
+}
+.ico_invalid {
+   background-image: url(Images/invalid.png) !important;
+   background: no-repeat;
+}
+
+
+/* Menu */ 
+.ico_home {
+   background-image: url(Images/home.png) !important;
+   background: no-repeat;
+}
+.ico_service {
+   background-image: url(Images/service.png) !important;
+   background: no-repeat;
+}
+.ico_channels {
+   background-image: url(Images/channels.png) !important;
+   background: no-repeat;
+}
+.ico_jobs {
+   background-image: url(Images/jobs.png) !important;
+   background: no-repeat;
+}
+.ico_server {
+   background-image: url(Images/server.png) !important;
+   background: no-repeat;
+}
+.ico_tools {
+   background-image: url(Images/tools.png) !important;
+   background: no-repeat;
+}
+.ico_help {
+   background-image: url(Images/help.png) !important;
+   background: no-repeat;
+}
+.ico_exit {
+   background-image: url(Images/exit.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_open {
+   background-image: url(Images/open.png) !important;
+   background: no-repeat;
+}
+.ico_close {
+   background-image: url(Images/close.png) !important;
+   background: no-repeat;
+}
+.ico_run {
+   background-image: url(Images/run.png) !important;
+   background: no-repeat;
+}
+.ico_start {
+   background-image: url(Images/start.png) !important;
+   background: no-repeat;
+}
+.ico_stop {
+   background-image: url(Images/stop.png) !important;
+   background: no-repeat;
+}
+.ico_reload {
+   background-image: url(Images/reload.png) !important;
+   background: no-repeat;
+}
+.ico_refresh {
+   background-image: url(Images/refresh.png) !important;
+   background: no-repeat;
+}
+.ico_restart {
+   background-image: url(Images/restart.png) !important;
+   background: no-repeat;
+}
+.ico_repair {
+   background-image: url(Images/repair.png) !important;
+   background: no-repeat;
+}
+.ico_testconnect {
+   background-image: url(Images/testconnect.png) !important;
+   background: no-repeat;
+}
+.ico_checkstate {
+   background-image: url(Images/checkstate.png) !important;
+   background: no-repeat;
+}
+.ico_exec {
+   background-image: url(Images/exec.png) !important;
+   background: no-repeat;
+}
+
+
+/* Channel Status */ 
+.ico_online {
+   background-image: url(Images/online.png) !important;
+   background: no-repeat;
+}
+.ico_offline {
+   background-image: url(Images/offline.png) !important;
+   background: no-repeat;
+}
+.ico_running {
+   background-image: url(Images/running.png) !important;
+   background: no-repeat;
+}
+.ico_stopped {
+   background-image: url(Images/stopped.png) !important;
+   background: no-repeat;
+}
+.ico_error {
+   background-image: url(Images/error.png) !important;
+   background: no-repeat;
+}
+.ico_warning {
+   background-image: url(Images/warning.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_channel {
+   background-image: url(Images/channel.png) !important;
+   background: no-repeat;
+}
+.ico_messages {
+   background-image: url(Images/messages.png) !important;
+   background: no-repeat;
+}
+.ico_message {
+   background-image: url(Images/message.png) !important;
+   background: no-repeat;
+}
+.ico_emptymessage {
+   background-image: url(Images/emptymsg.png) !important;
+   background: no-repeat;
+}
+.ico_posts {
+   background-image: url(Images/posts.png) !important;
+   background: no-repeat;
+}
+.ico_parameters {
+   background-image: url(Images/parameters.png) !important;
+   background: no-repeat;
+}
+.ico_info {
+   background-image: url(Images/info.png) !important;
+   background: no-repeat;
+}
+.ico_body {
+   background-image: url(Images/body.png) !important;
+   background: no-repeat;
+}
+.ico_properties {
+   background-image: url(Images/properties.png) !important;
+   background: no-repeat;
+}
+.ico_content {
+   background-image: url(Images/content.png) !important;
+   background: no-repeat;
+}
+.ico_contents {
+   background-image: url(Images/contents.png) !important;
+   background: no-repeat;
+}
+.ico_contact {
+   background-image: url(Images/contact.png) !important;
+   background: no-repeat;
+}
+.ico_contacts {
+   background-image: url(Images/contacts.png) !important;
+   background: no-repeat;
+}
+.ico_addresses {
+   background-image: url(Images/addresses.png) !important;
+   background: no-repeat;
+}
+.ico_pubsub {
+   background-image: url(Images/pubsub.png) !important;
+   background: no-repeat;
+}
+.ico_log {
+   background-image: url(Images/log.png) !important;
+   background: no-repeat;
+}
+.ico_logrecord {
+   background-image: url(Images/logrecord.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_down {
+   background-image: url(Images/down.png) !important;
+   background: no-repeat;
+}
+.ico_up {
+   background-image: url(Images/up.png) !important;
+   background: no-repeat;
+}
+.ico_in {
+   background-image: url(Images/in.png) !important;
+   background: no-repeat;
+}
+.ico_out {
+   background-image: url(Images/out.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_request {
+   background-image: url(Images/request.png) !important;
+   background: no-repeat;
+}
+.ico_response {
+   background-image: url(Images/response.png) !important;
+   background: no-repeat;
+}
+.ico_publish {
+   background-image: url(Images/publish.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_document {
+   background-image: url(Images/document.png) !important;
+   background: no-repeat;
+}
+.ico_mail {
+   background-image: url(Images/mail.png) !important;
+   background: no-repeat;
+}
+.ico_email {
+   background-image: url(Images/email.png) !important;
+   background: no-repeat;
+}
+.ico_command {
+   background-image: url(Images/command.png) !important;
+   background: no-repeat;
+}
+.ico_event {
+   background-image: url(Images/event.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_install {
+   background-image: url(Images/install.png) !important;
+   background: no-repeat;
+}
+.ico_add {
+   background-image: url(Images/add.png) !important;
+   background: no-repeat;
+}
+.ico_viewedit {
+   background-image: url(Images/viewedit.png) !important;
+   background: no-repeat;
+}
+.ico_edit {
+   background-image: url(Images/edit.png) !important;
+   background: no-repeat;
+}
+.ico_delete {
+   background-image: url(Images/delete.png) !important;
+   background: no-repeat;
+}
+.ico_import {
+   background-image: url(Images/import.png) !important;
+   background: no-repeat;
+}
+.ico_export {
+   background-image: url(Images/export.png) !important;
+   background: no-repeat;
+}
+.ico_sync {
+   background-image: url(Images/sync.png) !important;
+   background: no-repeat;
+}
+.ico_diagnostic {
+   background-image: url(Images/diagnostic.png) !important;
+   background: no-repeat;
+}
+.ico_monitor {
+   background-image: url(Images/monitor.png) !important;
+   background: no-repeat;
+}
+.ico_statistics {
+   background-image: url(Images/statistics.png) !important;
+   background: no-repeat;
+}
+.ico_save {
+   background-image: url(Images/save.png) !important;
+   background: no-repeat;
+}
+.ico_saveup {
+   background-image: url(Images/saveup.png) !important;
+   background: no-repeat;
+}
+.ico_savedown {
+   background-image: url(Images/savedown.png) !important;
+   background: no-repeat;
+}
+.ico_send {
+   background-image: url(Images/send.png) !important;
+   background: no-repeat;
+}
+.ico_receive {
+   background-image: url(Images/receive.png) !important;
+   background: no-repeat;
+}
+.ico_upload {
+   background-image: url(Images/upload.png) !important;
+   background: no-repeat;
+}
+.ico_view {
+   background-image: url(Images/view.png) !important;
+   background: no-repeat;
+}
+.ico_download {
+   background-image: url(Images/download.png) !important;
+   background: no-repeat;
+}
+.ico_cancel {
+   background-image: url(Images/back.png) !important;
+   background: no-repeat;
+}
+.ico_ok {
+   background-image: url(Images/ok.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_background1 {
+   background-image: url(Images/background1.jpg) !important;
+   background-position: center;
+}
+.ico_background2 {
+   background-image: url(Images/background2.jpg) !important;
+   background-position: center;
+}
+.ico_gradient {
+   background-image: url(Images/gradient.png) !important;
+   background-repeat: repeat-x;
+   background-position: center;
+}
+
+
+.ico_word {
+   background-image: url(Images/word.png) !important;
+   background: no-repeat;
+}
+.ico_excel {
+   background-image: url(Images/excel.png) !important;
+   background: no-repeat;
+}
+.ico_powerpoint {
+   background-image: url(Images/powerpoint.png) !important;
+   background: no-repeat;
+}
+.ico_xml {
+   background-image: url(Images/xml.png) !important;
+   background: no-repeat;
+}
+.ico_zip {
+   background-image: url(Images/zip.png) !important;
+   background: no-repeat;
+}
+.ico_doc {
+   background-image: url(Images/doc.png) !important;
+   background: no-repeat;
+}
+.ico_wsdl {
+   background-image: url(Images/wsdl.png) !important;
+   background: no-repeat;
+}
+
+
+.ico_types {
+   background-image: url(Images/types.png) !important;
+   background: no-repeat;
+}
+.ico_addin {
+   background-image: url(Images/addin.png) !important;
+   background: no-repeat;
+}
+
+
+/* Channels */
+.ico_system {
+   background-image: url(Images/system.png) !important;
+   background: no-repeat;
+}
+.ico_database {
+   background-image: url(Images/database.png) !important;
+   background: no-repeat;
+}
+.ico_mssql {
+   background-image: url(Images/mssql.png) !important;
+   background: no-repeat;
+}
+.ico_oracle {
+   background-image: url(Images/oracle.png) !important;
+   background: no-repeat;
+}
+.ico_mysql {
+   background-image: url(Images/mysql.png) !important;
+   background: no-repeat;
+}
+.ico_postgresql {
+   background-image: url(Images/postgresql.png) !important;
+   background: no-repeat;
+}
+.ico_remote {
+   background-image: url(Images/remote.png) !important;
+   background: no-repeat;
+}
+.ico_filechannel {
+   background-image: url(Images/filechannel.png) !important;
+   background: no-repeat;
+}
+.ico_filetransfer {
+   background-image: url(Images/filetransfer.png) !important;
+   background: no-repeat;
+}
+.ico_files {
+   background-image: url(Images/files.png) !important;
+   background: no-repeat;
+}
+.ico_proxy {
+   background-image: url(Images/proxy.png) !important;
+   background: no-repeat;
+}
+.ico_smev {
+   background-image: url(Images/smev.png) !important;
+   background: no-repeat;
+}
+.ico_sir {
+   background-image: url(Images/sir.png) !important;
+   background: no-repeat;
+}
+.ico_ws-proxy {
+   background-image: url(Images/ws-proxy.png) !important;
+   background: no-repeat;
+}
+.ico_rabbitmq {
+   background-image: url(Images/rabbitmq.png) !important;
+   background: no-repeat;
+}
+.ico_job {
+   background-image: url(Images/job.png) !important;
+   background: no-repeat;
+}
+
+
+/* License */
+.ico_lic {
+   background-image: url(Images/lic.png) !important;
+   background: no-repeat;
+}
+.ico_keyprop {
+   background-image: url(Images/keyprop.png) !important;
+   background: no-repeat;
+}
+.ico_keys {
+   background-image: url(Images/keys.png) !important;
+   background: no-repeat;
+}
+
+.ico_dbmanager {
+   background-image: url(Images/dbmanager.png) !important;
+   background: no-repeat;
+}
+.ico_dbconnect {
+   background-image: url(Images/dbconnect.png) !important;
+   background: no-repeat;
+}
