@@ -2,6 +2,7 @@ using System.Linq;
 
 using Microservices.Bus;
 using Microservices.Bus.Addins;
+using Microservices.Bus.Authorization;
 using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
@@ -54,7 +55,7 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<IAddinManager, AddinManager>();
 						services.AddSingleton<ILicenseManager, LicenseManager>();
 						services.AddSingleton<ServiceInfo>();
-						services.AddSingleton<IServiceInfoManager, ServiceInfoManager>();
+						//services.AddSingleton<IServiceInfoManager, ServiceInfoManager>();
 						services.AddSingleton<IMessageService>(serviceProvider =>
 							{
 								return new MessageService(serviceProvider);

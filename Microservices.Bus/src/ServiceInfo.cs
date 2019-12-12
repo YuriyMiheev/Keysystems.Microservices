@@ -9,8 +9,6 @@ namespace Microservices.Bus
 	/// </summary>
 	public class ServiceInfo
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} Внутренний ID.
 		/// </summary>
@@ -145,7 +143,5 @@ namespace Microservices.Bus
 		/// {Get,Set} Ошибка при запуске.
 		/// </summary>
 		public Exception StartupError { get; set; }
-		#endregion
-
 	}
 }

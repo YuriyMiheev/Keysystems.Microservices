@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <AssemblyName>Microservices.IntegrationServiceBus</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

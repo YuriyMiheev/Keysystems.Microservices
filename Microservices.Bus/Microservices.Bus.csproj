@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\IServiceInfoManager.cs" />
+    <Compile Remove="src\ServiceInfoManager.cs" />
     <Compile Remove="src\VMOConverter.cs" />
   </ItemGroup>
 

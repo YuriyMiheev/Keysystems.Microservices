@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microservices.Bus.Addins;
+using Microservices.Bus.Authorization;
 using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
@@ -28,10 +30,11 @@ namespace Microservices.Bus
 		private readonly IAddinManager _addinManager;
 		private readonly ILicenseManager _licManager;
 		private readonly ServiceInfo _serviceInfo;
-		private readonly IServiceInfoManager _serviceInfoManager;
-		private DateTime? _startTime;
-		private DateTime? _shutdownTime;
-		private Exception _startupError;
+		//private readonly IServiceInfoManager _serviceInfoManager;
+		//private DateTime? _startTime;
+		//private DateTime? _shutdownTime;
+		//private Exception _startupError;
+		//private bool _started;
 
 
 		#region Ctor
@@ -50,7 +53,9 @@ namespace Microservices.Bus
 			_addinManager = serviceProvider.GetRequiredService<IAddinManager>();
 			_licManager = serviceProvider.GetRequiredService<ILicenseManager>();
 			_serviceInfo = serviceProvider.GetRequiredService<ServiceInfo>();
-			_serviceInfoManager = serviceProvider.GetRequiredService<IServiceInfoManager>();
+			//_serviceInfoManager = serviceProvider.GetRequiredService<IServiceInfoManager>();
+
+			SetCurrentParamsTo(_serviceInfo);
 		}
 		#endregion
 
@@ -60,11 +65,21 @@ namespace Microservices.Bus
 		{
 			return Task.Run(() =>
 				{
+					_logger.LogTrace("Старт сервиса.");
+
 					try
 					{
+						_serviceInfo.StartTime = DateTime.Now;
+
 						_database.Schema = _busSettings.Database.Schema;
 						_database.ConnectionString = _busSettings.Database.ConnectionString;
 						//_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
+
+						while (!_database.TryConnect(out ConnectionException error))
+						{
+							_serviceInfo.StartupError = error;
+							System.Threading.Thread.Sleep(1000);
+						}
 
 						using DbContext dbContext = _database.ValidateSchema();
 						//using DbContext dbContext = _database.CreateOrUpdateSchema();
@@ -81,27 +96,29 @@ namespace Microservices.Bus
 						//_licManager.LoadLicenses();
 						//_channelManager.LoadChannels();
 
+						_serviceInfo.StartupError = null;
+						_serviceInfo.Running = true;
 					}
 					catch (Exception ex)
 					{
 						_logger.LogError(ex);
-						_startupError = ex;
+						_serviceInfo.StartupError = ex;
 					}
 					finally
 					{
-						_startTime = DateTime.Now;
-
-						SetCurrentParamsTo(_serviceInfo);
-						if (!(_startupError is DatabaseException))
-							_serviceInfoManager.SaveInfo(false);
+						//SetCurrentParamsTo(_serviceInfo);
+						//_dataAdapter.SaveServiceInfo(false);
 					}
 				}, cancellationToken);
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken)
 		{
-			_shutdownTime = DateTime.Now;
-			return Task.CompletedTask;
+			return Task.Run(() =>
+				{
+					_logger.LogTrace("Остановка сервиса.");
+					_serviceInfo.ShutdownTime = DateTime.Now;
+				});
 		}
 		#endregion
 
@@ -109,14 +126,14 @@ namespace Microservices.Bus
 		#region Helpers
 		private void SetCurrentParamsTo(ServiceInfo serviceInfo)
 		{
-			//serviceInfo.InstanceID =  //this.instanceId;
+			serviceInfo.InstanceID = Guid.NewGuid().ToString(); //this.instanceId;
 			serviceInfo.ServiceName = "Integration Service Bus";
 			serviceInfo.MachineName = Environment.MachineName;
 			serviceInfo.Version = "1.0"; //MessageServiceVersion.Current.Version;
-			serviceInfo.StartTime = _startTime.Value;
-			serviceInfo.ShutdownTime = _shutdownTime;
+			//serviceInfo.StartTime = _startTime.Value;
+			//serviceInfo.ShutdownTime = _shutdownTime;
 			//serviceInfo.ShutdownReason = this.shutdownReason;
-			serviceInfo.Running = true;
+			//serviceInfo.Running = _started;
 			serviceInfo.ConfigFileName = _appConfig.ConfigFile;
 			serviceInfo.BaseDir = AppDomain.CurrentDomain.BaseDirectory; //_busSettings.BaseDir;
 			//serviceInfo.LogFilesDir = _busSettings.LogFilesDir;
@@ -129,7 +146,7 @@ namespace Microservices.Bus
 			serviceInfo.DebugEnabled = _busSettings.DebugEnabled;
 			serviceInfo.AuthorizeEnabled = _busSettings.AuthorizationRequired;
 			serviceInfo.MaxUploadSize = _busSettings.MaxUploadFileSize;
-			serviceInfo.StartupError = _startupError;
+			//serviceInfo.StartupError = _startupError;
 		}
 		#endregion
 
