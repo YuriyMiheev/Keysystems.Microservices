@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,7 +64,7 @@ namespace MSSQL.Microservice
 			_messageSettings = _appConfig.MessageSettings();
 			//_serviceSettings = _appConfig.ServiceSettings();
 
-			this.ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+			this.ProcessId = Process.GetCurrentProcess().Id;
 			this.VirtAddress = _infoSettings.VirtAddress;
 		}
 		#endregion

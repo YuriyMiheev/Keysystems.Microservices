@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microservices.ChannelClient
+namespace Microservices.ChannelConnector
 {
 	/// <summary>
 	/// Информация о теле сообщения.

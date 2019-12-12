@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microservices.ChannelClient;
+using Microservices.ChannelConnector;
 
 namespace ConsoleApp1
 {

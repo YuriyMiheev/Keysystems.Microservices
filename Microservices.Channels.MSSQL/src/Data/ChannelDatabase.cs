@@ -5,10 +5,12 @@ using System.Data.SqlClient;
 
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
+
 using Microservices;
 using Microservices.Data;
 using Microservices.Data.Mappings;
 using Microservices.Data.MSSQL;
+
 using NHibernate.Tool.hbm2ddl;
 
 using NH = NHibernate;

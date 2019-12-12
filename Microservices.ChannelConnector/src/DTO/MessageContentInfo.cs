@@ -1,4 +1,4 @@
-﻿namespace Microservices.ChannelClient
+﻿namespace Microservices.ChannelConnector
 {
 	/// <summary>
 	/// Информация о контенте сообщения.

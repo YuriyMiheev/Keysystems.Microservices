@@ -767,14 +767,14 @@ namespace Microservices.Data
 		//}
 
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-		{
-			return this.DbContext.ToString();
-		}
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <returns></returns>
+		//public override string ToString()
+		//{
+		//	return this.DbContext.ToString();
+		//}
 		#endregion
 
 	}

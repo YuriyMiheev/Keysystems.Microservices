@@ -5,7 +5,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microservices.ChannelClient
+namespace Microservices.ChannelConnector
 {
 	public interface IChannelHubClient : IDisposable
 	{

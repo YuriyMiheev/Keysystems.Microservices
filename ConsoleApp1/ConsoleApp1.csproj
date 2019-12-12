@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microservices.Channels.Client\Microservices.ChannelClient.csproj" />
+    <ProjectReference Include="..\Microservices.ChannelConnector\Microservices.ChannelConnector.csproj" />
   </ItemGroup>
 
 </Project>

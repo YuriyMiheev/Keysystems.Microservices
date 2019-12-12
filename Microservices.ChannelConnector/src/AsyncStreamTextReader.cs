@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microservices.ChannelClient
+namespace Microservices.ChannelConnector
 {
 	/// <summary>
 	/// 

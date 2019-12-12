@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace Microservices.ChannelClient
+namespace Microservices.ChannelConnector
 {
 	/// <summary>
 	/// Статусы сообщений и посылок.

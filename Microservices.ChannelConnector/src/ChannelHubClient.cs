@@ -10,7 +10,7 @@ using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microservices.ChannelClient
+namespace Microservices.ChannelConnector
 {
 	public class ChannelHubClient : IChannelHubClient
 	{
