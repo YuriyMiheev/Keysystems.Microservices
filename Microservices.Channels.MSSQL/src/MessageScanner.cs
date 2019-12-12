@@ -1,16 +1,18 @@
-﻿using Microservices.Channels.Data;
+﻿using Microservices;
+using Microservices.Channels;
+using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 
 using NHibernate.Criterion;
 
 using DAO = Microservices.Data.DAO;
 
-namespace Microservices.Channels.MSSQL
+namespace MSSQL.Microservice
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class SendMessageScanner : MessageScannerBase, ISendMessageScanner
+	public class MessageScanner : DatabaseMessageScanner, IMessageScanner
 	{
 
 		#region Ctor
@@ -19,7 +21,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		public SendMessageScanner(IChannelDataAdapter dataAdapter, ILogger logger)
+		public MessageScanner(IChannelDataAdapter dataAdapter, ILogger logger)
 			: base(dataAdapter, logger)
 		{ }
 		#endregion

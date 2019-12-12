@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 
+using Microservices;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Data;
+
 using NHibernate.Criterion;
 
 using DAO = Microservices.Data.DAO;
 
-namespace Microservices.Channels.MSSQL
+namespace Microservices.Channels
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public abstract class MessageScannerBase : IDisposable
+	public abstract class DatabaseMessageScanner : IMessageScanner, IDisposable
 	{
 		//private MessageSettings _settings;
 		private TimeSpan _interval;
@@ -33,7 +35,7 @@ namespace Microservices.Channels.MSSQL
 		/// </summary>
 		/// <param name="dataAdapter"></param>
 		/// <param name="logger"></param>
-		protected MessageScannerBase(IChannelDataAdapter dataAdapter, ILogger logger)
+		protected DatabaseMessageScanner(IChannelDataAdapter dataAdapter, ILogger logger)
 		{
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -49,20 +51,7 @@ namespace Microservices.Channels.MSSQL
 		/// 
 		/// </summary>
 		public event Func<Message[], bool> NewMessages;
-
-		///// <summary>
-		///// 
-		///// </summary>
-		//public event Action<Exception> Error;
 		#endregion
-
-
-		//#region Properties
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//public string Recipient { get; private set; }
-		//#endregion
 
 
 		#region Methods
@@ -72,7 +61,7 @@ namespace Microservices.Channels.MSSQL
 		/// <param name="interval"></param>
 		/// <param name="portion"></param>
 		/// <param name="cancellationToken"></param>
-		public virtual void Start(TimeSpan interval, int portion, System.Threading.CancellationToken cancellationToken = default)
+		public virtual void StartScan(TimeSpan interval, int portion, System.Threading.CancellationToken cancellationToken = default)
 		{
 			if (_started)
 				return;
@@ -228,7 +217,7 @@ namespace Microservices.Channels.MSSQL
 		/// <summary>
 		/// Деструктор.
 		/// </summary>
-		~MessageScannerBase()
+		~DatabaseMessageScanner()
 		{
 			Dispose(false);
 		}

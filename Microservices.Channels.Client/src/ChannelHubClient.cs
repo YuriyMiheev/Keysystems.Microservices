@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -11,7 +10,7 @@ using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	public class ChannelHubClient : IChannelHubClient
 	{

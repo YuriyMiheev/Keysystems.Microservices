@@ -1,9 +1,9 @@
 using System.Linq;
 
+using Microservices.Channels;
 using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
 using Microservices.Channels.Logging;
-using Microservices.Channels.MSSQL.Data;
 using Microservices.Configuration;
 using Microservices.Data;
 
@@ -12,7 +12,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microservices.Channels.MSSQL
+using MSSQL.Microservice.Data;
+
+namespace MSSQL.Microservice
 {
 	public class Program
 	{
@@ -46,7 +48,7 @@ namespace Microservices.Channels.MSSQL
 						services.AddSingleton<IChannelDataAdapter, ChannelDataAdapter>();
 						services.AddSingleton<ILogger, ChannelLogger>();
 						services.AddSingleton<IHubConnections, HubConnections>();
-						services.AddSingleton<ISendMessageScanner, SendMessageScanner>();
+						services.AddSingleton<IMessageScanner, MessageScanner>();
 						services.AddSingleton<IMessageReceiver, MessageReceiver>();
 						services.AddSingleton<ChannelStatus>();
 						services.AddSingleton<IChannelService>(serviceProvider =>

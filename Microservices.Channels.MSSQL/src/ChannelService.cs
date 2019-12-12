@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microservices;
+using Microservices.Channels;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
@@ -12,7 +14,7 @@ using Microservices.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microservices.Channels.MSSQL
+namespace MSSQL.Microservice
 {
 	/// <summary>
 	/// 
@@ -26,7 +28,7 @@ namespace Microservices.Channels.MSSQL
 		//private IServiceProvider _serviceProvider;
 		private readonly IDatabase _database;
 		private readonly IChannelDataAdapter _dataAdapter;
-		private readonly ISendMessageScanner _scanner;
+		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
 		private readonly InfoSettings _infoSettings;
@@ -47,7 +49,7 @@ namespace Microservices.Channels.MSSQL
 			_logger = serviceProvider.GetRequiredService<ILogger>();
 			_database = serviceProvider.GetRequiredService<IDatabase>();
 			_dataAdapter = serviceProvider.GetRequiredService<IChannelDataAdapter>();
-			_scanner = serviceProvider.GetRequiredService<ISendMessageScanner>();
+			_scanner = serviceProvider.GetRequiredService<IMessageScanner>();
 			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
 			_channelStatus = serviceProvider.GetRequiredService<ChannelStatus>();
 			//_publisher = new MessagePublisher(this);
@@ -206,7 +208,7 @@ namespace Microservices.Channels.MSSQL
 
 			if (_messageSettings.ScanEnabled)
 			{
-				_scanner.Start(_messageSettings.ScanInterval, _messageSettings.ScanPortion, _cancellationSource.Token);
+				_scanner.StartScan(_messageSettings.ScanInterval, _messageSettings.ScanPortion, _cancellationSource.Token);
 
 				//	if (this.MessageService.ChannelManager.GetSubscribers(this.LINK).Count > 0)
 				//		this.scanPublisher.Start(this.MessageSettings.ScanThreads, this.cancelToken);
@@ -752,28 +754,24 @@ namespace Microservices.Channels.MSSQL
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!_disposed)
+			if (_disposed)
+				return;
+
+			if (disposing)
 			{
-				if (disposing)
-				{
-					// TODO: dispose managed state (managed objects).
-					_cancellationSource.Cancel();
+				// TODO: dispose managed state (managed objects).
+				_cancellationSource.Cancel();
 
-					if (_dataAdapter != null)
-						_dataAdapter.DbContext.Dispose();
+				_database.Close();
 
-					_database.Close();
-
-					_channelStatus.Opened = false;
-					_channelStatus.Running = false;
-					_channelStatus.Online = null;
-				}
-
-				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-				// TODO: set large fields to null.
-
-				_disposed = true;
+				_channelStatus.Opened = false;
+				_channelStatus.Running = false;
+				_channelStatus.Online = null;
 			}
+
+			// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+			// TODO: set large fields to null.
+			_disposed = true;
 		}
 
 		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.

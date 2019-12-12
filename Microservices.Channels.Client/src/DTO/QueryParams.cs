@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	/// <summary>
 	/// Параметры запроса сообщений.

@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
-
+using Microservices;
 using Microservices.Data;
 using Microservices.Data.Mappings;
 using Microservices.Data.MSSQL;
@@ -13,7 +13,7 @@ using NHibernate.Tool.hbm2ddl;
 
 using NH = NHibernate;
 
-namespace Microservices.Channels.MSSQL.Data
+namespace MSSQL.Microservice.Data
 {
 	/// <summary>
 	/// БД сообщений.
@@ -139,6 +139,7 @@ namespace Microservices.Channels.MSSQL.Data
 		/// </summary>
 		public virtual void Close()
 		{
+			Dispose();
 			//try
 			//{
 			//}
@@ -294,7 +295,7 @@ namespace Microservices.Channels.MSSQL.Data
 
 
 		#region IDisposable
-		private bool disposed = false;
+		private bool _disposed = false;
 
 		/// <summary>
 		/// Разрушить объект и освободить занятые им ресурсы.
@@ -311,19 +312,14 @@ namespace Microservices.Channels.MSSQL.Data
 		/// <param name="disposing"></param>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (disposed)
+			if (_disposed)
 				return;
 
-			lock (this)
+			if (disposing)
 			{
-				if (disposed)
-					return;
-
-				if (disposing)
-					Close();
-
-				disposed = true;
 			}
+
+			_disposed = true;
 		}
 
 		/// <summary>

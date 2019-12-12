@@ -2,15 +2,15 @@ using System;
 using System.IO;
 using System.Text;
 
-using Microservices.Channels.MSSQL.Hubs;
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microservices.Channels.MSSQL
+using MSSQL.Microservice.Hubs;
+
+namespace MSSQL.Microservice
 {
 	public class Startup
 	{

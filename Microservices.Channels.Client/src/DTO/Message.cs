@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-//using Newtonsoft.Json;
-
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	/// <summary>
 	/// Сообщение.

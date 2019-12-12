@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Specialized;
-using System.Text;
-using System.Web;
-using System.Xml.Serialization;
 
-//using Keysystems.RemoteMessaging.Lib.Collections;
-
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	/// <summary>
 	/// Информация о теле сообщения.

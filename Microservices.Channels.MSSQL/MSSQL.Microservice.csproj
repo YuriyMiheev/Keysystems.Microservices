@@ -9,6 +9,7 @@
     <Compile Remove="CommonHub.cs" />
     <Compile Remove="src\Controllers\CommonHub.cs" />
     <Compile Remove="src\IChannelService.cs" />
+    <Compile Remove="src\ISendMessageScanner.cs" />
     <Compile Remove="src\SendMessageProcessor.cs" />
   </ItemGroup>
 

@@ -1,20 +1,22 @@
 ﻿using System;
 
+using Microservices;
+using Microservices.Channels;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Configuration;
 
-namespace Microservices.Channels.MSSQL
+namespace MSSQL.Microservice
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class MessageReceiver : MessageReceiverBase, IMessageReceiver
+	public class MessageReceiver : MessageReceiverBase
 	{
-		private IChannelDataAdapter _dataAdapter;
-		private IAppSettingsConfig _appConfig;
-		private ILogger _logger;
+		private readonly IChannelDataAdapter _dataAdapter;
+		private readonly IAppSettingsConfig _appConfig;
+		private readonly ILogger _logger;
 
 
 		#region Ctor

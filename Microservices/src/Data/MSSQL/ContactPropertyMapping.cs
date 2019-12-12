@@ -1,6 +1,6 @@
 ﻿using Microservices.Data.Mappings;
 
-namespace Microservices.Channels.MSSQL.Data
+namespace Microservices.Data.MSSQL
 {
 	/// <summary>
 	/// 

@@ -5,7 +5,8 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
-
+using Microservices;
+using Microservices.Channels;
 using Microservices.Channels.Data;
 using Microservices.Data;
 using Microservices.Data.MSSQL;
@@ -14,7 +15,7 @@ using NHibernate;
 
 using DAO = Microservices.Data.DAO;
 
-namespace Microservices.Channels.MSSQL.Data
+namespace MSSQL.Microservice.Data
 {
 	/// <summary>
 	/// Адаптер хранилища сообщений канала.

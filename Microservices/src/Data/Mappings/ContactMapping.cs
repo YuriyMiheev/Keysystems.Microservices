@@ -1,10 +1,4 @@
-﻿using System;
-
-using FluentNHibernate.Mapping;
-
-//using DAO = Microservices.Data.DAO;
-
-namespace Microservices.Data.Mappings
+﻿namespace Microservices.Data.Mappings
 {
 	/// <summary>
 	/// 

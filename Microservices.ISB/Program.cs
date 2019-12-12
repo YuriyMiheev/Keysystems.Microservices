@@ -1,5 +1,6 @@
 using System.Linq;
 
+using Microservices.Bus;
 using Microservices.Bus.Addins;
 using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microservices.Bus
+namespace Microservices.IntegrationServiceBus
 {
 	public class Program
 	{

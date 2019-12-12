@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-//using Newtonsoft.Json;
-
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	/// <summary>
 	/// Статусы сообщений и посылок.

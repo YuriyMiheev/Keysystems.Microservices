@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	[System.Diagnostics.DebuggerDisplay("{this.Value}")]
 	[Serializable]

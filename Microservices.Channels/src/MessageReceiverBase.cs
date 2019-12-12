@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 
-namespace Microservices.Channels.MSSQL
+namespace Microservices.Channels
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public abstract class MessageReceiverBase
+	public abstract class MessageReceiverBase : IMessageReceiver
 	{
 		private IChannelDataAdapter _dataAdapter;
 		private ILogger _logger;

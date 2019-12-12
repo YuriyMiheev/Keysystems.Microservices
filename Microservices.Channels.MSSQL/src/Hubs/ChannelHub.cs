@@ -4,7 +4,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Microservices;
+using Microservices.Channels;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
@@ -15,7 +16,7 @@ using Microservices.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 
-namespace Microservices.Channels.MSSQL.Hubs
+namespace MSSQL.Microservice.Hubs
 {
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Xml.Serialization;
 
-namespace Microservices.Channels.Client
+namespace Microservices.ChannelClient
 {
 	/// <summary>
 	/// Дополнительное свойство сообщения.

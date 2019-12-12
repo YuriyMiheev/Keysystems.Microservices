@@ -1,13 +1,15 @@
 ﻿using System;
 
+using Microservices.Channels;
 using Microservices.Channels.Hubs;
-using Microservices.Channels.MSSQL.Hubs;
 using Microservices.Configuration;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Microservices.Channels.MSSQL.Controllers
+using MSSQL.Microservice.Hubs;
+
+namespace MSSQL.Microservice.Controllers
 {
 	public class ChannelController : Controller
 	{
