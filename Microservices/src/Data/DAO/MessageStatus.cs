@@ -7,8 +7,6 @@ namespace Microservices.Data.DAO
 	/// </summary>
 	public class MessageStatus
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
@@ -28,7 +26,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} Код статуса.
 		/// </summary>
 		public virtual int? Code { get; set; }
-		#endregion
-
 	}
 }

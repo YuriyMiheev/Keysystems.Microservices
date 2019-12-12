@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Microservices.Data.DAO
 {
@@ -8,8 +7,6 @@ namespace Microservices.Data.DAO
 	/// </summary>
 	public class Contact
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get,Set} Внутренний ID.
 		/// </summary>
@@ -74,7 +71,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} Дополнительные св-ва.
 		/// </summary>
 		public virtual IList<DAO.ContactProperty> Properties { get; set; }
-		#endregion
-
 	}
 }

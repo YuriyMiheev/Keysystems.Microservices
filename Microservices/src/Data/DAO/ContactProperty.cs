@@ -1,14 +1,10 @@
-﻿using System;
-
-namespace Microservices.Data.DAO
+﻿namespace Microservices.Data.DAO
 {
 	/// <summary>
 	/// Дополнительное свойство контакта.
 	/// </summary>
 	public class ContactProperty
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get,Set} 
 		/// </summary>
@@ -43,7 +39,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} 
 		/// </summary>
 		public virtual string Comment { get; set; }
-		#endregion
-
 	}
 }

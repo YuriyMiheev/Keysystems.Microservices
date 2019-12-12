@@ -1,11 +1,11 @@
 ﻿using Microservices.Bus.Data.Mappings;
 
-namespace Microservices.Bus.Data.MSSQL.Mappings
+namespace Microservices.Bus.Data.MSSQL
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public sealed class ServicePropertyMapping : ServicePropertyMappingBase
+	public class ServicePropertyMapping : ServicePropertyMappingBase
 	{
 		/// <summary>
 		/// 

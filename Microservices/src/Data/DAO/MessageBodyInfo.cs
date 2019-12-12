@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Microservices.Data.DAO
+﻿namespace Microservices.Data.DAO
 {
 	/// <summary>
 	/// Тело сообщения.
 	/// </summary>
 	public class MessageBodyInfo
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} ID сообщения.
 		/// </summary>
@@ -36,7 +29,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} Истинный размер.
 		/// </summary>
 		public virtual int? FileSize { get; set; }
-		#endregion
-
 	}
 }

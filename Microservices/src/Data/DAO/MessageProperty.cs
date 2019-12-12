@@ -1,15 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-
-namespace Microservices.Data.DAO
+﻿namespace Microservices.Data.DAO
 {
 	/// <summary>
 	/// Дополнительное свойство сообщения.
 	/// </summary>
 	public class MessageProperty
 	{
-
-		#region Properties
 		/// <summary>
 		/// 
 		/// </summary>
@@ -44,7 +39,5 @@ namespace Microservices.Data.DAO
 		/// 
 		/// </summary>
 		public virtual Message Message { get; set; }
-		#endregion
-
 	}
 }

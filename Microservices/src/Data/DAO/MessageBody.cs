@@ -1,14 +1,10 @@
-﻿using System;
-
-namespace Microservices.Data.DAO
+﻿namespace Microservices.Data.DAO
 {
 	/// <summary>
 	/// Тело сообщения.
 	/// </summary>
 	public class MessageBody
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} ID сообщения.
 		/// </summary>
@@ -38,7 +34,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} Значение.
 		/// </summary>
 		public virtual string Value { get; set; }
-		#endregion
-
 	}
 }

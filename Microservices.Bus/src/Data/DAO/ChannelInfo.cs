@@ -7,8 +7,6 @@ namespace Microservices.Bus.Data.DAO
 	/// </summary>
 	public class ChannelInfo
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} Внутренний ID.
 		/// </summary>
@@ -78,7 +76,5 @@ namespace Microservices.Bus.Data.DAO
 		/// {Get,Set} Дополнительные свойства.
 		/// </summary>
 		public virtual IList<DAO.ChannelProperty> Properties { get; set; }
-		#endregion
-
 	}
 }

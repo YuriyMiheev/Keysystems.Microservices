@@ -5,8 +5,6 @@
 	/// </summary>
 	public class ServiceProperty
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} Внутренний ID.
 		/// </summary>
@@ -56,7 +54,5 @@
 		/// {Get,Set}
 		/// </summary>
 		public virtual bool? Secret { get; set; }
-		#endregion
-
 	}
 }

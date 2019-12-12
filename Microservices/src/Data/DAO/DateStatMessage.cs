@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Microservices.Data.DAO
 {
@@ -10,8 +7,6 @@ namespace Microservices.Data.DAO
 	/// </summary>
 	public class DateStatMessage
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get,Set} Внутренний ID.
 		/// </summary>
@@ -31,7 +26,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} 
 		/// </summary>
 		public virtual string Status { get; set; }
-		#endregion
-
 	}
 }

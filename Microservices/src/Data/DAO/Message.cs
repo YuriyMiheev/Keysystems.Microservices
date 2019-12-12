@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microservices.Data.DAO
 {
@@ -18,7 +17,6 @@ namespace Microservices.Data.DAO
 		}
 
 
-		#region Properties
 		/// <summary>
 		/// {Get,Set} 
 		/// </summary>
@@ -143,7 +141,5 @@ namespace Microservices.Data.DAO
 			get { return status; }
 			set { status = (value ?? new MessageStatus()); }
 		}
-		#endregion
-
 	}
 }

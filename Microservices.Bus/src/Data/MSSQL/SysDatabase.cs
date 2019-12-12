@@ -7,7 +7,6 @@ using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 
 using Microservices.Bus.Data.Mappings;
-using Microservices.Bus.Data.MSSQL.Mappings;
 using Microservices.Data;
 using Microservices.Data.Mappings;
 using Microservices.Data.MSSQL;

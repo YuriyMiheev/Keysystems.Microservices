@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microservices.Bus.Data.DAO
 {
@@ -9,8 +8,6 @@ namespace Microservices.Bus.Data.DAO
 	/// </summary>
 	public class ServiceInfo
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
@@ -79,8 +76,6 @@ namespace Microservices.Bus.Data.DAO
 		/// <summary>
 		/// {Get,Set} 
 		/// </summary>
-		public virtual IList<DAO.ServiceProperty> Properties { get; set; }
-		#endregion
-
+		public virtual IList<ServiceProperty> Properties { get; set; }
 	}
 }

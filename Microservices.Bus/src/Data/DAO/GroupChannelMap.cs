@@ -5,8 +5,6 @@
 	/// </summary>
 	public class GroupChannelMap
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get,Set} Внутренний ID.
 		/// </summary>
@@ -21,7 +19,5 @@
 		/// {Get} Канал.
 		/// </summary>
 		public virtual int? ChannelLINK { get; set; }
-		#endregion
-
 	}
 }

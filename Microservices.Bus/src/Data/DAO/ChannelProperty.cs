@@ -7,8 +7,6 @@ namespace Microservices.Bus.Data.DAO
 	/// </summary>
 	public class ChannelProperty
 	{
-
-		#region Properties
 		/// <summary>
 		/// 
 		/// </summary>
@@ -58,7 +56,5 @@ namespace Microservices.Bus.Data.DAO
 		/// 
 		/// </summary>
 		public virtual ChannelInfo Channel { get; set; }
-		#endregion
-
 	}
 }

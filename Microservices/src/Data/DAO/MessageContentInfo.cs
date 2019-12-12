@@ -1,14 +1,10 @@
-﻿using System;
-
-namespace Microservices.Data.DAO
+﻿namespace Microservices.Data.DAO
 {
 	/// <summary>
 	/// Содержимое сообщения.
 	/// </summary>
 	public class MessageContentInfo
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} 
 		/// </summary>
@@ -43,7 +39,5 @@ namespace Microservices.Data.DAO
 		/// {Get,Set} 
 		/// </summary>
 		public virtual string Comment { get; set; }
-		#endregion
-
 	}
 }

@@ -5,8 +5,6 @@
 	/// </summary>
 	public class GroupInfo
 	{
-
-		#region Properties
 		/// <summary>
 		/// {Get} Внутренний ID.
 		/// </summary>
@@ -21,7 +19,5 @@
 		/// {Get,Set}
 		/// </summary>
 		public virtual string Image { get; set; }
-		#endregion
-
 	}
 }
