@@ -1,14 +1,14 @@
 ﻿using System;
 
 using FluentNHibernate.Mapping;
-using Microservices.Channels.Data.Mappings;
+using Microservices.Data.Mappings;
 
-namespace Microservices.Channels.Data.MSSQL.Mappings
+namespace Microservices.Data.MSSQL
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public sealed class ContactPropertyMapping : ContactPropertyMappingBase
+	public sealed class MessageContentMapping : MessageContentMappingBase
 	{
 		/// <summary>
 		/// 

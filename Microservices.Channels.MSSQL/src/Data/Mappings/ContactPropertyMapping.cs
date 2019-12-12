@@ -1,4 +1,4 @@
-﻿using Microservices.Channels.Data.Mappings;
+﻿using Microservices.Data.Mappings;
 
 namespace Microservices.Channels.MSSQL.Data
 {

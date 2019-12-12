@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -44,9 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microservices.Channels.Abstractions\Microservices.Channels.Abstractions.csproj" />
-    <ProjectReference Include="..\Microservices.Configuration\Microservices.Configuration.csproj" />
-    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
     <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 

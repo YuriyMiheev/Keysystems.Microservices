@@ -11,7 +11,7 @@ namespace Microservices.Data
 	/// </summary>
 	public class DbContext : IDisposable
 	{
-		private bool connectionExists;
+		private bool _connectionExists;
 
 
 		#region Ctor
@@ -40,7 +40,7 @@ namespace Microservices.Data
 			if ( action != null )
 			{
 				var args = new ConnectionChangedEventArgs();
-				args.ConnectionExists = this.connectionExists;
+				args.ConnectionExists = this._connectionExists;
 
 				action(this, args);
 			}
@@ -150,9 +150,9 @@ namespace Microservices.Data
 			{
 				DbConnection conn = this.Database.OpenNewConnection();
 
-				if ( !this.connectionExists )
+				if ( !this._connectionExists )
 				{
-					this.connectionExists = true;
+					this._connectionExists = true;
 					OnConnectionChanged();
 				}
 
@@ -160,9 +160,9 @@ namespace Microservices.Data
 			}
 			catch ( ConnectionException )
 			{
-				if ( this.connectionExists )
+				if ( this._connectionExists )
 				{
-					this.connectionExists = false;
+					this._connectionExists = false;
 					OnConnectionChanged();
 				}
 

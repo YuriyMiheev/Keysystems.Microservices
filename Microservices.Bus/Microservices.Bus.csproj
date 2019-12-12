@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,15 +10,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="..\Microservices.Bus.Abstractions\Microservices.Bus.Abstractions.csproj" />
-    <ProjectReference Include="..\Microservices.Bus.Data.MSSQL\Microservices.Bus.Data.MSSQL.csproj" />
-    <ProjectReference Include="..\Microservices.Data.MSSQL\Microservices.Data.MSSQL.csproj" />
-    <ProjectReference Include="..\Microservices.Data\Microservices.Data.csproj" />
     <ProjectReference Include="..\Microservices\Microservices.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="src\Configuration\" />
   </ItemGroup>
 
 </Project>
