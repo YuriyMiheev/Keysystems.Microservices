@@ -88,7 +88,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = false;
-				return Parser.ParseBool(PropertyValue(".Debug.Enabled"), defaultValue);
+				return Parser.ParseBool(PropertyValue(".Debug"), defaultValue);
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = true;
-				return Parser.ParseBool(PropertyValue(".Authorization.Required"), defaultValue);
+				return Parser.ParseBool(PropertyValue(".Authorization"), defaultValue);
 			}
 		}
 
@@ -125,6 +125,18 @@ namespace Microservices.Bus.Configuration
 			{
 				int defaultValue = (1024 * 1024); // ServiceEnvironment.DefaultMessageBufferSize;
 				return Parser.ParseInt(PropertyValue(".MessageBufferSize"), defaultValue);
+			}
+		}
+
+		/// <summary>
+		/// {Get}
+		/// </summary>
+		public string InstanceID
+		{
+			get
+			{
+				string defaultValue = "";
+				return Parser.ParseString(PropertyValue(".InstanceID"), defaultValue);
 			}
 		}
 

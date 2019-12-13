@@ -76,10 +76,8 @@ namespace Microservices.Bus.Data.MSSQL
 
 			try
 			{
-				using (DbConnection conn = OpenNewConnection())
-				{
-					return true;
-				}
+				using DbConnection conn = OpenNewConnection();
+				return true;
 			}
 			catch (ConnectionException ex)
 			{

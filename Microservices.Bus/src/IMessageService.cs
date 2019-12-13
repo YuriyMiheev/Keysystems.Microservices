@@ -13,6 +13,22 @@ namespace Microservices.Bus
 		#endregion
 
 
+		///// <summary>
+		///// 
+		///// </summary>
+		//ServiceInfo GetInfo();
+
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="updateParams"></param>
+		//void UpdateInfo(ServiceInfoUpdateParams updateParams);
+
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="reinitService"></param>
+		//void SaveInfo(bool reinitService);
 
 	}
 }

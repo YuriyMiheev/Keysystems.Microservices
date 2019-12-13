@@ -26,7 +26,7 @@ namespace Microservices.Bus.Controllers
 		//[NoCache]
 		public ActionResult Login()
 		{
-			this.ViewBag.Service = _serviceInfo.WithoutProperties();
+			this.ViewBag.Service = _serviceInfo;
 			return View("Login");
 		}
 
@@ -38,7 +38,7 @@ namespace Microservices.Bus.Controllers
 		//[NoCache]
 		public ActionResult LoginContent()
 		{
-			this.ViewBag.Service = _serviceInfo.WithoutProperties();
+			this.ViewBag.Service = _serviceInfo;
 			return PartialView("_LoginContent");
 		}
 
@@ -65,7 +65,7 @@ namespace Microservices.Bus.Controllers
 			catch (Exception ex)
 			{
 
-				this.ViewBag.Service = _serviceInfo.WithoutProperties();
+				this.ViewBag.Service = _serviceInfo;
 				this.ViewBag.UserName = userName;
 				this.ViewBag.LoginError = ex;
 				return View("Login");

@@ -1,43 +1,88 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+using AutoMapper;
+
+using DAO = Microservices.Bus.Data.DAO;
 
 namespace Microservices.Bus
 {
 	public static class ServiceInfoExtensions
 	{
-		public static ServiceInfo WithoutProperties(this ServiceInfo obj)
+		//private readonly static IMapper mapper;
+
+		//static ServiceInfoExtensions()
+		//{
+		//	var config = new MapperConfiguration(cfg =>
+		//		{
+		//			cfg.CreateMap<ServiceInfo, ServiceInfo>();
+		//		});
+		//	mapper = config.CreateMapper();
+		//}
+
+		//public static void CloneTo(this ServiceInfo src, ServiceInfo dst)
+		//{
+		//	mapper.Map<ServiceInfo, ServiceInfo>(src, dst);
+		//}
+
+		//public static ServiceInfo ToObj(this DAO.ServiceInfo dao)
+		//{
+		//	if (dao == null)
+		//		return null;
+
+		//	var obj = new ServiceInfo();
+		//	dao.CloneTo(obj);
+
+		//	return obj;
+		//}
+
+		public static DAO.ServiceInfo ToDao(this ServiceInfo obj)
 		{
-			return new ServiceInfo()
-				{
-					AddinsDir = obj.AddinsDir,
-					Administrator = obj.Administrator,
-					AuthorizeEnabled = obj.AuthorizeEnabled,
-					BaseDir = obj.BaseDir,
-					ConfigFileName = obj.ConfigFileName,
-					CurrentTime = obj.CurrentTime,
-					Database = obj.Database,
-					DebugEnabled = obj.DebugEnabled,
-					ExternalAddress = obj.ExternalAddress,
-					InstanceID = obj.InstanceID,
-					InternalAddress = obj.InternalAddress,
-					LicenseFile = obj.LicenseFile,
-					LINK = obj.LINK,
-					LogFilesDir = obj.LogFilesDir,
-					MachineName = obj.MachineName,
-					MaxUploadSize = obj.MaxUploadSize,
-					Online = obj.Online,
-					Running = obj.Running,
-					ServiceName = obj.ServiceName,
-					ShutdownReason = obj.ShutdownReason,
-					ShutdownTime = obj.ShutdownTime,
-					StartTime = obj.StartTime,
-					StartupError = obj.StartupError,
-					TempDir = obj.TempDir,
-					ToolsDir = obj.ToolsDir,
-					Version = obj.Version
-				};
+			if (obj == null)
+				return null;
+
+			var dao = new DAO.ServiceInfo();
+			dao.AuthorizeEnabled = (obj.AuthorizeEnabled == false ? new Nullable<bool>() : obj.AuthorizeEnabled);
+			dao.DebugEnabled = (obj.DebugEnabled == false ? new Nullable<bool>() : obj.DebugEnabled);
+			dao.ExternalAddress = (String.IsNullOrEmpty(obj.ExternalAddress) ? null : obj.ExternalAddress);
+			dao.InstanceID = obj.InstanceID;
+			dao.InternalAddress = (String.IsNullOrEmpty(obj.InternalAddress) ? null : obj.InternalAddress);
+			dao.LINK = obj.LINK;
+			dao.MaxUploadSize = obj.MaxUploadSize;
+			dao.Online = (obj.Online == false ? new Nullable<bool>() : obj.Online);
+			//dao.Properties = obj.Properties.Select(prop => prop.ToDao(dao)).ToList();
+			dao.ServiceName = obj.ServiceName;
+			dao.ShutdownReason = (String.IsNullOrEmpty(obj.ShutdownReason) ? null : obj.ShutdownReason);
+			dao.ShutdownTime = obj.ShutdownTime;
+			dao.StartTime = obj.StartTime;
+			dao.Version = obj.Version;
+
+			return dao;
+		}
+
+		public static void CopyTo(this DAO.ServiceInfo dao, ServiceInfo obj)
+		{
+			#region Validate parameters
+			if (dao == null)
+				throw new ArgumentNullException("dao");
+
+			if (obj == null)
+				throw new ArgumentNullException("obj");
+			#endregion
+
+			obj.AuthorizeEnabled = (dao.AuthorizeEnabled == null ? false : dao.AuthorizeEnabled.Value);
+			obj.DebugEnabled = (dao.DebugEnabled == null ? false : dao.DebugEnabled.Value);
+			obj.ExternalAddress = dao.ExternalAddress;
+			obj.InstanceID = dao.InstanceID;
+			obj.InternalAddress = dao.InternalAddress;
+			obj.LINK = dao.LINK;
+			obj.MaxUploadSize = dao.MaxUploadSize;
+			obj.Online = (dao.Online == null ? false : dao.Online.Value);
+			//obj.Properties = dao.Properties.Select(prop => prop.ToObj()).ToArray();
+			obj.ServiceName = dao.ServiceName;
+			obj.ShutdownReason = dao.ShutdownReason;
+			obj.ShutdownTime = dao.ShutdownTime;
+			obj.StartTime = (dao.StartTime ?? DateTime.MinValue);
+			obj.Version = dao.Version;
 		}
 	}
 }

@@ -9,6 +9,7 @@ namespace Microservices.Bus
 	/// </summary>
 	public class ServiceInfo
 	{
+
 		/// <summary>
 		/// {Get} Внутренний ID.
 		/// </summary>
@@ -34,14 +35,14 @@ namespace Microservices.Bus
 		/// </summary>
 		public string Version { get; set; }
 
-		private DateTime? currentTime;
+		private DateTime? _currentTime;
 		/// <summary>
 		/// {Get} Текущее время на сервисе.
 		/// </summary>
 		public DateTime CurrentTime
 		{
-			get { return (currentTime ?? DateTime.Now); }
-			set { currentTime = value; }
+			get { return (_currentTime ?? DateTime.Now); }
+			set { _currentTime = value; }
 		}
 
 		/// <summary>

@@ -29,7 +29,7 @@ namespace Microservices.Bus.Channels
 			_properties = new List<ChannelDescriptionProperty>();
 			foreach (string key in appSettings.Keys.Where(k => !k.StartsWith(prefix)))
 			{
-				AppConfigSetting setting = _addinSettings[key];
+				AppConfigSetting setting = appSettings[key];
 				var descProp = new ChannelDescriptionProperty()
 					{
 						Comment = setting.Comment,

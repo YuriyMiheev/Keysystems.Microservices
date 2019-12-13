@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Microservices.Configuration
 {
 	public interface IConnectionStringsConfig
 	{
+		string ConfigFile { get; }
+
 		IDictionary<string, ConnectionStringSetting> GetConnectionStrings();
 	}
 }

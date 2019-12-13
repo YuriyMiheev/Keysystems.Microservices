@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +16,8 @@ using Microservices.Configuration;
 using Microservices.Data;
 
 using Microsoft.Extensions.DependencyInjection;
+
+using DAO = Microservices.Bus.Data.DAO;
 
 namespace Microservices.Bus
 {
@@ -30,11 +35,6 @@ namespace Microservices.Bus
 		private readonly IAddinManager _addinManager;
 		private readonly ILicenseManager _licManager;
 		private readonly ServiceInfo _serviceInfo;
-		//private readonly IServiceInfoManager _serviceInfoManager;
-		//private DateTime? _startTime;
-		//private DateTime? _shutdownTime;
-		//private Exception _startupError;
-		//private bool _started;
 
 
 		#region Ctor
@@ -60,6 +60,37 @@ namespace Microservices.Bus
 		#endregion
 
 
+		///// <summary>
+		///// 
+		///// </summary>
+		//public ServiceInfo GetInfo()
+		//{
+		//	var serviceInfo = new ServiceInfo();
+		//	_serviceInfo.CloneTo(serviceInfo);
+		//	//serviceInfo.SortPropertiesByName();
+		//	return serviceInfo;
+		//}
+
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="updateParams"></param>
+		//public void UpdateInfo(ServiceInfoUpdateParams updateParams)
+		//{
+		//	_serviceInfo.Online = updateParams.Online;
+		//	_serviceInfo.InternalAddress = updateParams.InternalAddress;
+		//	_serviceInfo.ExternalAddress = updateParams.ExternalAddress;
+		//}
+
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="reinitService"></param>
+		//public void SaveInfo(bool reinitService)
+		//{
+		//}
+
+
 		#region IHostedService
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
@@ -67,12 +98,15 @@ namespace Microservices.Bus
 				{
 					_logger.LogTrace("Старт сервиса.");
 
+					bool isSchemaValid = false;
+
 					try
 					{
 						_serviceInfo.StartTime = DateTime.Now;
 
 						_database.Schema = _busSettings.Database.Schema;
 						_database.ConnectionString = _busSettings.Database.ConnectionString;
+						//_database.ConnectionTimeout = (int)_databaseSettings.ConnectionTimeout.TotalSeconds;
 						//_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
 
 						while (!_database.TryConnect(out ConnectionException error))
@@ -83,15 +117,18 @@ namespace Microservices.Bus
 
 						using DbContext dbContext = _database.ValidateSchema();
 						//using DbContext dbContext = _database.CreateOrUpdateSchema();
+						isSchemaValid = true;
 
-						try
+						List<DAO.ServiceInfo> instances = _dataAdapter.GetServiceInstances();
+						if (instances.Count > 0)
 						{
-							_addinManager.LoadAddins();
+							DAO.ServiceInfo service = instances[0];
+							_serviceInfo.LINK = service.LINK;
+							if (service.InstanceID != _serviceInfo.InstanceID && _busSettings.CheckInstanceID)
+								throw new ApplicationException("База данных принадлежит другому интеграционному сервису.");
 						}
-						catch (Exception ex)
-						{
-							throw new InvalidOperationException("Ошибка загрузки дополнений.", ex);
-						}
+
+						_addinManager.LoadAddins();
 
 						//_licManager.LoadLicenses();
 						//_channelManager.LoadChannels();
@@ -106,8 +143,8 @@ namespace Microservices.Bus
 					}
 					finally
 					{
-						//SetCurrentParamsTo(_serviceInfo);
-						//_dataAdapter.SaveServiceInfo(false);
+						if (isSchemaValid)
+							_dataAdapter.SaveServiceInfo(_serviceInfo);
 					}
 				}, cancellationToken);
 		}
@@ -118,7 +155,8 @@ namespace Microservices.Bus
 				{
 					_logger.LogTrace("Остановка сервиса.");
 					_serviceInfo.ShutdownTime = DateTime.Now;
-				});
+					_database.Close();
+				}, cancellationToken);
 		}
 		#endregion
 
@@ -126,16 +164,12 @@ namespace Microservices.Bus
 		#region Helpers
 		private void SetCurrentParamsTo(ServiceInfo serviceInfo)
 		{
-			serviceInfo.InstanceID = Guid.NewGuid().ToString(); //this.instanceId;
+			serviceInfo.InstanceID = _busSettings.InstanceID;
 			serviceInfo.ServiceName = "Integration Service Bus";
 			serviceInfo.MachineName = Environment.MachineName;
 			serviceInfo.Version = "1.0"; //MessageServiceVersion.Current.Version;
-			//serviceInfo.StartTime = _startTime.Value;
-			//serviceInfo.ShutdownTime = _shutdownTime;
-			//serviceInfo.ShutdownReason = this.shutdownReason;
-			//serviceInfo.Running = _started;
 			serviceInfo.ConfigFileName = _appConfig.ConfigFile;
-			serviceInfo.BaseDir = AppDomain.CurrentDomain.BaseDirectory; //_busSettings.BaseDir;
+			serviceInfo.BaseDir = AppDomain.CurrentDomain.BaseDirectory;
 			//serviceInfo.LogFilesDir = _busSettings.LogFilesDir;
 			serviceInfo.TempDir = _busSettings.TempDir;
 			serviceInfo.AddinsDir = _busSettings.AddinsDir;
@@ -146,7 +180,6 @@ namespace Microservices.Bus
 			serviceInfo.DebugEnabled = _busSettings.DebugEnabled;
 			serviceInfo.AuthorizeEnabled = _busSettings.AuthorizationRequired;
 			serviceInfo.MaxUploadSize = _busSettings.MaxUploadFileSize;
-			//serviceInfo.StartupError = _startupError;
 		}
 		#endregion
 

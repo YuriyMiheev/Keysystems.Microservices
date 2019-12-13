@@ -10,14 +10,14 @@ namespace Microservices.Channels
 	/// <summary>
 	/// 
 	/// </summary>
-	public static class DAOConverter
+	public static class ObjectConverter
 	{
-		private static IMapper mapper;
+		private readonly static IMapper mapper;
 
 		/// <summary>
 		/// Type initializer.
 		/// </summary>
-		static DAOConverter()
+		static ObjectConverter()
 		{
 			var config = new MapperConfiguration(cfg =>
 				{

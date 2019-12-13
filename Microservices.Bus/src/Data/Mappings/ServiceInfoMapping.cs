@@ -40,7 +40,7 @@ namespace Microservices.Bus.Data.Mappings
 			Map(x => x.AuthorizeEnabled, "AUTHORIZE");
 			Map(x => x.MaxUploadSize, "MAX_UPLOAD_SIZE");
 			Map(x => x.Online, "ON_LINE");
-			HasMany(x => x.Properties).Table(SysDatabase.Tables.SERVICE_PROPERTIES).KeyColumn("SERVICE_LINK").ForeignKeyConstraintName("FK4336FD888A8ED41F").Cascade.AllDeleteOrphan().Not.LazyLoad();
+			//HasMany(x => x.Properties).Table(SysDatabase.Tables.SERVICE_PROPERTIES).KeyColumn("SERVICE_LINK").ForeignKeyConstraintName("FK4336FD888A8ED41F").Cascade.AllDeleteOrphan().Not.LazyLoad();
 		}
 	}
 }

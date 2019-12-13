@@ -53,7 +53,7 @@ namespace Microservices.Bus.Addins
 					{
 						lock (errors)
 						{
-							var error = new InvalidOperationException($"Ошибка загрузки дополнения из каталога \"{dir}\".", ex);
+							var error = new InvalidOperationException($"Ошибка загрузки дополнения из \"{dir}\".", ex);
 							errors.Add(error);
 						}
 					}
