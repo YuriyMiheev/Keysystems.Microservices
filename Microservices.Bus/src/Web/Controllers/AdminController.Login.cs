@@ -14,8 +14,8 @@ namespace Microservices.Bus.Controllers
 
 		public AdminController(ServiceInfo serviceInfo, BusSettings busSettings)
 		{
-			_serviceInfo = serviceInfo;
-			_busSettings = busSettings;
+			_serviceInfo = serviceInfo ?? throw new ArgumentNullException(nameof(serviceInfo));
+			_busSettings = busSettings ?? throw new ArgumentNullException(nameof(busSettings));
 		}
 
 		/// <summary>
@@ -26,7 +26,7 @@ namespace Microservices.Bus.Controllers
 		//[NoCache]
 		public ActionResult Login()
 		{
-			this.ViewBag.Service = _serviceInfo;
+			this.ViewBag.Service = _serviceInfo.ToVmo();
 			return View("Login");
 		}
 
@@ -38,7 +38,7 @@ namespace Microservices.Bus.Controllers
 		//[NoCache]
 		public ActionResult LoginContent()
 		{
-			this.ViewBag.Service = _serviceInfo;
+			this.ViewBag.Service = _serviceInfo.ToVmo();
 			return PartialView("_LoginContent");
 		}
 
@@ -65,7 +65,7 @@ namespace Microservices.Bus.Controllers
 			catch (Exception ex)
 			{
 
-				this.ViewBag.Service = _serviceInfo;
+				this.ViewBag.Service = _serviceInfo.ToVmo();
 				this.ViewBag.UserName = userName;
 				this.ViewBag.LoginError = ex;
 				return View("Login");

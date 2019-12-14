@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microservices.Bus.VMO
+namespace Microservices.Bus.Web.VMO
 {
 	/// <summary>
 	/// Дополнительное свойство сервиса.

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Microservices.Bus.VMO
+namespace Microservices.Bus.Web.VMO
 {
 	/// <summary>
 	/// Информация о сервисе.

@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 using AutoMapper;
 
-namespace Microservices.Bus.VMO
+namespace Microservices.Bus.Web.VMO
 {
-	public static class VMOConverter
+	public static class ObjectConverter
 	{
 		private static IMapper mapper;
 
 		/// <summary>
 		/// Type initializer.
 		/// </summary>
-		static VMOConverter()
+		static ObjectConverter()
 		{
 			var config = new MapperConfiguration(cfg =>
 				{

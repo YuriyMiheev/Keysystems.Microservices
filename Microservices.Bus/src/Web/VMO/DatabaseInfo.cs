@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microservices.Bus.VMO
+namespace Microservices.Bus.Web.VMO
 {
 	/// <summary>
 	/// Информация о БД.
