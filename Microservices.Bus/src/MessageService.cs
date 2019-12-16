@@ -131,7 +131,7 @@ namespace Microservices.Bus
 						_addinManager.LoadAddins();
 
 						//_licManager.LoadLicenses();
-						//_channelManager.LoadChannels();
+						_channelManager.LoadChannels();
 
 						_serviceInfo.StartupError = null;
 						_serviceInfo.Running = true;

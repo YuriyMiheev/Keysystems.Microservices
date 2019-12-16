@@ -52,10 +52,9 @@ namespace Microservices.Bus.Web.Controllers
 			}
 			catch (Exception ex)
 			{
-
 				this.ViewBag.Service = _serviceInfo.ToVmo();
 				this.ViewBag.UserName = userName;
-				this.ViewBag.LoginError = ex.Wrap();
+				this.ViewBag.LoginError = ex.Wrap().ToVmo();
 				return View("Login");
 			}
 		}

@@ -17,14 +17,14 @@ using NH = NHibernate;
 
 namespace Microservices.Bus.Data.MSSQL
 {
-	public class SysDatabase : IBusDatabase
+	public class BusDatabase : IBusDatabase
 	{
 
 		#region Ctor
 		/// <summary>
 		/// Конструктор.
 		/// </summary>
-		public SysDatabase()
+		public BusDatabase()
 		{ }
 		#endregion
 

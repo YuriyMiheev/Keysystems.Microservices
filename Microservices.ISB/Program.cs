@@ -47,7 +47,7 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<IAppSettingsConfig>(appConfig);
 						services.AddSingleton<IConnectionStringsConfig>(appConfig);
 						services.AddSingleton<BusSettings>();
-						services.AddSingleton<IBusDatabase, SysDatabase>();
+						services.AddSingleton<IBusDatabase, BusDatabase>();
 						services.AddSingleton<IBusDataAdapter, BusDataAdapter>();
 						services.AddSingleton<ILogger, BusLogger>();
 						services.AddSingleton<IAuthManager, AuthManager>();

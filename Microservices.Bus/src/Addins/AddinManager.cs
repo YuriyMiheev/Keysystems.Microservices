@@ -45,11 +45,8 @@ namespace Microservices.Bus.Addins
 					try
 					{
 						ChannelDescription channelDescription = LoadAddin(dir);
-						lock (_registeredChannels)
-						{
-							if (!_registeredChannels.TryAdd(channelDescription.Provider, channelDescription))
-								throw new InvalidOperationException($"Канал типа {channelDescription.Provider} уже существует.");
-						}
+						if (!_registeredChannels.TryAdd(channelDescription.Provider, channelDescription))
+							throw new InvalidOperationException($"Канал типа {channelDescription.Provider} уже существует.");
 					}
 					catch (Exception ex)
 					{

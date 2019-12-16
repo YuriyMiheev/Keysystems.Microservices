@@ -24,7 +24,11 @@ namespace Microservices.IntegrationServiceBus
 		public void ConfigureServices(IServiceCollection services)
 		{
 			//services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(o => { });
-			services.AddControllersWithViews();
+			services.AddControllersWithViews().AddJsonOptions(options =>
+				{
+					options.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
+					options.JsonSerializerOptions.PropertyNamingPolicy = null;
+				});
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -38,7 +38,7 @@ namespace Microservices.Bus.Web.Controllers
 					channelInfo.Online,
 					channelInfo.CanSyncContacts,
 					LastError = (channelInfo.Error != null ? channelInfo.Error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + channelInfo.Error.Message.Split('\n')[0] : ""),
-					IconCss = "" //(IconFileExist(channelInfo.Description) ? null : (channelInfo.Description != null ? channelInfo.Description.IconCss : null))
+					//IconCss = (string)null //(IconFileExist(channelInfo.Description) ? null : (channelInfo.Description != null ? channelInfo.Description.IconCss : null))
 				}
 			).ToList();
 
@@ -66,7 +66,6 @@ namespace Microservices.Bus.Web.Controllers
 			}
 			else
 			{
-				//ServiceInfo serviceInfo = this.MessageService.GetInfo();
 				if (_serviceInfo.StartupError != null)
 					return RedirectToAction("Home");
 
@@ -75,7 +74,7 @@ namespace Microservices.Bus.Web.Controllers
 						new
 						{
 							desc.Provider,
-							IconCss = "", //(IconFileExist(desc) ? null : desc.IconCss),
+							//IconCss = (string)null, //(IconFileExist(desc) ? null : desc.IconCss),
 							desc.Comment,
 							Disabled = (desc.Provider == "SYSTEM" && systemExist || desc.Provider != "SYSTEM" && !systemExist)
 						}
