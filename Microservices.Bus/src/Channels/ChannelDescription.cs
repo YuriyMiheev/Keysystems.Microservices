@@ -135,6 +135,52 @@ namespace Microservices.Bus.Channels
 		#endregion
 
 
+		internal void AddProperty(ChannelDescriptionProperty prop)
+		{
+			#region Validate parameters
+			if (prop == null)
+				throw new ArgumentNullException("prop");
+
+			if (String.IsNullOrEmpty(prop.Name))
+				throw new ArgumentException("Отсутствует имя свойства.", nameof(prop.Name));
+			#endregion
+
+			if (_properties.Any(p => p.Name == prop.Name))
+				throw new InvalidOperationException($"Описание канала уже содержит свойство {prop.Name}.");
+
+			_properties.Add(prop);
+		}
+
+		internal ChannelDescriptionProperty FindProperty(string propName)
+		{
+			#region Validate parameters
+			if (String.IsNullOrEmpty(propName))
+				throw new ArgumentException(nameof(propName));
+			#endregion
+
+			return _properties.SingleOrDefault(prop => prop.Name == propName);
+		}
+
+		internal ChannelDescriptionProperty GetProperty(string propName)
+		{
+			#region Validate parameters
+			if (String.IsNullOrEmpty(propName))
+				throw new ArgumentException(nameof(propName));
+			#endregion
+
+			ChannelDescriptionProperty prop = FindProperty(propName);
+			if (prop == null)
+				throw new InvalidOperationException($"Свойство \"{propName}\" не найдено.");
+
+			return prop;
+		}
+
+		//public IDictionary<string, AppConfigSetting> GetMetadata()
+		//{
+		//	return _addinSettings;
+		//}
+
+
 		private string PropertyValue(string propName)
 		{
 			if (_addinSettings.ContainsKey(propName))

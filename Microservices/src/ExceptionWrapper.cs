@@ -1,7 +1,5 @@
 ﻿using System;
 
-//using Microservices.Lib;
-
 namespace Microservices
 {
 	/// <summary>
@@ -31,9 +29,9 @@ namespace Microservices
 			this.ErrorType = error.GetType().Name;
 			this.Time = DateTime.Now;
 			this.Message = error.Message;
-			//string allMessages = error.AllMessages();
-			//if ( !String.IsNullOrEmpty(allMessages) )
-			//	this.InnerMessages = allMessages.Replace(this.Message, "").Trim('\r', '\n');
+			string allMessages = error.AllMessages();
+			if ( !String.IsNullOrEmpty(allMessages) )
+				this.InnerMessages = allMessages.Replace(this.Message, "").Trim('\r', '\n');
 
 			this.FullMessage = error.ToString();
 			this.Source = error.Source;

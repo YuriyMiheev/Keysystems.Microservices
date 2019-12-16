@@ -17,7 +17,7 @@ using NH = NHibernate;
 
 namespace Microservices.Bus.Data.MSSQL
 {
-	public class SysDatabase : IDatabase
+	public class SysDatabase : IBusDatabase
 	{
 
 		#region Ctor

@@ -1,41 +1,12 @@
 ﻿using System;
 using System.Linq;
 
-using AutoMapper;
-
 using DAO = Microservices.Data.DAO;
 
 namespace Microservices.Channels
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public static class ObjectConverter
+	public static class ContactExtensions
 	{
-		private readonly static IMapper mapper;
-
-		/// <summary>
-		/// Type initializer.
-		/// </summary>
-		static ObjectConverter()
-		{
-			var config = new MapperConfiguration(cfg =>
-				{
-					#region Contact
-					cfg.CreateMap<Contact, Contact>();
-					cfg.CreateMap<ContactProperty, ContactProperty>();
-					#endregion
-
-					#region Message
-					cfg.CreateMap<Message, Message>();
-					#endregion
-				});
-			mapper = config.CreateMapper();
-		}
-
-
-
-		#region Contact
 		/// <summary>
 		/// Копирование информации в другой объект за исключением LINK и Properties.
 		/// </summary>
@@ -44,10 +15,10 @@ namespace Microservices.Channels
 		public static void CopyTo(this Contact src, Contact dest)
 		{
 			#region Validate parameters
-			if ( src == null )
+			if (src == null)
 				throw new ArgumentNullException("src");
 
-			if ( dest == null )
+			if (dest == null)
 				throw new ArgumentNullException("dest");
 			#endregion
 
@@ -65,52 +36,13 @@ namespace Microservices.Channels
 		}
 
 		/// <summary>
-		/// Создание копии объекта без свойства LINK и ContactLINK.
-		/// </summary>
-		/// <param name="src"></param>
-		/// <returns></returns>
-		public static ContactProperty Copy(this ContactProperty src)
-		{
-			#region Validate parameters
-			if (src == null)
-				throw new ArgumentNullException("src");
-			#endregion
-
-			var dest = new ContactProperty();
-			src.CopyTo(dest);
-
-			return dest;
-		}
-
-		/// <summary>
-		/// Копирование свойств в другой объект за исключением свойства LINK и ContactLINK.
-		/// </summary>
-		/// <param name="src"></param>
-		/// <param name="dest"></param>
-		public static void CopyTo(this ContactProperty src, ContactProperty dest)
-		{
-			#region Validate parameters
-			if (src == null)
-				throw new ArgumentNullException("src");
-
-			if (dest == null)
-				throw new ArgumentNullException("dest");
-			#endregion
-
-			mapper.Map<ContactProperty, ContactProperty>(src, dest);
-			dest.LINK = 0;
-			dest.ContactLINK = null;
-		}
-
-		#region DAO
-		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		public static DAO.Contact ToDao(this Contact obj)
 		{
-			if ( obj == null )
+			if (obj == null)
 				return null;
 
 			var dao = new DAO.Contact();
@@ -138,7 +70,7 @@ namespace Microservices.Channels
 		/// <returns></returns>
 		public static Contact ToObj(this DAO.Contact dao)
 		{
-			if ( dao == null )
+			if (dao == null)
 				return null;
 
 			var obj = new Contact();
@@ -155,10 +87,10 @@ namespace Microservices.Channels
 		public static void CloneTo(this DAO.Contact dao, Contact obj)
 		{
 			#region Validate parameters
-			if ( dao == null )
+			if (dao == null)
 				throw new ArgumentNullException("dao");
 
-			if ( obj == null )
+			if (obj == null)
 				throw new ArgumentNullException("obj");
 			#endregion
 
@@ -175,54 +107,5 @@ namespace Microservices.Channels
 			obj.Properties = dao.Properties.Select(cont => cont.ToObj()).ToArray();
 			obj.Type = dao.Type;
 		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <param name="contact"></param>
-		/// <returns></returns>
-		public static DAO.ContactProperty ToDao(this ContactProperty obj, DAO.Contact contact)
-		{
-			if ( obj == null )
-				return null;
-
-			var dao = new DAO.ContactProperty();
-			dao.Comment = (String.IsNullOrEmpty(obj.Comment) ? null : obj.Comment);
-			dao.Contact = contact;
-			dao.Format = (String.IsNullOrEmpty(obj.Format) ? null : obj.Format);
-			dao.LINK = obj.LINK;
-			dao.Name = obj.Name;
-			dao.Type = (String.IsNullOrEmpty(obj.Type) ? null : obj.Type);
-			dao.Value = obj.Value;
-
-			return dao;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="dao"></param>
-		/// <returns></returns>
-		public static ContactProperty ToObj(this DAO.ContactProperty dao)
-		{
-			if ( dao == null )
-				return null;
-
-			var obj = new ContactProperty();
-			obj.Comment = dao.Comment;
-			obj.ContactLINK = dao.Contact.LINK;
-			obj.Format = dao.Format;
-			obj.LINK = dao.LINK;
-			obj.Name = dao.Name;
-			obj.Type = dao.Type;
-			obj.Value = dao.Value;
-
-			return obj;
-		}
-		#endregion
-
-		#endregion
-
 	}
 }

@@ -1,0 +1,131 @@
+﻿@using Microservices.Bus.Web.VMO;
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="utf-8" />
+   <title></title>
+   <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" />
+   <link type="text/css" href="@Url.Content("~/ext-3.4.1/resources/css/ext-all.css")" rel="stylesheet" />
+   <link type="text/css" href="@Url.Content("~/Content/images.css")" rel="stylesheet" />
+   <link type="text/css" href="@Url.Content("~/Content/styles.css")" rel="stylesheet" />
+   @RenderSection("Style", required: false)
+   <script type="text/javascript" src="@Url.Content("~/ext-3.4.1/adapter/ext/ext-base.js")"></script>
+   <script type="text/javascript" src="@Url.Content("~/ext-3.4.1/ext-all.js")"></script>
+   <script type="text/javascript" src="@Url.Content("~/ext-3.4.1/hyperlinkbutton.js")"></script>
+   <script type="text/javascript">
+      Ext.BLANK_IMAGE_URL = '@Url.Content("~/ext-3.4.1/resources/images/default/s.gif")';
+      Ext.QuickTips.init();
+
+      App = {};
+      Page = {
+         // Показать сообщение об ошибке
+         ShowErrorMsg: function (text, callback) {
+            Ext.Msg.show({
+               title: 'ERROR!',
+               msg: text,
+               icon: Ext.Msg.ERROR,
+               buttons: Ext.Msg.OK,
+               fn: callback
+            });
+         },
+
+         // Показать информационное сообщение
+         ShowInfoMsg: function (text, callback) {
+            Ext.Msg.show({
+               title: 'Information',
+               msg: text,
+               icon: Ext.Msg.INFO,
+               buttons: Ext.Msg.OK,
+               fn: callback
+            });
+         },
+
+         // Показать ошибку при ответе на Ajax запрос
+         ShowAjaxError: function (response, callback) {
+            var error;
+            if (response.isTimeout) {
+               error = 'HttpRequest is timeout.';
+            }
+            else {
+               if (response.status == 200) {
+                  var result = Ext.decode(response.responseText);
+                  error = result.Error;
+               } else {
+                  error = '<b>' + response.statusText + '</b>';
+                  if (response.responseText)
+                     error += '</br>' + response.responseText;
+               }
+            }
+
+            Page.ShowErrorMsg(error, callback);
+         },
+
+         // Показать ошибку при Submit-е формы
+         ShowSubmitError: function (action, callback) {
+            switch (action.failureType) {
+               case Ext.form.Action.CLIENT_INVALID:
+                  Page.ShowErrorMsg('ERROR!', 'Form fields may not be submitted with invalid values.', callback);
+                  break;
+               case Ext.form.Action.CONNECT_FAILURE:
+                  Page.ShowErrorMsg('ERROR!', 'Communication failed!', callback);
+                  break;
+               case Ext.form.Action.SERVER_INVALID:
+                  Page.ShowAjaxError(action.response, callback);
+                  break;
+            }
+         }
+      };
+
+      Ext.onReady(function() {
+         new Ext.Toolbar({
+            id: 'menuMain',
+            renderTo: 'div-menu',
+            anchor: '0',
+            items: [
+               { xtype: 'linkbutton', text: '<b>HOME</b>', iconCls: 'ico_home', href: '@Url.Action("Home")' },
+               '-',
+               { xtype: 'linkbutton', text: '<b>SERVICE</b>', iconCls: 'ico_service', href: '@Url.Action("ServiceInfo")' },
+               '-',
+               { xtype: 'linkbutton', text: '<b>CHANNELS</b>', iconCls: 'ico_channels', href: '@Url.Action("Channels")' },
+               '-',
+               { xtype: 'linkbutton', text: '<b>JOBS</b>', iconCls: 'ico_jobs', href: '@Url.Action("Jobs")' },
+               '-',
+               { xtype: 'linkbutton', text: '<b>SERVER</b>', iconCls: 'ico_server', href: '@Url.Action("ServerInfo")' },
+               '-',
+               { xtype: 'linkbutton', text: '<b>LICENSE</b>', iconCls: 'ico_lic', href: '@Url.Action("License")' },
+               '-',
+               {
+                  text: '<b>HELP</b>', iconCls: 'ico_help',
+                  menu: {
+                     items: [
+                        { iconCls: 'ico_wsdl', text: 'Wsdl', href: '@Url.Action("", "")?wsdl' },
+                        '-',
+                        {
+                           text: 'Documentation', iconCls: 'ico_folderopen',
+                           menu: {
+                              items: [
+                                 { iconCls: 'ico_doc', text: 'Установка', href: '@Url.Content("~/Content/Docs/РП_Установка сервиса.doc")' },
+                                 { iconCls: 'ico_doc', text: 'Администрирование', href: '@Url.Content("~/Content/Docs/РП_Администрирование сервиса.doc")' },
+                                 { iconCls: 'ico_doc', text: 'Архитектура', href: '@Url.Content("~/Content/Docs/РП_Архитектура сервиса.doc")' },
+                                 { iconCls: 'ico_doc', text: 'Обмен сообщениями', href: '@Url.Content("~/Content/Docs/РП_Обмен сообщениями.doc")' },
+                                 { iconCls: 'ico_doc', text: 'Безопасность', href: '@Url.Content("~/Content/Docs/РП_Безопасность.doc")' },
+                                 { iconCls: 'ico_doc', text: 'Разработка', href: '@Url.Content("~/Content/Docs/РП_Разработка сервиса.doc")' }
+                              ]
+                           }
+                        }
+                     ]
+                  }
+               },
+               '-',
+               { xtype: 'linkbutton', text: '<b>EXIT</b>', iconCls: 'ico_exit', href: '@Url.Action("Logout")' }
+            ]
+         });
+      });
+   </script>
+   @RenderSection("Page", required: false)
+</head>
+<body>
+   <div id="div-menu"></div>
+   @RenderBody()
+</body>
+</html>

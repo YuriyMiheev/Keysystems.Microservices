@@ -2,38 +2,32 @@
 
 using AutoMapper;
 
+using Microservices.Configuration;
+
 using DAO = Microservices.Bus.Data.DAO;
+using VMO = Microservices.Bus.Web.VMO;
 
 namespace Microservices.Bus
 {
 	public static class ServiceInfoExtensions
 	{
-		//private readonly static IMapper mapper;
+		private static IMapper mapper;
 
-		//static ServiceInfoExtensions()
-		//{
-		//	var config = new MapperConfiguration(cfg =>
-		//		{
-		//			cfg.CreateMap<ServiceInfo, ServiceInfo>();
-		//		});
-		//	mapper = config.CreateMapper();
-		//}
-
-		//public static void CloneTo(this ServiceInfo src, ServiceInfo dst)
-		//{
-		//	mapper.Map<ServiceInfo, ServiceInfo>(src, dst);
-		//}
-
-		//public static ServiceInfo ToObj(this DAO.ServiceInfo dao)
-		//{
-		//	if (dao == null)
-		//		return null;
-
-		//	var obj = new ServiceInfo();
-		//	dao.CloneTo(obj);
-
-		//	return obj;
-		//}
+		/// <summary>
+		/// Type initializer.
+		/// </summary>
+		static ServiceInfoExtensions()
+		{
+			var config = new MapperConfiguration(cfg =>
+			{
+				cfg.CreateMap<ServiceInfo, VMO.ServiceInfo>().ForMember(vmo => vmo.StartupError, opt => opt.MapFrom(obj => obj.StartupError.Wrap()));
+				cfg.CreateMap<DatabaseInfo, VMO.DatabaseInfo>();
+				cfg.CreateMap<CredentialInfo, VMO.CredentialInfo>();
+				cfg.CreateMap<ExceptionWrapper, VMO.ExceptionWrapper>();
+				//cfg.CreateMap<ServiceProperty, VMO.ServiceProperty>();
+			});
+			mapper = config.CreateMapper();
+		}
 
 		public static DAO.ServiceInfo ToDao(this ServiceInfo obj)
 		{
@@ -83,6 +77,15 @@ namespace Microservices.Bus
 			obj.ShutdownTime = dao.ShutdownTime;
 			obj.StartTime = (dao.StartTime ?? DateTime.MinValue);
 			obj.Version = dao.Version;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="vmo"></param>
+		public static VMO.ServiceInfo ToVmo(this ServiceInfo obj)
+		{
+			return mapper.Map<ServiceInfo, VMO.ServiceInfo>(obj);
 		}
 	}
 }

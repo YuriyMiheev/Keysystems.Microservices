@@ -28,7 +28,7 @@ namespace Microservices.Bus
 		private readonly IConnectionStringsConfig _connConfig;
 		private readonly BusSettings _busSettings;
 		private readonly ILogger _logger;
-		private readonly IDatabase _database;
+		private readonly IBusDatabase _database;
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly IAuthManager _authManager;
 		private readonly IChannelManager _channelManager;
@@ -46,7 +46,7 @@ namespace Microservices.Bus
 			_connConfig = serviceProvider.GetRequiredService<IConnectionStringsConfig>();
 			_busSettings = serviceProvider.GetRequiredService<BusSettings>();
 			_logger = serviceProvider.GetRequiredService<ILogger>();
-			_database = serviceProvider.GetRequiredService<IDatabase>();
+			_database = serviceProvider.GetRequiredService<IBusDatabase>();
 			_dataAdapter = serviceProvider.GetRequiredService<IBusDataAdapter>();
 			_authManager = serviceProvider.GetRequiredService<IAuthManager>();
 			_channelManager = serviceProvider.GetRequiredService<IChannelManager>();

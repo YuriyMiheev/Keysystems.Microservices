@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microservices.Channels
+namespace Microservices
 {
 	/// <summary>
 	/// 
@@ -37,14 +37,14 @@ namespace Microservices.Channels
 			return Find<T>(ex.InnerException);
 		}
 
-		///// <summary>
-		///// Обернуть ошибку для передачи (сериализации/десериализации) через границу AppDomain.
-		///// </summary>
-		///// <param name="ex"></param>
-		///// <returns></returns>
-		//public static ExceptionWrapper Wrap(this Exception ex)
-		//{
-		//	return new ExceptionWrapper(ex);
-		//}
+		/// <summary>
+		/// Обернуть ошибку для передачи (сериализации/десериализации) через границу AppDomain.
+		/// </summary>
+		/// <param name="ex"></param>
+		/// <returns></returns>
+		public static ExceptionWrapper Wrap(this Exception ex)
+		{
+			return new ExceptionWrapper(ex);
+		}
 	}
 }

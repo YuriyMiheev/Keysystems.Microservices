@@ -27,6 +27,7 @@
     <Compile Remove="src\Hubs\CommonHubClient.cs" />
     <Compile Remove="src\Hubs\IHubClient.cs" />
     <Compile Remove="IHubClient.cs" />
+    <Compile Remove="src\MessageExtensions.cs" />
     <Compile Remove="src\MessageSender.cs" />
     <Compile Remove="src\OrderableMessageQueue.cs" />
     <Compile Remove="src\Parser.cs" />

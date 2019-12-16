@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Microservices.Bus.VMO
+namespace Microservices.Bus.Web.VMO
 {
 	/// <summary>
 	/// Информация о сервисе.
@@ -156,19 +156,19 @@ namespace Microservices.Bus.VMO
 		#endregion
 
 
-		#region Methods
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public ServiceInfo Clear()
-		{
-			if ( this.Properties != null )
-				this.Properties.Clear();
+		//#region Methods
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <returns></returns>
+		//public ServiceInfo Clear()
+		//{
+		//	if ( this.Properties != null )
+		//		this.Properties.Clear();
 
-			return this;
-		}
-		#endregion
+		//	return this;
+		//}
+		//#endregion
 
 
 

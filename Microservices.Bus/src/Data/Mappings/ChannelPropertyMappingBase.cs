@@ -12,7 +12,7 @@ namespace Microservices.Bus.Data.Mappings
 		/// </summary>
 		protected override void DefineTable()
 		{
-			Table(SysDatabase.Tables.CHANNEL_PROPERTIES);
+			Table(BusDatabase.Tables.CHANNEL_PROPERTIES);
 		}
 
 		/// <summary>

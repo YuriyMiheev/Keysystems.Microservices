@@ -1,4 +1,4 @@
-﻿@using Microservices.Bus;
+﻿@using Microservices.Bus.Web.VMO;
 @{
    this.Layout = null;
    
@@ -6,7 +6,7 @@
    string localTime = service.CurrentTime.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
    string utcTime = service.CurrentTime.ToUniversalTime().ToString("dd.MM.yyyy HH:mm");
    string userName = this.ViewBag.UserName;
-   Exception loginError = this.ViewBag.LoginError;
+   ExceptionWrapper loginError = this.ViewBag.LoginError;
 }
 <!DOCTYPE html>
 <html>

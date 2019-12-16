@@ -12,7 +12,7 @@ namespace Microservices.Bus.Data.Mappings
 		/// </summary>
 		protected override void DefineTable()
 		{
-			Table(SysDatabase.Tables.CHANNELS);
+			Table(BusDatabase.Tables.CHANNELS);
 		}
 
 		/// <summary>
@@ -40,7 +40,7 @@ namespace Microservices.Bus.Data.Mappings
 			Map(x => x.Enabled, "ENABLED").Index("IX_rms_ENABLED");
 			Map(x => x.AccessMode, "ACCESS_MODE").Length(50).Index("IX_rms_ACCESS_MODE");
 			Map(x => x.Comment, "COMMENTS").Length(1024);
-			HasMany(x => x.Properties).Table(SysDatabase.Tables.CHANNEL_PROPERTIES).KeyColumn("CHANNEL_LINK").ForeignKeyConstraintName("FK8522B34FFB71BD91").Cascade.AllDeleteOrphan().Not.LazyLoad();
+			HasMany(x => x.Properties).Table(BusDatabase.Tables.CHANNEL_PROPERTIES).KeyColumn("CHANNEL_LINK").ForeignKeyConstraintName("FK8522B34FFB71BD91").Cascade.AllDeleteOrphan().Not.LazyLoad();
 		}
 	}
 }

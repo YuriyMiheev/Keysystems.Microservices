@@ -1,0 +1,441 @@
+﻿@using Microservices.Bus.Web.VMO;
+@{
+   //this.Page.Title += "Channels";
+
+   var channelGroups = this.ViewBag.ChannelGroups;
+   var registeredChannels = this.ViewBag.RegisteredChannels;
+}
+@section Style{
+   <link type="text/css" href="@Url.Content("~/ext-3.4.1/fileuploadfield.css")" rel="stylesheet" />
+}
+@section Page{
+   <script type="text/javascript" src="@Url.Content("~/ext-3.4.1/fileuploadfield.js")"></script>
+   <script type="text/javascript">
+      Ext.onReady(function() {
+         var panelChannels = new Ext.Panel({
+            id: 'panelChannels',
+            //title: 'Channels',
+            renderTo: 'div-channels',
+            layout: 'accordion',
+            layoutConfig: {
+               titleCollapse: true,
+               animate: true
+               //activeOnTop: true
+            },
+            style: 'padding: 5px 5px 5px 5px',
+            monitorResize: true,
+            items: [
+               { xtype: 'panel', id: 'panelUpdater', hidden: true }
+            ],
+            tbar: {
+               items: [
+                  {
+                     text: '<b>Tools</b>', iconCls: 'ico_tools',
+                     menu: {
+                        items: [
+                           { id: 'btnDatabaseManager', iconCls: 'ico_dbmanager', text: 'Database Manager', Url: '@Url.Action("DatabaseManager")', handler: btnDatabaseManager_Click },
+                           '-',
+                           { id: 'btnChannelsGroups', iconCls: 'ico_channels', text: 'Channels Groups', Url: '@Url.Action("ChannelsGroups")', handler: btnChannelsGroups_Click },
+                           '-',
+                           { id: 'btnInstallAddin', iconCls: 'ico_install', text: 'Install Channel', Url: '@Url.Action("ChannelTypes")', handler: btnInstallAddin_Click },
+                           { id: 'btnExportChannels', iconCls: 'ico_savedown', text: 'Export channels', Url: '@Url.Action("ExportChannels")', handler: btnExportChannels_Click },
+                           { id: 'btnImportChannels', iconCls: 'ico_saveup', text: 'Import channels', Url: '@Url.Action("ImportChannels")', handler: btnImportChannels_Click }
+                        ]
+                     }
+                  },
+                  '-',
+                  { id: 'btnAddChannel', iconCls: 'ico_add', text: 'Create', disabled: true, Url: '@Url.Action("Channel")', menu: {} },
+                  { id: 'btnViewEditChannel', iconCls: 'ico_viewedit', text: 'View/Edit', disabled: true, Url: '@Url.Action("Channel")', handler: btnViewEditChannel_Click },
+                  { id: 'btnDeleteChannel', iconCls: 'ico_delete', text: 'Delete', disabled: true, Url: '@Url.Action("DeleteChannel")', handler: btnDeleteChannel_Click },
+                  '-',
+                  { id: 'btnChannelOpen', iconCls: 'ico_open', text: 'Open', disabled: true, Url: '@Url.Action("OpenChannel")', handler: btnChannelOpen_Click },
+                  { id: 'btnChannelClose', iconCls: 'ico_close', text: 'Close', disabled: true, Url: '@Url.Action("CloseChannel")', handler: btnChannelClose_Click },
+                  '-',
+                  { id: 'btnChannelRun', iconCls: 'ico_run', text: 'Run', disabled: true, Url: '@Url.Action("RunChannel")', handler: btnChannelRun_Click },
+                  { id: 'btnChannelStop', iconCls: 'ico_stop', text: 'Stop', disabled: true, Url: '@Url.Action("StopChannel")', handler: btnChannelStop_Click },
+                  '-',
+						{
+						   id: 'btnContacts', iconCls: 'ico_contacts', text: 'Contacts', disabled: true,
+						   menu: {
+						      items: [
+									{ id: 'btnSyncContacts', iconCls: 'ico_sync', text: 'Syncronize', Url: '@Url.Action("SyncContacts")', handler: btnSyncContacts_Click },
+									{ id: 'btnAddresses', iconCls: 'ico_addresses', text: 'Addresses', Url: '@Url.Action("Contacts")', handler: btnAddresses_Click },
+									{ id: 'btnPublishers', iconCls: 'ico_pubsub', text: 'Publishers', Url: '@Url.Action("Publishers")', handler: btnPublishers_Click }
+						      ]
+						   }
+						},
+                  '-',
+                  { id: 'btnMessages', iconCls: 'ico_messages', text: 'Messages', disabled: true, Url: '@Url.Action("Messages")', handler: btnMessages_Click },
+                  '-',
+                  {
+                     id: 'btnMonitor', iconCls: 'ico_monitor', text: 'Monitor', disabled: true,
+                     menu: {
+                        items: [
+                           { id: 'btnDiagnostic', iconCls: 'ico_diagnostic', text: 'Diagnostic', Url: '@Url.Action("ChannelDiagnostic")', handler: btnDiagnostic_Click },
+                           { id: 'btnLog', iconCls: 'ico_log', text: 'Log', Url: '@Url.Action("ChannelLog")', handler: btnLog_Click },
+                           { id: 'btnStatistics', iconCls: 'ico_statistics', text: 'Statistics', Url: '@Url.Action("ChannelStatistics")', handler: btnStatistics_Click }
+                        ]
+                     }
+                  }
+               ]
+            }
+         });
+
+         var progress = new Ext.LoadMask('panelChannels', { msg: 'Please wait...' });
+
+         Ext.each(@Html.Raw(Json.Serialize(registeredChannels)), function(item, index) {
+            var btnAddChannel = Ext.getCmp('btnAddChannel');
+            var menuItem = { text: item.Provider, Provider: item.Provider, Url: btnAddChannel.Url, Comment: item.Comment, disabled: item.Disabled, handler: btnAddChannel_Click,
+               listeners: {
+                  render: function(mi) {
+                     Ext.QuickTips.register({
+                        target: mi,
+                        text: mi.Comment
+                     });
+                  }
+               }
+            };
+
+            if (item.IconCss)
+               menuItem.iconCls = item.IconCss;
+            else
+               menuItem.icon = '@Url.Action("ChannelIcon")' + String.format('?provider={0}', item.Provider);
+
+            btnAddChannel.menu.addMenuItem(menuItem);
+         });
+
+         Ext.each(@Html.Raw(Json.Serialize(channelGroups)), function(group, index) {
+            var store = new Ext.data.JsonStore({
+               url: '@Url.Action("Channels")' + String.format('?groupLink={0}', group.LINK),
+               autoLoad: false,
+               fields: [
+                  { name: 'LINK', type: 'int' },
+                  { name: 'Name' },
+                  { name: 'Provider' },
+                  { name: 'VirtAddress' },
+                  { name: 'SID' },
+                  { name: 'RealAddress' },
+                  { name: 'Timeout', type: 'int' },
+                  { name: 'IsSystem', type: 'boolean' },
+                  { name: 'Enabled', type: 'boolean' },
+                  { name: 'Comment' },
+                  { name: 'Opened', type: 'boolean' },
+                  { name: 'Running', type: 'boolean' },
+                  { name: 'Online' },
+                  { name: 'CanSyncContacts', type: 'boolean' },
+                  { name: 'LastError' },
+                  { name: 'IconCss' },
+                  { name: 'Icon' }
+               ],
+               listeners: {
+                  beforeload: function() { progress.show(); },
+                  load: function() { progress.hide(); }
+               }
+            });
+
+            var selectionModel = new Ext.grid.RowSelectionModel({
+               singleSelect: true,
+               listeners: {
+                  rowselect: gridChannels_RowSelect
+               }
+            });
+
+            var gridChannels = new Ext.grid.GridPanel({
+               id: String.format('gridChannels{0}', index),
+               groupLink: group.LINK,
+               iconCls: group.Image,
+               title: String.format('{0} ({1})', group.Name, group.Channels.length),
+               layout: 'fit',
+               autoHeight: true,
+               viewConfig: {
+                  forceFit: true,
+                  scrollOffset: 0,
+                  getRowClass: function (record, index, rowParams, store) {
+                     if (!record.json.Enabled)
+                        return 'red-row';
+                  }
+               },
+               store: store,
+               sm: selectionModel,
+               columns: [
+                  { header: '#', dataIndex: 'LINK', width: 50 },
+                  { header: 'Name', dataIndex: 'Name', width: 120 },
+                  { header: 'Virtual Address', dataIndex: 'VirtAddress', width: 120 },
+                  { header: 'Provider', dataIndex: 'Provider', width: 90, renderer: render_Provider },
+                  { header: 'SID', dataIndex: 'SID', width: 75 },
+                  { header: 'Real Address', dataIndex: 'RealAddress', width: 120 },
+                  { header: 'Opened', dataIndex: 'Opened', width: 50, renderer: render_Opened },
+                  { header: 'Running', dataIndex: 'Running', width: 50, renderer: render_Running },
+                  { header: 'Online', dataIndex: 'Online', width: 50, renderer: render_Online },
+                  { header: 'Last error', dataIndex: 'LastError', width: 100 }
+               ],
+               listeners: {
+                  rowdblclick: gridChannels_RowDblClick,
+                  beforeexpand: function(grid) {
+                     grid.store.load();
+                  },
+                  expand: function(grid) {
+                     Ext.util.Cookies.set('groupLink', grid.groupLink);
+                     Ext.getCmp('btnAddChannel').setDisabled(false);
+                  },
+                  collapse: function(grid) {
+                     Ext.getCmp('btnAddChannel').setDisabled(true);
+                     DisableToolbar();
+                  }
+               }
+            });
+
+            panelChannels.add(gridChannels);
+            panelChannels.doLayout();
+
+            var groupLink = Ext.util.Cookies.get('groupLink');
+            if (group.LINK == groupLink)
+               gridChannels.expand();
+         });
+
+
+         @*-- Event Handlers --*@
+         function render_Provider(value, metadata, record, rowIndex, colIndex, store) {
+            if (record.data.IconCss)
+               return String.format('<img class="{0}" width="16" height="16" align="left" hspace="3"/>{1}', record.data.IconCss, value);
+            else
+               return String.format('<img src="{0}" width="16" height="16" align="left" hspace="3"/>{1}', '@Url.Action("ChannelIcon")' + String.format('?provider={0}', record.data.Provider), value);
+         }
+
+         function render_Opened(value, metadata, record, rowIndex, colIndex, store) {
+            if (value)
+               metadata.css = 'ico_checked';
+         }
+
+         function render_Running(value, metadata, record, rowIndex, colIndex, store) {
+            if (value)
+               metadata.css = 'ico_running';
+         }
+
+         function render_Online(value, metadata, record, rowIndex, colIndex, store) {
+            if (value != null) {
+               if (value)
+                  metadata.css = 'ico_online';
+               else
+                  metadata.css = 'ico_offline';
+            }
+         }
+
+         function gridChannels_RowSelect(sm, rowIndex, record) {
+            RefreshToolbar();
+         }
+
+         function gridChannels_RowDblClick(grid, rowIndex, e) {
+            ViewEditChannel();
+         }
+
+         function btnChannelsGroups_Click(button, e) {
+            progress.show();
+
+            var updater = Ext.getCmp('panelUpdater').getUpdater();
+            updater.update({
+               url: button.Url,
+               method: 'POST',
+               //params: GetSelectedChannel(),
+               nocache: true,
+               scripts: true,
+               callback: function(el, success, response, options) {
+                  progress.hide();
+               }
+            });
+         }
+
+         function btnDatabaseManager_Click(button, e) {
+            progress.show();
+
+            var updater = Ext.getCmp('panelUpdater').getUpdater();
+            updater.update({
+               url: button.Url,
+               method: 'POST',
+               //params: GetSelectedChannel(),
+               nocache: true,
+               scripts: true,
+               callback: function(el, success, response, options) {
+                  progress.hide();
+               }
+            });
+         }
+
+         function btnExportChannels_Click(button, e) {
+            location = button.Url;
+         }
+
+         function btnImportChannels_Click(button, e) {
+            ShowImportsWindow();
+         }
+
+         function btnInstallAddin_Click(button, e) {
+            location = button.Url;
+         }
+
+         function btnAddChannel_Click(button, e) {
+            location = String.format('{0}?provider={1}', button.Url, button.Provider);
+         }
+
+         function btnViewEditChannel_Click(button, e) {
+            ViewEditChannel();
+         }
+
+         function btnDeleteChannel_Click(button, e) {
+            var channel = GetSelectedChannel();
+            Ext.Msg.confirm('Attention!', String.format('Delete channel #{0} ({1}) ?', channel.LINK, channel.VirtAddress), function(dialogResult) {
+               if (dialogResult === 'yes')
+                  SubmitForm(button.Url);
+            });
+         }
+
+         function btnChannelOpen_Click(button, e) {
+            SubmitForm(button.Url);
+         }
+
+         function btnChannelClose_Click(button, e) {
+            SubmitForm(button.Url);
+         }
+
+         function btnChannelRun_Click(button, e) {
+            SubmitForm(button.Url);
+         }
+
+         function btnChannelStop_Click(button, e) {
+            SubmitForm(button.Url);
+         }
+
+         function btnSyncContacts_Click(button, e) {
+            var channel = GetSelectedChannel();
+            Ext.Msg.confirm('Attention!', String.format('Synchronize contacts for channel #{0} ({1}) ?', channel.LINK, channel.VirtAddress), function(dialogResult) {
+               if (dialogResult === 'yes')
+                  SubmitForm(button.Url);
+            });
+         }
+
+         function btnAddresses_Click(button, e) {
+            var channel = GetSelectedChannel();
+            window.open(String.format('{0}?channelLink={1}', button.Url, channel.LINK));
+         }
+
+         function btnPublishers_Click(button, e) {
+            var channel = GetSelectedChannel();
+            window.open(String.format('{0}?channelLink={1}', button.Url, channel.LINK));
+         }
+
+         function btnMessages_Click(button, e) {
+            var channel = GetSelectedChannel();
+            window.open(String.format('{0}?channelLink={1}', button.Url, channel.LINK));
+         }
+
+         function btnDiagnostic_Click(button, e) {
+            progress.show();
+
+            var updater = Ext.getCmp('panelUpdater').getUpdater();
+            updater.update({
+               url: button.Url,
+               method: 'POST',
+               params: GetSelectedChannel(),
+               nocache: true,
+               scripts: true,
+               callback: function(el, success, response, options) {
+                  progress.hide();
+                  if (!success)
+                     Page.ShowAjaxError(response);
+               }
+            });
+         }
+
+         function btnLog_Click(button, e) {
+            var channel = GetSelectedChannel();
+            window.open(String.format('{0}?channelLink={1}', button.Url, channel.LINK));
+         }
+
+         function btnStatistics_Click(button, e) {
+            var channel = GetSelectedChannel();
+            window.open(String.format('{0}?channelLink={1}', button.Url, channel.LINK));
+         }
+
+         @*-- Helpers --*@
+         function GetSelectedChannel() {
+            var channel;
+            Ext.each(panelChannels.items.items, function(panel, index) {
+               if (!panel.hidden && !panel.collapsed) {
+                  channel = panel.getSelectionModel().getSelected().json;
+                  return false;
+               }
+            });
+
+            if (channel)
+               Ext.get('channelLink').dom.value = channel.LINK;
+            else
+               Ext.get('channelLink').dom.value = undefined;
+
+            return channel;
+         }
+
+         function ViewEditChannel() {
+            var channel = GetSelectedChannel();
+            location = String.format('{0}?channelLink={1}', Ext.getCmp('btnViewEditChannel').Url, channel.LINK);
+         }
+
+         function RefreshToolbar() {
+            var channel = GetSelectedChannel();
+            Ext.getCmp('btnViewEditChannel').setDisabled(false);
+            Ext.getCmp('btnDeleteChannel').setDisabled(channel.IsSystem || channel.Enabled || channel.Opened);
+            Ext.getCmp('btnChannelOpen').setDisabled(!channel.Enabled || channel.Opened);
+            Ext.getCmp('btnChannelClose').setDisabled(!channel.Enabled || !channel.Opened);
+            Ext.getCmp('btnChannelRun').setDisabled(!channel.Enabled || !channel.Opened || channel.Running);
+            Ext.getCmp('btnChannelStop').setDisabled(!channel.Enabled || !channel.Opened || !channel.Running);
+            Ext.getCmp('btnContacts').setDisabled(!channel.Enabled || !channel.Opened);
+            Ext.getCmp('btnSyncContacts').setDisabled(!channel.Enabled || !channel.Opened || !channel.CanSyncContacts);
+            Ext.getCmp('btnMessages').setDisabled(!channel.Enabled || !channel.Opened);
+            Ext.getCmp('btnMonitor').setDisabled(false);
+            Ext.getCmp('btnDiagnostic').setDisabled(!channel.Enabled);
+            Ext.getCmp('btnStatistics').setDisabled(!channel.Enabled || !channel.Opened);
+         }
+
+         function DisableToolbar() {
+            Ext.getCmp('btnViewEditChannel').setDisabled(true);
+            Ext.getCmp('btnDeleteChannel').setDisabled(true);
+            Ext.getCmp('btnChannelOpen').setDisabled(true);
+            Ext.getCmp('btnChannelClose').setDisabled(true);
+            Ext.getCmp('btnChannelRun').setDisabled(true);
+            Ext.getCmp('btnChannelStop').setDisabled(true);
+            Ext.getCmp('btnContacts').setDisabled(true);
+            Ext.getCmp('btnMessages').setDisabled(true);
+            Ext.getCmp('btnMonitor').setDisabled(true);
+            Ext.getCmp('btnDiagnostic').setDisabled(true);
+            Ext.getCmp('btnStatistics').setDisabled(true);
+         }
+
+         function SubmitForm(url) {
+            progress.show();
+
+            var form = new Ext.form.BasicForm('form-channel', { standardSubmit: true });
+            form.el.dom.action = url;
+            form.submit();
+         }
+
+         function ShowImportsWindow() {
+            progress.show();
+
+            var updater = Ext.getCmp('panelUpdater').getUpdater();
+            updater.update({
+               url: Ext.getCmp('btnImportChannels').Url,
+               method: 'GET',
+               nocache: true,
+               scripts: true,
+               callback: function(el, success, response, options) {
+                  progress.hide();
+               }
+            });
+         }
+      });
+</script>
+}
+<div id="div-channels">
+</div>
+<form id="form-channel" action="" method="post">
+   <input id="channelLink" type="hidden" name="channelLink" />
+</form>

@@ -1,0 +1,41 @@
+﻿@using System.Text.RegularExpressions;
+@using Microservices.Bus.Web.VMO;
+@{
+   //this.Page.Title += "Home";
+
+   ServiceInfo service = this.ViewBag.Service;
+   string caption;
+   string content;
+   if ( service.StartupError == null ) {
+      caption = "<h1>Service architecture</h1>";
+      content = String.Format("<img src=\"{0}\" />", this.Url.Content("~/Content/Images/architecture.png"));
+   } else {
+      caption = "<h1>Startup error</h1>";
+      content = Regex.Replace(Html.Encode(service.StartupError.Message + Environment.NewLine + service.StartupError.InnerMessages), "[\n\r]+", "<br />");
+   }
+}
+@section Page{
+   <script type="text/javascript">
+      Ext.onReady(function () {
+         new Ext.Panel({
+            renderTo: 'div-home',
+            border: false,
+            style: 'padding: 10px',
+            items: [
+               {
+                  xtype: 'box',
+                  autoHeight: true,
+                  style: 'padding: 0 0 10px 0',
+                  html: '@Html.Raw(caption)'
+               },
+               {
+                  xtype: 'panel',
+                  border: false,
+                  html: '@Html.Raw(content)'
+               }
+            ]
+         });
+      });
+   </script>
+}
+   <div id="div-home"></div>

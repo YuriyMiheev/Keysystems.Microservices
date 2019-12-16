@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Microservices.Bus.Data
+﻿namespace Microservices.Bus.Data
 {
-	partial class SysDatabase
+	partial class BusDatabase
 	{
 		/// <summary>
 		/// Таблицы.

@@ -1,23 +1,11 @@
 ﻿using System;
 
-using Microservices.Bus.Configuration;
-
 using Microsoft.AspNetCore.Mvc;
 
-namespace Microservices.Bus.Controllers
+namespace Microservices.Bus.Web.Controllers
 {
-	public partial class AdminController : Controller
-    {
-		private readonly ServiceInfo _serviceInfo;
-		private readonly BusSettings _busSettings;
-
-
-		public AdminController(ServiceInfo serviceInfo, BusSettings busSettings)
-		{
-			_serviceInfo = serviceInfo;
-			_busSettings = busSettings;
-		}
-
+	partial class AdminController
+	{
 		/// <summary>
 		/// 
 		/// </summary>
@@ -26,7 +14,7 @@ namespace Microservices.Bus.Controllers
 		//[NoCache]
 		public ActionResult Login()
 		{
-			this.ViewBag.Service = _serviceInfo;
+			this.ViewBag.Service = _serviceInfo.ToVmo();
 			return View("Login");
 		}
 
@@ -38,7 +26,7 @@ namespace Microservices.Bus.Controllers
 		//[NoCache]
 		public ActionResult LoginContent()
 		{
-			this.ViewBag.Service = _serviceInfo;
+			this.ViewBag.Service = _serviceInfo.ToVmo();
 			return PartialView("_LoginContent");
 		}
 
@@ -65,9 +53,9 @@ namespace Microservices.Bus.Controllers
 			catch (Exception ex)
 			{
 
-				this.ViewBag.Service = _serviceInfo;
+				this.ViewBag.Service = _serviceInfo.ToVmo();
 				this.ViewBag.UserName = userName;
-				this.ViewBag.LoginError = ex;
+				this.ViewBag.LoginError = ex.Wrap();
 				return View("Login");
 			}
 		}
@@ -80,6 +68,16 @@ namespace Microservices.Bus.Controllers
 		public ActionResult Logout()
 		{
 			return RedirectToAction("Login");
+		}
+
+		[AcceptVerbs("GET")]
+		//[AdminAccess]
+		//[NoCache]
+		public ActionResult Home()
+		{
+			ServiceInfo serviceInfo = _serviceInfo;
+			this.ViewBag.Service = serviceInfo.ToVmo();
+			return View("Home");
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+using Microservices.Bus.Channels;
 using Microservices.Data;
 
 namespace Microservices.Bus.Data
@@ -8,8 +9,24 @@ namespace Microservices.Bus.Data
 	{
 		List<DAO.ServiceInfo> GetServiceInstances();
 
-		//DAO.ServiceInfo GetServiceInfo(string instanceId);
-
 		void SaveServiceInfo(ServiceInfo serviceInfo);
+
+
+		List<GroupInfo> GetChannelsGroups();
+
+		void SaveChannelsGroup(GroupInfo groupInfo);
+
+		void DeleteChannelsGroup(GroupInfo groupInfo);
+
+		List<GroupChannelMap> GetGroupsChannelsMap();
+
+		void SaveGroupsChannelsMap(GroupChannelMap map);
+
+		void DeleteGroupsChannelsMap(GroupChannelMap map);
+
+
+		void SaveChannel(ChannelInfo channelInfo);
+
+		List<ChannelInfo> GetChannels();
 	}
 }

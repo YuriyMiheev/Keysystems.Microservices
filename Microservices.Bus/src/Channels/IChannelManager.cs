@@ -7,6 +7,11 @@ namespace Microservices.Bus.Channels
 {
 	public interface IChannelManager
 	{
+		GroupInfo[] ChannelsGroups { get; }
+
+		ChannelInfo[] RuntimeChannels { get; }
+
+
 		void LoadChannels();
 	}
 }

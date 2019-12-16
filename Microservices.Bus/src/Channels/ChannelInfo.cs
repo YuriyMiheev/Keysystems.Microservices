@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microservices.Bus.Channels
@@ -7,8 +8,11 @@ namespace Microservices.Bus.Channels
 	/// <summary>
 	/// Информация о канале.
 	/// </summary>
+	[DebuggerDisplay("{this.Id}")]
 	public class ChannelInfo
 	{
+		private List<ChannelProperty> _properties;
+
 
 		#region Ctor
 		/// <summary>
@@ -16,7 +20,7 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public ChannelInfo()
 		{
-			this.properties = new List<ChannelProperty>();
+			_properties = new List<ChannelProperty>();
 		}
 		#endregion
 
@@ -179,14 +183,13 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public ExceptionWrapper Error { get; set; }
 
-		private List<ChannelProperty> properties;
 		/// <summary>
 		/// {Get} Дополнительные свойства.
 		/// </summary>
 		public ChannelProperty[] Properties
 		{
-			get { return properties.ToArray(); }
-			internal set { properties = (value ?? new ChannelProperty[0]).ToList(); }
+			get { return _properties.ToArray(); }
+			internal set { _properties = (value ?? new ChannelProperty[0]).ToList(); }
 		}
 
 		///// <summary>
@@ -263,11 +266,11 @@ namespace Microservices.Bus.Channels
 				throw new ArgumentException("Свойство должно иметь LINK = 0.", "prop");
 			#endregion
 
-			if ( this.Properties.Any(p => p.Name == prop.Name) )
+			if (_properties.Any(p => p.Name == prop.Name) )
 				throw new InvalidOperationException(String.Format("Канал уже содержит свойство {0}.", prop.Name));
 
 			prop.ChannelLINK = this.LINK;
-			this.properties.Add(prop);
+			_properties.Add(prop);
 		}
 
 		/// <summary>
@@ -282,7 +285,7 @@ namespace Microservices.Bus.Channels
 				throw new ArgumentException("propName");
 			#endregion
 
-			return this.properties.SingleOrDefault(prop => prop.Name == propName);
+			return _properties.SingleOrDefault(prop => prop.Name == propName);
 		}
 
 		/// <summary>
@@ -339,7 +342,7 @@ namespace Microservices.Bus.Channels
 
 			ChannelProperty prop = FindProperty(propName);
 			if ( prop != null )
-				this.properties.Remove(prop);
+				_properties.Remove(prop);
 		}
 
 		/// <summary>
@@ -347,7 +350,7 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public void ClearProperties()
 		{
-			this.properties.Clear();
+			_properties.Clear();
 		}
 
 		/// <summary>
@@ -367,44 +370,44 @@ namespace Microservices.Bus.Channels
 			this.Description = description;
 			this.Provider = description.Provider;
 
-			List<string> existProps = this.properties.Select(p => p.Name).Where(prop => description.Properties.Select(p => p.Name).Contains(prop)).ToList();
-			List<string> delProps = this.properties.Select(p => p.Name).Where(prop => !description.Properties.Select(p => p.Name).Contains(prop)).ToList();
-			List<string> newProps = description.Properties.Select(p => p.Name).Where(prop => !this.properties.Select(p => p.Name).Contains(prop)).ToList();
+			List<string> existProps = _properties.Select(p => p.Name).Where(prop => description.Properties.Select(p => p.Name).Contains(prop)).ToList();
+			List<string> delProps = _properties.Select(p => p.Name).Where(prop => !description.Properties.Select(p => p.Name).Contains(prop)).ToList();
+			List<string> newProps = description.Properties.Select(p => p.Name).Where(prop => !_properties.Select(p => p.Name).Contains(prop)).ToList();
 
-			//existProps.ForEach(p =>
-			//	{
-			//		ChannelDescriptionProperty dp = description.GetProperty(p);
-			//		ChannelProperty prop = GetProperty(p);
-			//		string value = prop.Value;
-			//		dp.CopyTo(prop);
-			//		prop.Value = value;
-			//	});
-			//delProps.ForEach(p => RemoveProperty(p));
-			//newProps.ForEach(p =>
-			//	{
-			//		ChannelDescriptionProperty dp = description.GetProperty(p);
-			//		var prop = new ChannelProperty();
-			//		dp.CopyTo(prop);
-			//		AddNewProperty(prop);
-			//	});
+			existProps.ForEach(p =>
+				{
+					ChannelDescriptionProperty dp = description.GetProperty(p);
+					ChannelProperty prop = GetProperty(p);
+					string value = prop.Value;
+					dp.CopyTo(prop);
+					prop.Value = value;
+				});
+			delProps.ForEach(p => RemoveProperty(p));
+			newProps.ForEach(p =>
+				{
+					ChannelDescriptionProperty dp = description.GetProperty(p);
+					var prop = new ChannelProperty();
+					dp.CopyTo(prop);
+					AddNewProperty(prop);
+				});
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="propName"></param>
-		/// <returns></returns>
-		public string PropertyValue(string propName)
-		{
-			ChannelProperty prop = FindProperty(propName);
-			if ( prop == null )
-				return null;
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="propName"></param>
+		///// <returns></returns>
+		//public string PropertyValue(string propName)
+		//{
+		//	ChannelProperty prop = FindProperty(propName);
+		//	if ( prop == null )
+		//		return null;
 
-			if ( prop.Value != null )
-				prop.Value = prop.Value.Trim();
+		//	if ( prop.Value != null )
+		//		prop.Value = prop.Value.Trim();
 
-			return prop.Value;
-		}
+		//	return prop.Value;
+		//}
 
 		/// <summary>
 		/// Сравнение объектов по "VirtAddress".
@@ -427,15 +430,6 @@ namespace Microservices.Bus.Channels
 		public override int GetHashCode()
 		{
 			return this.VirtAddress.GetHashCode();
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-		{
-			return this.Id;
 		}
 		#endregion
 

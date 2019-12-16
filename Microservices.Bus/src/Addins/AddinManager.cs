@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 
@@ -12,14 +13,14 @@ namespace Microservices.Bus.Addins
 	public class AddinManager : IAddinManager
 	{
 		private readonly string _addinsDir;
-		private readonly List<ChannelDescription> _registeredChannels;
+		private readonly ConcurrentDictionary<string, ChannelDescription> _registeredChannels;
 
 
 		#region Ctor
 		public AddinManager(BusSettings busSettings)
 		{
 			_addinsDir = busSettings.AddinsDir;
-			_registeredChannels = new List<ChannelDescription>();
+			_registeredChannels = new ConcurrentDictionary<string, ChannelDescription>();
 		}
 		#endregion
 
@@ -27,7 +28,7 @@ namespace Microservices.Bus.Addins
 		#region Properties
 		public ChannelDescription[] RegisteredChannels
 		{
-			get => _registeredChannels.ToArray();
+			get => _registeredChannels.Values.ToArray();
 		}
 		#endregion
 
@@ -46,7 +47,8 @@ namespace Microservices.Bus.Addins
 						ChannelDescription channelDescription = LoadAddin(dir);
 						lock (_registeredChannels)
 						{
-							_registeredChannels.Add(channelDescription);
+							if (!_registeredChannels.TryAdd(channelDescription.Provider, channelDescription))
+								throw new InvalidOperationException($"Канал типа {channelDescription.Provider} уже существует.");
 						}
 					}
 					catch (Exception ex)
@@ -63,6 +65,27 @@ namespace Microservices.Bus.Addins
 				throw new AggregateException(errors);
 		}
 		#endregion
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		public ChannelDescription FindChannelDescription(string provider)
+		{
+			#region Validate parameters
+			if (String.IsNullOrWhiteSpace(provider))
+				throw new ArgumentException("provider");
+			#endregion
+
+			ChannelDescription description = _registeredChannels[provider];
+			return description;
+			//if (description == null)
+			//	return null;
+
+			//return new ChannelDescription(description.GetMetadata()) { BinPath = description.BinPath };
+		}
 
 
 		#region Helpers
