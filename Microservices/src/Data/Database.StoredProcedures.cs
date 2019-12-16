@@ -12,17 +12,22 @@ namespace Microservices.Data
 			/// <summary>
 			/// "rms_Ping()"
 			/// </summary>
-			public const string PING = "rms_Ping";
+			public const string PingSP = "rms_Ping";
 
 			/// <summary>
 			/// "rms_ReceiveMessage(int msgLink)"
 			/// </summary>
-			public const string ReceiveMessage = "rms_ReceiveMessage";
+			public const string ReceiveMessageSP = "rms_ReceiveMessage";
 
 			/// <summary>
 			/// "rms_MessageStatusChanged(int msgLink, string prevStatus, string newStatus)"
 			/// </summary>
-			public const string MessageStatusChanged = "rms_MessageStatusChanged";
+			public const string MessageStatusChangedSP = "rms_MessageStatusChanged";
+
+			/// <summary>
+			/// "rms_Repair()"
+			/// </summary>
+			public const string RepairSP = "rms_Repair";
 		}
 	}
 }
