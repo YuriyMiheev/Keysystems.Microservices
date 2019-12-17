@@ -86,6 +86,18 @@ namespace Microservices.Bus.Web.Controllers
 			}
 		}
 
+		[AcceptVerbs("GET", "POST")]
+		//[AdminAccess]
+		public IActionResult ChannelIcon(string provider)
+		{
+			ChannelDescription description = _addinManager.FindChannelDescription(provider);
+			byte[] data = LoadIconFile(description);
+			if (data == null)
+				return null;
+
+			string contentType = MediaType.GetMimeByFileName(description.Icon);
+			return File(data, contentType);
+		}
 
 		private int? GetGroupLink()
 		{
@@ -105,6 +117,30 @@ namespace Microservices.Bus.Web.Controllers
 			}
 
 			return result;
+		}
+
+		private bool IconFileExist(ChannelDescription description)
+		{
+			if (description == null)
+				return false;
+
+			if (String.IsNullOrWhiteSpace(description.BinPath))
+				return false;
+
+			if (String.IsNullOrWhiteSpace(description.Icon))
+				return false;
+
+			string filePath = System.IO.Path.Combine(description.BinPath, "wwwroot", description.Icon);
+			return System.IO.File.Exists(filePath);
+		}
+
+		private byte[] LoadIconFile(ChannelDescription description)
+		{
+			if (!IconFileExist(description))
+				return null;
+
+			string filePath = System.IO.Path.Combine(description.BinPath, "wwwroot", description.Icon);
+			return System.IO.File.ReadAllBytes(filePath);
 		}
 	}
 }

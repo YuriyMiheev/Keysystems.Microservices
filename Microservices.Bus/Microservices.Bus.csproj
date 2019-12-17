@@ -5,12 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Channels\IChannelRuntime.cs" />
     <Compile Remove="src\IServiceInfoManager.cs" />
     <Compile Remove="src\ServiceInfoManager.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\Microservices.ChannelConnector\Microservices.ChannelConnector.csproj" />
     <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 

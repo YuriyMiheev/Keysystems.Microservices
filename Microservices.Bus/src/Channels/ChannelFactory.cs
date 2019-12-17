@@ -24,7 +24,7 @@ namespace Microservices.Bus.Channels
 				throw new ArgumentNullException(nameof(channelInfo));
 			#endregion
 
-			return null; //new SimpleChannelHost(channelInfo);
+			return new ChannelHubHost(channelInfo);
 		}
 	}
 }

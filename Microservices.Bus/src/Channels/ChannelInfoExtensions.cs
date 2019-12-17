@@ -66,5 +66,10 @@ namespace Microservices.Bus.Channels
 			obj.Timeout = (dao.Timeout == null ? 0 : dao.Timeout.Value);
 			obj.VirtAddress = dao.VirtAddress;
 		}
+
+		public static ChannelSettings ChannelSettings(this ChannelInfo channelInfo)
+		{
+			return new ChannelSettings(channelInfo.Properties);
+		}
 	}
 }
