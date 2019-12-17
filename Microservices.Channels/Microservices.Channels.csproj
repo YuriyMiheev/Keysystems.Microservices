@@ -13,7 +13,9 @@
   <ItemGroup>
     <Compile Remove="ChannelServiceBase.cs" />
     <Compile Remove="CommonHubClient.cs" />
+    <Compile Remove="src\AsyncStreamTextReader.cs" />
     <Compile Remove="src\ChannelServiceBase.cs" />
+    <Compile Remove="src\ChannelStatus.cs" />
     <Compile Remove="src\Configuration\ConfigFileSetting.cs" />
     <Compile Remove="src\Configuration\IAppSettingsConfig.cs" />
     <Compile Remove="src\Configuration\IXmlConfigFileSettings.cs" />

@@ -5,7 +5,11 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microservices.ChannelConnector
+using Microservices.Channels;
+using Microservices.Configuration;
+using Microservices.Data;
+
+namespace Microservices.Bus.Channels
 {
 	public interface IChannelHubClient : IDisposable
 	{
@@ -71,7 +75,7 @@ namespace Microservices.ChannelConnector
 
 
 		#region Settings
-		Task<IDictionary<string, SettingItem>> GetSettingsAsync(CancellationToken cancellationToken = default);
+		Task<IDictionary<string, AppConfigSetting>> GetSettingsAsync(CancellationToken cancellationToken = default);
 
 		Task SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default);
 

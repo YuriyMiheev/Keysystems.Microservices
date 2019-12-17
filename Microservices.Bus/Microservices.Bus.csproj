@@ -12,7 +12,8 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="..\Microservices.ChannelConnector\Microservices.ChannelConnector.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.1.0" />
     <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 

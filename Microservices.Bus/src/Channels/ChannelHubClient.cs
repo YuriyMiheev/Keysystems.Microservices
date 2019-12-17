@@ -7,10 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
+using Microservices.Channels;
+using Microservices.Configuration;
+using Microservices.Data;
+
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microservices.ChannelConnector
+namespace Microservices.Bus.Channels
 {
 	public class ChannelHubClient : IChannelHubClient
 	{
@@ -186,16 +190,16 @@ namespace Microservices.ChannelConnector
 
 
 		#region Settings
-		public Task<IDictionary<string, SettingItem>> GetSettingsAsync(CancellationToken cancellationToken = default)
+		public Task<IDictionary<string, AppConfigSetting>> GetSettingsAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("GetSettings", cancellationToken);
+			return _hubConnection.InvokeAsync<IDictionary<string, AppConfigSetting>>("GetSettings", cancellationToken);
 		}
 
 		public Task SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync<IDictionary<string, SettingItem>>("SetSettings", settings, cancellationToken);
+			return _hubConnection.InvokeAsync("SetSettings", settings, cancellationToken);
 		}
 
 		public Task SaveSettings(CancellationToken cancellationToken = default)

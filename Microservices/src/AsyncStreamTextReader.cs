@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microservices.Channels
+namespace Microservices
 {
 	/// <summary>
 	/// 
@@ -22,7 +21,7 @@ namespace Microservices.Channels
 		/// <param name="stream"></param>
 		public AsyncStreamTextReader(IAsyncEnumerable<char[]> stream)
 		{
-			_asyncEnumerator = (stream ?? throw new ArgumentNullException("stream")).GetAsyncEnumerator();
+			_asyncEnumerator = (stream ?? throw new ArgumentNullException(nameof(stream))).GetAsyncEnumerator();
 		}
 		#endregion
 

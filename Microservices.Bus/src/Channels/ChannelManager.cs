@@ -188,6 +188,10 @@ namespace Microservices.Bus.Channels
 
 		//	return _channelFactory.CreateChannel(channelInfo);
 		//}
+
+		public void OpenChannel(ChannelInfo channelInfo)
+		{
+		}
 		#endregion
 
 

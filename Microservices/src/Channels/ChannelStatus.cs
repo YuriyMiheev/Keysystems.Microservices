@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Microservices.ChannelConnector
+namespace Microservices.Channels
 {
 	/// <summary>
 	/// 
