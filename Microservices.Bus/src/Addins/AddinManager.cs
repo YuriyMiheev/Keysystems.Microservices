@@ -76,8 +76,11 @@ namespace Microservices.Bus.Addins
 				throw new ArgumentException("provider");
 			#endregion
 
-			ChannelDescription description = _registeredChannels[provider];
-			return description;
+			if (_registeredChannels.ContainsKey(provider))
+				return _registeredChannels[provider];
+			else
+				return null;
+
 			//if (description == null)
 			//	return null;
 

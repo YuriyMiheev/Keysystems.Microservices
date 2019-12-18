@@ -7,6 +7,11 @@ namespace Microservices.Bus.Channels
 {
 	public static class ChannelInfoExtensions
 	{
+		//public static string Id(this ChannelInfo obj)
+		//{
+		//	return $"#{obj.LINK} ({obj.VirtAddress})";
+		//}
+
 		public static DAO.ChannelInfo ToDao(this ChannelInfo obj)
 		{
 			if (obj == null)

@@ -14,22 +14,22 @@ namespace Microservices.Bus.Channels
 	{
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly ILogger _logger;
-		private readonly IChannelFactory _channelFactory;
+		private readonly IChannelContextFactory _contextFactory;
 		private readonly ConcurrentDictionary<string, GroupInfo> _channelsGroups;
-		private readonly ConcurrentDictionary<ChannelInfo, IChannel> _channels;
+		private readonly ConcurrentDictionary<string, IChannelContext> _channels;
 		private readonly IAddinManager _addinManager;
 		private readonly BusSettings _busSettings;
 
 
-		public ChannelManager(IAddinManager addinManager, IChannelFactory channelFactory, BusSettings busSettings, IBusDataAdapter dataAdapter, ILogger logger)
+		public ChannelManager(IAddinManager addinManager, IChannelContextFactory contextFactory, BusSettings busSettings, IBusDataAdapter dataAdapter, ILogger logger)
 		{
 			_addinManager = addinManager ?? throw new ArgumentNullException(nameof(addinManager));
-			_channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
+			_contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
 			_busSettings = busSettings ?? throw new ArgumentNullException(nameof(addinManager));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_channelsGroups = new ConcurrentDictionary<string, GroupInfo>();
-			_channels = new ConcurrentDictionary<ChannelInfo, IChannel>();
+			_channels = new ConcurrentDictionary<string, IChannelContext>();
 		}
 
 
@@ -39,15 +39,15 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public GroupInfo[] ChannelsGroups
 		{
-			get { return _channelsGroups.Values.ToArray(); }
+			get { return _channelsGroups.Values.OrderBy(group => group.LINK).ToArray(); }
 		}
 
 		/// <summary>
 		/// {Get} Список созданных каналов.
 		/// </summary>
-		public ChannelInfo[] RuntimeChannels
+		public IChannelContext[] RuntimeChannels
 		{
-			get { return _channels.Keys.OrderBy(channelInfo => channelInfo.LINK).ToArray(); }
+			get { return _channels.Values.OrderBy(context => context.ChannelInfo.LINK).ToArray(); }
 		}
 		#endregion
 
@@ -83,9 +83,9 @@ namespace Microservices.Bus.Channels
 			RefreshGroups();
 
 			// Создание и запуск каналов
-			//allChannels.ForEach(channelInfo =>
-			allChannels.AsParallel().ForAll(channelInfo =>
-				{
+			allChannels.ForEach(channelInfo =>
+			//allChannels.AsParallel().ForAll(channelInfo =>
+			{
 					try
 					{
 						ChannelDescription description = _addinManager.FindChannelDescription(channelInfo.Provider);
@@ -101,10 +101,10 @@ namespace Microservices.Bus.Channels
 
 						if (channelInfo.Enabled)
 						{
-							IChannel channel = _channelFactory.CreateChannel(channelInfo);
-							if (!_channels.TryAdd(channelInfo, channel))
+							IChannelContext context = _contextFactory.CreateContext(channelInfo);
+							if (!_channels.TryAdd(channelInfo.VirtAddress, context))
 							{
-								channel.Dispose();
+								context.Dispose();
 								throw new InvalidOperationException($"Канал {channelInfo.VirtAddress} уже существует.");
 							}
 						}
@@ -119,38 +119,32 @@ namespace Microservices.Bus.Channels
 				});
 
 
-			//_channels.ToList().ForEach(item =>
-			_channels.AsParallel().ForAll(async item =>
-				{
-					ChannelInfo channelInfo = item.Key;
-					IChannel channel = item.Value;
-
-					if (channel != null)
+			_channels.Values.ToList().ForEach(context =>
+			//_channels.Values.AsParallel().ForAll(context =>
+			{
+					ChannelSettings settings = context.ChannelInfo.ChannelSettings();
+					if (settings.AutoOpen)
 					{
-						ChannelSettings settings = channelInfo.ChannelSettings();
-						if (settings.AutoOpen)
+						try
 						{
-							try
+							IChannel channel = context.CreateChannelAsync().Result;
+							channel.OpenAsync().Wait();
+						}
+						catch (Exception ex)
+						{
+							lock (errors)
 							{
-								await channel.OpenAsync();
-							}
-							catch (Exception ex)
-							{
-								lock (errors)
-								{
-									errors.Add(ex);
-								}
+								errors.Add(ex);
 							}
 						}
 					}
 				});
 
-			//_channels.ToList().ForEach(item =>
-			_channels.AsParallel().ForAll(async item =>
-				{
-					ChannelInfo channelInfo = item.Key;
-					IChannel channel = item.Value;
-
+			_channels.Values.ToList().ForEach(context =>
+			//_channels.Values.AsParallel().ForAll(context =>
+			{
+					ChannelInfo channelInfo = context.ChannelInfo;
+					IChannel channel = context.Channel;
 					if (channel != null && channel.IsOpened)
 					{
 						ChannelSettings settings = channelInfo.ChannelSettings();
@@ -158,7 +152,7 @@ namespace Microservices.Bus.Channels
 						{
 							try
 							{
-								await channel.RunAsync();
+								channel.RunAsync().Wait();
 							}
 							catch (Exception ex)
 							{
@@ -189,8 +183,9 @@ namespace Microservices.Bus.Channels
 		//	return _channelFactory.CreateChannel(channelInfo);
 		//}
 
-		public void OpenChannel(ChannelInfo channelInfo)
+		public void TerminateChannel(string virtAddress)
 		{
+			//_channels[
 		}
 		#endregion
 

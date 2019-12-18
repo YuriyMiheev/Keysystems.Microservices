@@ -8,15 +8,16 @@ using Microservices.Data.DAO;
 
 namespace Microservices.Bus.Channels
 {
-	public class ChannelHubHost : IChannel, IDisposable
+	public class HubChannel : IChannel, IDisposable
 	{
+		private readonly ChannelInfo _channelInfo;
 		private readonly IChannelHubClient _hub;
 
 
-		public ChannelHubHost(ChannelInfo channelInfo)
+		public HubChannel(ChannelInfo channelInfo)
 		{
+			_channelInfo = channelInfo;
 			_hub = new ChannelHubClient(channelInfo.SID);
-			_hub.LoginAsync(channelInfo.PasswordIn);
 		}
 
 
@@ -34,16 +35,14 @@ namespace Microservices.Bus.Channels
 
 		public async Task OpenAsync(CancellationToken cancellationToken = default)
 		{
-			_hub = new ChannelHubClient(_channelInfo.SID);
-			await _hub.LoginAsync(_channelInfo.PasswordIn);
-			//_hub.
+			await _hub.LoginAsync(_channelInfo.PasswordIn, cancellationToken);
+			await _hub.OpenChannelAsync(cancellationToken);
 		}
 
 		public async Task CloseAsync(CancellationToken cancellationToken = default)
 		{
 			await _hub.CloseChannelAsync();
 			_hub.Dispose();
-			_hub = null;
 		}
 
 		public async Task RunAsync(CancellationToken cancellationToken = default)

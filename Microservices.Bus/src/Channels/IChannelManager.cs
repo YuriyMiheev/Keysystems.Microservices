@@ -9,9 +9,11 @@ namespace Microservices.Bus.Channels
 	{
 		GroupInfo[] ChannelsGroups { get; }
 
-		ChannelInfo[] RuntimeChannels { get; }
+		IChannelContext[] RuntimeChannels { get; }
 
 
 		void LoadChannels();
+
+		void TerminateChannel(string virtAddress);
 	}
 }

@@ -7,6 +7,7 @@
   <ItemGroup>
     <Compile Remove="src\Channels\IChannelRuntime.cs" />
     <Compile Remove="src\IServiceInfoManager.cs" />
+    <Compile Remove="src\MessageExtensions.cs" />
     <Compile Remove="src\ServiceInfoManager.cs" />
   </ItemGroup>
 

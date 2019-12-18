@@ -53,6 +53,7 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<IAuthManager, AuthManager>();
 						services.AddSingleton<IChannelManager, ChannelManager>();
 						services.AddSingleton<IChannelFactory, ChannelFactory>();
+						services.AddSingleton<IChannelContextFactory, ChannelContextFactory>();
 						services.AddSingleton<IAddinManager, AddinManager>();
 						services.AddSingleton<ILicenseManager, LicenseManager>();
 						services.AddSingleton<ServiceInfo>();

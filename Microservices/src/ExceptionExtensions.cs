@@ -42,9 +42,12 @@ namespace Microservices
 		/// </summary>
 		/// <param name="ex"></param>
 		/// <returns></returns>
-		public static ExceptionWrapper Wrap(this Exception ex)
+		public static ExceptionWrapper Wrap(this Exception error)
 		{
-			return new ExceptionWrapper(ex);
+			if (error == null)
+				return null;
+
+			return new ExceptionWrapper(error);
 		}
 	}
 }

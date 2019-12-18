@@ -25,19 +25,19 @@ namespace Microservices.Bus.Channels
 		#endregion
 
 
-		#region Events
-		/// <summary>
-		/// 
-		/// </summary>
-		public event EventHandler<EventArgs> StatusChanged;
+		//#region Events
+		///// <summary>
+		///// 
+		///// </summary>
+		//public event EventHandler<EventArgs> StatusChanged;
 
-		private void OnStatusChanged()
-		{
-			EventHandler<EventArgs> action = this.StatusChanged;
-			if ( action != null )
-				action(this, EventArgs.Empty);
-		}
-		#endregion
+		//private void OnStatusChanged()
+		//{
+		//	EventHandler<EventArgs> action = this.StatusChanged;
+		//	if ( action != null )
+		//		action(this, EventArgs.Empty);
+		//}
+		//#endregion
 
 
 		#region Properties
@@ -117,56 +117,56 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public string Comment { get; set; }
 
-		private bool opened;
-		/// <summary>
-		/// {Get,Set} Канал открыт.
-		/// </summary>
-		public bool Opened
-		{
-			get { return opened; }
-			set
-			{
-				if ( value != opened )
-				{
-					opened = value;
-					OnStatusChanged();
-				}
-			}
-		}
+		//private bool opened;
+		///// <summary>
+		///// {Get,Set} Канал открыт.
+		///// </summary>
+		//public bool Opened
+		//{
+		//	get { return opened; }
+		//	set
+		//	{
+		//		if ( value != opened )
+		//		{
+		//			opened = value;
+		//			OnStatusChanged();
+		//		}
+		//	}
+		//}
 
-		private bool running;
-		/// <summary>
-		/// {Get,Set} Канал запущен.
-		/// </summary>
-		public bool Running
-		{
-			get { return running; }
-			set
-			{
-				if ( value != running )
-				{
-					running = value;
-					OnStatusChanged();
-				}
-			}
-		}
+		//private bool running;
+		///// <summary>
+		///// {Get,Set} Канал запущен.
+		///// </summary>
+		//public bool Running
+		//{
+		//	get { return running; }
+		//	set
+		//	{
+		//		if ( value != running )
+		//		{
+		//			running = value;
+		//			OnStatusChanged();
+		//		}
+		//	}
+		//}
 
-		private bool? online;
-		/// <summary>
-		/// {Get,Set} Канал доступен.
-		/// </summary>
-		public bool? Online
-		{
-			get { return online; }
-			set
-			{
-				if ( value != online )
-				{
-					online = value;
-					OnStatusChanged();
-				}
-			}
-		}
+		//private bool? online;
+		///// <summary>
+		///// {Get,Set} Канал доступен.
+		///// </summary>
+		//public bool? Online
+		//{
+		//	get { return online; }
+		//	set
+		//	{
+		//		if ( value != online )
+		//		{
+		//			online = value;
+		//			OnStatusChanged();
+		//		}
+		//	}
+		//}
 
 		//private string accessMode;
 		///// <summary>
@@ -178,10 +178,10 @@ namespace Microservices.Bus.Channels
 		//	set { accessMode = value; }
 		//}
 
-		/// <summary>
-		/// {Get,Set} Ошибка.
-		/// </summary>
-		public ExceptionWrapper Error { get; set; }
+		///// <summary>
+		///// {Get,Set} Ошибка.
+		///// </summary>
+		//public ExceptionWrapper Error { get; set; }
 
 		/// <summary>
 		/// {Get} Дополнительные свойства.

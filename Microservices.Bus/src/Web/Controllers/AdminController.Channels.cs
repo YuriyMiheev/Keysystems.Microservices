@@ -15,13 +15,17 @@ namespace Microservices.Bus.Web.Controllers
 		public IActionResult Channels(int? groupLink)
 		{
 			GroupInfo[] channelGroups = _channelManager.ChannelsGroups;
-			ChannelInfo[] runtimeChannels = _channelManager.RuntimeChannels;
+			IChannelContext[] runtimeChannels = _channelManager.RuntimeChannels;
 
 			if (groupLink == null)
 				groupLink = GetGroupLink();
 
-			var channels = runtimeChannels.Select(channelInfo =>
-				new
+			var channels = runtimeChannels.Select(context =>
+			{
+				ChannelInfo channelInfo = context.ChannelInfo;
+				IChannel channel = context.Channel;
+				ExceptionWrapper error = context.LastError.Wrap();
+				return new
 				{
 					channelInfo.LINK,
 					channelInfo.Name,
@@ -33,14 +37,15 @@ namespace Microservices.Bus.Web.Controllers
 					channelInfo.IsSystem,
 					channelInfo.Enabled,
 					channelInfo.Comment,
-					channelInfo.Opened,
-					channelInfo.Running,
-					channelInfo.Online,
+					Opened = (channel != null ? channel.IsOpened : false),
+					//channelInfo.Opened,
+					//channelInfo.Running,
+					//channelInfo.Online,
 					channelInfo.CanSyncContacts,
-					LastError = (channelInfo.Error != null ? channelInfo.Error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + channelInfo.Error.Message.Split('\n')[0] : ""),
+					LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
 					//IconCss = (string)null //(IconFileExist(channelInfo.Description) ? null : (channelInfo.Description != null ? channelInfo.Description.IconCss : null))
-				}
-			).ToList();
+				};
+			}).ToList();
 
 			var groups = channelGroups.Select(group =>
 					new
@@ -69,7 +74,7 @@ namespace Microservices.Bus.Web.Controllers
 				if (_serviceInfo.StartupError != null)
 					return RedirectToAction("Home");
 
-				bool systemExist = runtimeChannels.Any(channelInfo => channelInfo.IsSystem);
+				bool systemExist = runtimeChannels.Any(context => context.ChannelInfo.IsSystem);
 				var registeredChannels = _addinManager.RegisteredChannels.Select(desc =>
 						new
 						{
@@ -103,7 +108,7 @@ namespace Microservices.Bus.Web.Controllers
 		{
 			int? result = null;
 
-			foreach(var cookie in this.Request.Cookies)
+			foreach (var cookie in this.Request.Cookies)
 			{
 				if (cookie.Key == "groupLink")
 				{
