@@ -1,15 +1,18 @@
 ﻿using System;
+using Microservices.Bus.Data;
 
 namespace Microservices.Bus.Channels
 {
 	public class ChannelContextFactory : IChannelContextFactory
 	{
 		private readonly IChannelFactory _factory;
+		private readonly IBusDataAdapter _dataAdapter;
 
 
-		public ChannelContextFactory(IChannelFactory factory)
+		public ChannelContextFactory(IChannelFactory factory, IBusDataAdapter dataAdapter)
 		{
 			_factory = factory ?? throw new ArgumentNullException(nameof(factory));
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 		}
 
 
@@ -26,7 +29,7 @@ namespace Microservices.Bus.Channels
 			#endregion
 
 			//channelInfo.Description.Type
-			return new ProcessChannelContext(channelInfo, _factory);
+			return new ProcessChannelContext(channelInfo, _factory, _dataAdapter);
 		}
 	}
 }

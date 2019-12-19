@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microservices.Bus.Data;
 
 namespace Microservices.Bus.Channels
 {
@@ -11,14 +11,16 @@ namespace Microservices.Bus.Channels
 	{
 		private readonly ChannelInfo _channelInfo;
 		private readonly IChannelFactory _factory;
+		private readonly IBusDataAdapter _dataAdapter;
 		private Process _process;
 		private IChannel _channel;
 
 
-		public ProcessChannelContext(ChannelInfo channelInfo, IChannelFactory factory)
+		public ProcessChannelContext(ChannelInfo channelInfo, IChannelFactory factory, IBusDataAdapter dataAdapter)
 		{
 			_channelInfo = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
 			_factory = factory ?? throw new ArgumentNullException(nameof(factory));
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 		}
 
 
@@ -44,14 +46,30 @@ namespace Microservices.Bus.Channels
 
 			return await Task<IChannel>.Run(() =>
 				{
-					var startInfo = new ProcessStartInfo()
+					ChannelProperty prop = _channelInfo.FindProperty("X.ProcessId");
+					if (prop != null && Int32.TryParse(prop.Value, out int processId))
+						_process = Process.GetProcesses().FindProcessById(processId);
+
+					if (_process == null)
 					{
-						FileName = _channelInfo.Description.BinPath,
-						//UseShellExecute = false,
-						CreateNoWindow = true,
-						Arguments = $"--Urls {_channelInfo.SID}"
-					};
-					_process = Process.Start(startInfo);
+						var startInfo = new ProcessStartInfo()
+						{
+							FileName = System.IO.Path.Combine(_channelInfo.Description.BinPath, _channelInfo.Description.Type),
+							//UseShellExecute = false,
+							CreateNoWindow = true,
+							Arguments = $"--Urls {_channelInfo.SID}"
+						};
+						_process = Process.Start(startInfo);
+
+						if (prop == null)
+						{
+							prop = new ChannelProperty() { Name = "X.ProcessId" };
+							_channelInfo.AddNewProperty(prop);
+						}
+
+						prop.Value = _process.Id.ToString();
+						_dataAdapter.SaveChannelInfo(_channelInfo);
+					}
 
 					return _channel = _factory.CreateChannel(_channelInfo);
 				}, cancellationToken);
@@ -68,7 +86,11 @@ namespace Microservices.Bus.Channels
 				finally
 				{
 					if (_process != null)
+					{
 						_process.Kill(true);
+						_process.Dispose();
+						_process = null;
+					}
 
 					_channel = null;
 				}

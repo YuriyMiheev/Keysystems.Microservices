@@ -39,7 +39,7 @@ namespace Microservices.Configuration
 		/// </summary>
 		/// <param name="propName"></param>
 		/// <returns></returns>
-		protected virtual string PropertyValue(string propName)
+		protected string PropertyValue(string propName)
 		{
 			if (_appSettings.ContainsKey(propName) )
 				return _appSettings[propName].Value;

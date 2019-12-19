@@ -15,7 +15,7 @@ namespace Microservices.Bus.Channels
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly ILogger _logger;
 		private readonly IChannelContextFactory _contextFactory;
-		private readonly ConcurrentDictionary<string, GroupInfo> _channelsGroups;
+		private readonly ConcurrentDictionary<string, GroupInfo> _groups;
 		private readonly ConcurrentDictionary<string, IChannelContext> _channels;
 		private readonly IAddinManager _addinManager;
 		private readonly BusSettings _busSettings;
@@ -28,7 +28,7 @@ namespace Microservices.Bus.Channels
 			_busSettings = busSettings ?? throw new ArgumentNullException(nameof(addinManager));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			_channelsGroups = new ConcurrentDictionary<string, GroupInfo>();
+			_groups = new ConcurrentDictionary<string, GroupInfo>();
 			_channels = new ConcurrentDictionary<string, IChannelContext>();
 		}
 
@@ -39,7 +39,7 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public GroupInfo[] ChannelsGroups
 		{
-			get { return _channelsGroups.Values.OrderBy(group => group.LINK).ToArray(); }
+			get { return _groups.Values.OrderBy(group => group.LINK).ToArray(); }
 		}
 
 		/// <summary>
@@ -86,28 +86,51 @@ namespace Microservices.Bus.Channels
 			allChannels.ForEach(channelInfo =>
 			//allChannels.AsParallel().ForAll(channelInfo =>
 			{
+				try
+				{
+					ChannelDescription description = _addinManager.FindChannelDescription(channelInfo.Provider);
+					if (description == null)
+						channelInfo.Enabled = false;
+					else
+						channelInfo.SetDescription(description);
+
+					if (channelInfo.IsSystem)
+						channelInfo.RealAddress = _busSettings.Database.ConnectionString;
+
+					_dataAdapter.SaveChannelInfo(channelInfo);
+
+					if (channelInfo.Enabled)
+					{
+						IChannelContext context = _contextFactory.CreateContext(channelInfo);
+						if (!_channels.TryAdd(channelInfo.VirtAddress, context))
+						{
+							context.Dispose();
+							throw new InvalidOperationException($"Канал {channelInfo.VirtAddress} уже существует.");
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					lock (errors)
+					{
+						errors.Add(ex);
+					}
+				}
+			});
+
+
+			_channels.Values.ToList().ForEach(context =>
+			//_channels.Values.AsParallel().ForAll(context =>
+			{
+				ChannelInfo channelInfo = context.ChannelInfo;
+				ChannelSettings settings = channelInfo.ChannelSettings();
+				if (settings.AutoOpen)
+				{
 					try
 					{
-						ChannelDescription description = _addinManager.FindChannelDescription(channelInfo.Provider);
-						if (description == null)
-							channelInfo.Enabled = false;
-						else
-							channelInfo.SetDescription(description);
-
-						if (channelInfo.IsSystem)
-							channelInfo.RealAddress = _busSettings.Database.ConnectionString;
-
-						_dataAdapter.SaveChannel(channelInfo);
-
-						if (channelInfo.Enabled)
-						{
-							IChannelContext context = _contextFactory.CreateContext(channelInfo);
-							if (!_channels.TryAdd(channelInfo.VirtAddress, context))
-							{
-								context.Dispose();
-								throw new InvalidOperationException($"Канал {channelInfo.VirtAddress} уже существует.");
-							}
-						}
+						IChannel channel = context.CreateChannelAsync().Result;
+						//channel.SetSettingsAsync();
+						channel.OpenAsync().Wait();
 					}
 					catch (Exception ex)
 					{
@@ -116,19 +139,22 @@ namespace Microservices.Bus.Channels
 							errors.Add(ex);
 						}
 					}
-				});
-
+				}
+			});
 
 			_channels.Values.ToList().ForEach(context =>
 			//_channels.Values.AsParallel().ForAll(context =>
 			{
-					ChannelSettings settings = context.ChannelInfo.ChannelSettings();
-					if (settings.AutoOpen)
+				ChannelInfo channelInfo = context.ChannelInfo;
+				IChannel channel = context.Channel;
+				if (channel != null && channel.IsOpened)
+				{
+					ChannelSettings settings = channelInfo.ChannelSettings();
+					if (settings.AutoRun)
 					{
 						try
 						{
-							IChannel channel = context.CreateChannelAsync().Result;
-							channel.OpenAsync().Wait();
+							channel.RunAsync().Wait();
 						}
 						catch (Exception ex)
 						{
@@ -138,32 +164,8 @@ namespace Microservices.Bus.Channels
 							}
 						}
 					}
-				});
-
-			_channels.Values.ToList().ForEach(context =>
-			//_channels.Values.AsParallel().ForAll(context =>
-			{
-					ChannelInfo channelInfo = context.ChannelInfo;
-					IChannel channel = context.Channel;
-					if (channel != null && channel.IsOpened)
-					{
-						ChannelSettings settings = channelInfo.ChannelSettings();
-						if (settings.AutoRun)
-						{
-							try
-							{
-								channel.RunAsync().Wait();
-							}
-							catch (Exception ex)
-							{
-								lock (errors)
-								{
-									errors.Add(ex);
-								}
-							}
-						}
-					}
-				});
+				}
+			});
 
 			if (errors.Count > 0)
 				throw new AggregateException(errors);
@@ -198,7 +200,7 @@ namespace Microservices.Bus.Channels
 		/// <returns></returns>
 		public GroupInfo FindGroupInfo(int groupLink)
 		{
-			return _channelsGroups.Values.SingleOrDefault(group => group.LINK == groupLink);
+			return _groups.Values.SingleOrDefault(group => group.LINK == groupLink);
 		}
 
 		/// <summary>
@@ -222,7 +224,7 @@ namespace Microservices.Bus.Channels
 		/// <returns></returns>
 		public GroupInfo FindGroupInfo(string groupName)
 		{
-			return _channelsGroups.Values.SingleOrDefault(group => group.Name == groupName);
+			return _groups.Values.SingleOrDefault(group => group.Name == groupName);
 		}
 
 		/// <summary>
@@ -259,7 +261,7 @@ namespace Microservices.Bus.Channels
 				groupInfo.Image = groupParams.Image;
 
 			_dataAdapter.SaveChannelsGroup(groupInfo);
-			if (!_channelsGroups.TryAdd(groupInfo.Name, groupInfo))
+			if (!_groups.TryAdd(groupInfo.Name, groupInfo))
 				throw new InvalidOperationException($"Группа каналов с именем {groupInfo.Name} уже существует.");
 
 			return groupInfo;
@@ -276,7 +278,7 @@ namespace Microservices.Bus.Channels
 				return;
 
 			_dataAdapter.DeleteChannelsGroup(groupInfo);
-			_channelsGroups.TryRemove(groupInfo.Name, out GroupInfo g);
+			_groups.TryRemove(groupInfo.Name, out GroupInfo g);
 
 			GroupInfo defaultGroup = GetOrCreateDefaultGroup();
 			List<GroupChannelMap> maps = _dataAdapter.GetGroupsChannelsMap();
@@ -318,7 +320,7 @@ namespace Microservices.Bus.Channels
 		/// <returns></returns>
 		public GroupInfo[] GetChannelGroups(int channelLink)
 		{
-			return _channelsGroups.Values.Where(group => group.Channels.Contains(channelLink)).ToArray();
+			return _groups.Values.Where(group => group.Channels.Contains(channelLink)).ToArray();
 		}
 
 		/// <summary>
@@ -390,7 +392,7 @@ namespace Microservices.Bus.Channels
 		public GroupInfo GetOrCreateDefaultGroup()
 		{
 			string defaultGroupName = GroupInfo.DefaultGroupName;
-			List<GroupInfo> groups = _channelsGroups.Values.ToList();
+			List<GroupInfo> groups = _groups.Values.ToList();
 
 			GroupInfo deafaultGroup = groups.SingleOrDefault(group => group.Name == defaultGroupName);
 			if (deafaultGroup == null)
@@ -403,7 +405,7 @@ namespace Microservices.Bus.Channels
 					_dataAdapter.SaveChannelsGroup(deafaultGroup);
 				}
 
-				_channelsGroups.TryAdd(deafaultGroup.Name, deafaultGroup);
+				_groups.TryAdd(deafaultGroup.Name, deafaultGroup);
 			}
 
 			return deafaultGroup;
@@ -412,10 +414,10 @@ namespace Microservices.Bus.Channels
 		private void RefreshGroups()
 		{
 			List<GroupInfo> groups = _dataAdapter.GetChannelsGroups();
-			_channelsGroups.Clear();
+			_groups.Clear();
 			foreach (GroupInfo group in groups)
 			{
-				_channelsGroups.TryAdd(group.Name, group);
+				_groups.TryAdd(group.Name, group);
 			}
 		}
 		#endregion

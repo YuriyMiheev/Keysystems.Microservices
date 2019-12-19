@@ -4,9 +4,9 @@ namespace Microservices.Channels.Configuration
 {
 	public static class AppSettingsConfigExtensions
 	{
-		public static InfoSettings InfoSettings(this IAppSettingsConfig appConfig)
+		public static MainSettings MainSettings(this IAppSettingsConfig appConfig)
 		{
-			return new InfoSettings(appConfig.GetAppSettings());
+			return new MainSettings(appConfig.GetAppSettings());
 		}
 
 		public static ChannelSettings ChannelSettings(this IAppSettingsConfig appConfig)

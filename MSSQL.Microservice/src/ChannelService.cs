@@ -32,7 +32,7 @@ namespace MSSQL.Microservice
 		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
-		private readonly InfoSettings _infoSettings;
+		private readonly MainSettings _mainSettings;
 		private readonly ChannelSettings _channelSettings;
 		private readonly DatabaseSettings _databaseSettings;
 		private readonly MessageSettings _messageSettings;
@@ -58,14 +58,14 @@ namespace MSSQL.Microservice
 			_scanner.NewMessages += Scanner_NewMessages;
 			_channelStatus.PropertyChanged += ChannelStatus_Changed;
 
-			_infoSettings = _appConfig.InfoSettings();
+			_mainSettings = _appConfig.MainSettings();
 			_channelSettings = _appConfig.ChannelSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();
 			_messageSettings = _appConfig.MessageSettings();
 			//_serviceSettings = _appConfig.ServiceSettings();
 
 			this.ProcessId = Process.GetCurrentProcess().Id;
-			this.VirtAddress = _infoSettings.VirtAddress;
+			this.VirtAddress = _mainSettings.VirtAddress;
 		}
 		#endregion
 
@@ -696,7 +696,7 @@ namespace MSSQL.Microservice
 					_cancellationSource = new CancellationTokenSource();
 
 				_database.Schema = _databaseSettings.Schema;
-				_database.ConnectionString = _infoSettings.RealAddress;
+				_database.ConnectionString = _mainSettings.RealAddress;
 				_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
 			}
 		}

@@ -24,7 +24,6 @@ namespace MSSQL.Microservice.Hubs
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly IChannelDataAdapter _dataAdapter;
 		private readonly IHubConnections _connections;
-		private readonly XSettings _serviceSettings;
 		private readonly ILogger _logger;
 
 
@@ -36,8 +35,6 @@ namespace MSSQL.Microservice.Hubs
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
-
-			_serviceSettings = _appConfig.XSettings();
 		}
 		#endregion
 
@@ -46,7 +43,8 @@ namespace MSSQL.Microservice.Hubs
 		//[HubMethodName("")]
 		public IDictionary<string, object> Login(string accessKey)
 		{
-			if ((accessKey ?? "") == _serviceSettings.AccessKey)
+			MainSettings settings = _appConfig.MainSettings();
+			if ((accessKey ?? "") == settings.PasswordIn)
 			{
 				string connectionId = this.Context.ConnectionId;
 				if (!_connections.TryGet(connectionId, out IHubConnection connection))
@@ -259,7 +257,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			using (MessageBody body = _dataAdapter.GetMessageBody(msgLink))
 			{
-				int bufferSize = _serviceSettings.BufferSize;
+				int bufferSize = _appConfig.XSettings().BufferSize;
 				var buffer = new char[bufferSize];
 				int charsReaded;
 				do
@@ -310,7 +308,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			using (MessageContent content = _dataAdapter.GetMessageContent(contentLink))
 			{
-				int bufferSize = _serviceSettings.BufferSize;
+				int bufferSize = _appConfig.XSettings().BufferSize;
 				var buffer = new char[bufferSize];
 				int charsReaded;
 				do

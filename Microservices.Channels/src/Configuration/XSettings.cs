@@ -24,10 +24,10 @@ namespace Microservices.Channels.Configuration
 
 
 		#region Properties
-		public string AccessKey
-		{
-			get => Parser.ParseString(PropertyValue("X.AccessKey"), "");
-		}
+		//public string AccessKey
+		//{
+		//	get => Parser.ParseString(PropertyValue("X.AccessKey"), "");
+		//}
 
 		public int BufferSize
 		{
@@ -49,6 +49,11 @@ namespace Microservices.Channels.Configuration
 		{
 			get => Parser.ParseBool(PropertyValue("X.Debug.Enabled"), false);
 		}
+
+		//public int ProcessId
+		//{
+		//	get => Parser.ParseInt(PropertyValue("X.ProcessId"), 0);
+		//}
 		#endregion
 
 	}

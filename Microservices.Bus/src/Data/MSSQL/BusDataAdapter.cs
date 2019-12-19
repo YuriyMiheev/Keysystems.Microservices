@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Microservices.Bus.Channels;
+using Microservices.Configuration;
 using Microservices.Data;
 using Microservices.Data.MSSQL;
 
@@ -89,7 +90,7 @@ namespace Microservices.Bus.Data.MSSQL
 			}
 		}
 
-		public void SaveChannel(ChannelInfo channelInfo)
+		public void SaveChannelInfo(ChannelInfo channelInfo)
 		{
 			#region Validate parameters
 			if (channelInfo == null)

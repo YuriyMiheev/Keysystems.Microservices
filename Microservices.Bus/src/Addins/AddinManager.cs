@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
+using Microservices.Channels.Configuration;
 using Microservices.Configuration;
 
 namespace Microservices.Bus.Addins
@@ -44,9 +45,9 @@ namespace Microservices.Bus.Addins
 				{
 					try
 					{
-						ChannelDescription channelDescription = LoadAddin(dir);
-						if (!_registeredChannels.TryAdd(channelDescription.Provider, channelDescription))
-							throw new InvalidOperationException($"Канал типа {channelDescription.Provider} уже существует.");
+						ChannelDescription description = LoadAddin(dir);
+						if (!_registeredChannels.TryAdd(description.Provider, description))
+							throw new InvalidOperationException($"Канал типа {description.Provider} уже существует.");
 					}
 					catch (Exception ex)
 					{
@@ -61,8 +62,6 @@ namespace Microservices.Bus.Addins
 			if (errors.Count > 0)
 				throw new AggregateException(errors);
 		}
-		#endregion
-
 
 		/// <summary>
 		/// 
@@ -86,6 +85,7 @@ namespace Microservices.Bus.Addins
 
 			//return new ChannelDescription(description.GetMetadata()) { BinPath = description.BinPath };
 		}
+		#endregion
 
 
 		#region Helpers
@@ -96,7 +96,7 @@ namespace Microservices.Bus.Addins
 			appConfguration.Load();
 
 			var channelDescription = new ChannelDescription(appConfguration.GetAppSettings());
-			channelDescription.BinPath = Path.Combine(dir, channelDescription.Type);
+			channelDescription.BinPath = dir; //Path.Combine(dir, channelDescription.Type);
 			return channelDescription;
 		}
 		#endregion

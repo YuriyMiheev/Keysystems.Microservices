@@ -36,7 +36,6 @@ namespace Microservices.Bus.Channels
 		public async Task OpenAsync(CancellationToken cancellationToken = default)
 		{
 			await _hub.LoginAsync(_channelInfo.PasswordIn, cancellationToken);
-			await _hub.OpenChannelAsync(cancellationToken);
 		}
 
 		public async Task CloseAsync(CancellationToken cancellationToken = default)

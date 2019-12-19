@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Xml;
 
 using Microsoft.Extensions.Configuration;
@@ -82,7 +80,7 @@ namespace Microservices.Configuration
 				string defaultValue = node.Attributes["default"]?.Value;
 				string comment = node.Attributes["comment"]?.Value;
 				bool readOnly = Parser.ParseBool(node.Attributes["readonly"]?.Value, false);
-				bool secret = Parser.ParseBool(node.Attributes["readonly"]?.Value, false);
+				bool secret = Parser.ParseBool(node.Attributes["secret"]?.Value, false);
 
 				var setting = new AppConfigSetting(key, value) { Type = type, Format = format, Default = defaultValue, Comment = comment, ReadOnly = readOnly, Secret = secret };
 				_appSettings.Add(setting.Name, setting);

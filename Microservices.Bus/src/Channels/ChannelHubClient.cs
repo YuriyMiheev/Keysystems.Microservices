@@ -94,6 +94,8 @@ namespace Microservices.Bus.Channels
 			if (this.IsConnected)
 				throw new InvalidOperationException($"Подключение к хабу {this.HubUrl} уже выполнено.");
 
+			this.ChannelInfo.Clear();
+
 			var uri = new UriBuilder(this.HubUrl.Uri);
 			uri.Path += "ChannelHub";
 
@@ -107,7 +109,6 @@ namespace Microservices.Bus.Channels
 				throw new InvalidOperationException("Неверный ключ доступа.");
 			}
 
-			this.ChannelInfo.Clear();
 			foreach (string key in result.Keys)
 			{
 				this.ChannelInfo[key] = result[key];

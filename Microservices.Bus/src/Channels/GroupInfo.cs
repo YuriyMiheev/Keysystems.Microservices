@@ -53,14 +53,14 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public string Image { get; set; }
 
-		private List<int> channels;
+		private List<int> _channels;
 		/// <summary>
 		/// {Get,Set} 
 		/// </summary>
 		public int[] Channels
 		{
-			get { return channels.ToArray(); }
-			set { channels = (value ?? new int[0]).ToList(); }
+			get { return _channels.ToArray(); }
+			set { _channels = (value ?? new int[0]).ToList(); }
 		}
 		#endregion
 
