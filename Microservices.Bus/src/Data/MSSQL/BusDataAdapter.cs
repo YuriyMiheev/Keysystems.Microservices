@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 
 using Microservices.Bus.Channels;
-using Microservices.Configuration;
 using Microservices.Data;
 using Microservices.Data.MSSQL;
 
@@ -113,7 +112,7 @@ namespace Microservices.Bus.Data.MSSQL
 		}
 
 
-		public List<GroupInfo> GetChannelsGroups()
+		public List<GroupInfo> GetGroups()
 		{
 			using (IDataQuery dataQuery = OpenQuery())
 			{
@@ -128,7 +127,7 @@ namespace Microservices.Bus.Data.MSSQL
 			}
 		}
 
-		public void SaveChannelsGroup(GroupInfo groupInfo)
+		public void SaveGroup(GroupInfo groupInfo)
 		{
 			#region Validate parameters
 			if (groupInfo == null)
@@ -150,7 +149,7 @@ namespace Microservices.Bus.Data.MSSQL
 			dao.CloneTo(groupInfo);
 		}
 
-		public void DeleteChannelsGroup(GroupInfo groupInfo)
+		public void DeleteGroup(GroupInfo groupInfo)
 		{
 			#region Validate parameters
 			if (groupInfo == null)
@@ -166,7 +165,7 @@ namespace Microservices.Bus.Data.MSSQL
 			}
 		}
 
-		public List<GroupChannelMap> GetGroupsChannelsMap()
+		public List<GroupChannelMap> GetGroupMap()
 		{
 			using (IDataQuery dataQuery = OpenQuery())
 			{
@@ -174,7 +173,7 @@ namespace Microservices.Bus.Data.MSSQL
 			}
 		}
 
-		public void SaveGroupsChannelsMap(GroupChannelMap map)
+		public void SaveGroupMap(GroupChannelMap map)
 		{
 			#region Validate parameters
 			if (map == null)
@@ -196,7 +195,7 @@ namespace Microservices.Bus.Data.MSSQL
 			dao.CloneTo(map);
 		}
 
-		public void DeleteGroupsChannelsMap(GroupChannelMap map)
+		public void DeleteGroupMap(GroupChannelMap map)
 		{
 			#region Validate parameters
 			if (map == null)

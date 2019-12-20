@@ -30,7 +30,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Provider
 		{
-			get { return Parser.ParseString(PropertyValue(".Provider"), ""); }
+			get { return Parser.ParseString(GetValue(".Provider"), ""); }
 		}
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Type
 		{
-			get { return Parser.ParseString(PropertyValue(".Type"), ""); }
+			get { return Parser.ParseString(GetValue(".Type"), ""); }
 		}
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Version
 		{
-			get { return Parser.ParseString(PropertyValue(".Version"), ""); }
+			get { return Parser.ParseString(GetValue(".Version"), ""); }
 		}
 
 		/// <summary>
@@ -54,7 +54,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Comment
 		{
-			get { return Parser.ParseString(PropertyValue(".Comment"), ""); }
+			get { return Parser.ParseString(GetValue(".Comment"), ""); }
 		}
 
 		/// <summary>
@@ -62,7 +62,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Icon
 		{
-			get { return Parser.ParseString(PropertyValue(".Icon"), "favicon.png"); }
+			get { return Parser.ParseString(GetValue(".Icon"), "favicon.png"); }
 		}
 
 		/// <summary>
@@ -70,7 +70,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool CanSyncContacts
 		{
-			get { return Parser.ParseBool(PropertyValue(".CanSyncContacts"), false); }
+			get { return Parser.ParseBool(GetValue(".CanSyncContacts"), false); }
 		}
 
 		/// <summary>
@@ -78,42 +78,42 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool AllowMultipleInstances
 		{
-			get { return Parser.ParseBool(PropertyValue(".AllowMultipleInstances"), false); }
+			get { return Parser.ParseBool(GetValue(".AllowMultipleInstances"), false); }
 		}
 
 		public string Name
 		{
-			get { return Parser.ParseString(PropertyValue(".Name"), ""); }
+			get { return Parser.ParseString(GetValue(".Name"), ""); }
 		}
 
 		public string VirtAddress
 		{
-			get { return Parser.ParseString(PropertyValue(".VirtAddress"), ""); }
+			get { return Parser.ParseString(GetValue(".VirtAddress"), ""); }
 		}
 
 		public string RealAddress
 		{
-			get { return Parser.ParseString(PropertyValue(".RealAddress"), ""); }
+			get { return Parser.ParseString(GetValue(".RealAddress"), ""); }
 		}
 
 		public string SID
 		{
-			get { return Parser.ParseString(PropertyValue(".SID"), ""); }
+			get { return Parser.ParseString(GetValue(".SID"), ""); }
 		}
 
 		public TimeSpan Timeout
 		{
-			get { return Parser.ParseTime(PropertyValue(".Timeout"), TimeSpan.FromSeconds(30)).Value; }
+			get { return Parser.ParseTime(GetValue(".Timeout"), TimeSpan.FromSeconds(30)).Value; }
 		}
 
 		public string PasswordIn
 		{
-			get { return Parser.ParseString(PropertyValue(".PasswordIn"), ""); }
+			get { return Parser.ParseString(GetValue(".PasswordIn"), ""); }
 		}
 
 		public string PasswordOut
 		{
-			get { return Parser.ParseString(PropertyValue(".PasswordOut"), ""); }
+			get { return Parser.ParseString(GetValue(".PasswordOut"), ""); }
 		}
 		#endregion
 

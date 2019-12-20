@@ -28,7 +28,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Schema
 		{
-			get { return Parser.ParseString(PropertyValue("DATABASE.SCHEMA"), ""); }
+			get { return Parser.ParseString(GetValue("DATABASE.SCHEMA"), ""); }
 		}
 
 		/// <summary>
@@ -36,7 +36,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public TimeSpan ExecuteTimeout
 		{
-			get { return Parser.ParseTime(PropertyValue("DATABASE.TIMEOUT"), TimeSpan.FromSeconds(0)).Value; }
+			get { return Parser.ParseTime(GetValue("DATABASE.TIMEOUT"), TimeSpan.FromSeconds(0)).Value; }
 		}
 
 		/// <summary>
@@ -44,7 +44,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string PingSP
 		{
-			get { return Parser.ParseString(PropertyValue("DATABASE.PING_SP"), ""); }
+			get { return Parser.ParseString(GetValue("DATABASE.PING_SP"), ""); }
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool PingSPEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("DATABASE.PING_SP.ENABLED"), true); }
+			get { return Parser.ParseBool(GetValue("DATABASE.PING_SP.ENABLED"), true); }
 		}
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string RepairSP
 		{
-			get { return Parser.ParseString(PropertyValue("DATABASE.REPAIR_SP"), ""); }
+			get { return Parser.ParseString(GetValue("DATABASE.REPAIR_SP"), ""); }
 		}
 
 		/// <summary>
@@ -68,7 +68,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool RepairSPEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("DATABASE.REPAIR_SP.ENABLED"), true); }
+			get { return Parser.ParseBool(GetValue("DATABASE.REPAIR_SP.ENABLED"), true); }
 		}
 
 		/// <summary>
@@ -76,7 +76,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string MessageStatusChangedSP
 		{
-			get { return Parser.ParseString(PropertyValue("DATABASE.STATUS_SP"), ""); }
+			get { return Parser.ParseString(GetValue("DATABASE.STATUS_SP"), ""); }
 		}
 
 		/// <summary>
@@ -84,7 +84,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool MessageStatusChangedSPEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("DATABASE.STATUS_SP.ENABLED"), true); }
+			get { return Parser.ParseBool(GetValue("DATABASE.STATUS_SP.ENABLED"), true); }
 		}
 
 		/// <summary>
@@ -92,7 +92,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string ReceiveMessageSP
 		{
-			get { return Parser.ParseString(PropertyValue("DATABASE.RECEIVE_SP"), ""); }
+			get { return Parser.ParseString(GetValue("DATABASE.RECEIVE_SP"), ""); }
 		}
 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool ReceiveMessageSPEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("DATABASE.RECEIVE_SP.ENABLED"), true); }
+			get { return Parser.ParseBool(GetValue("DATABASE.RECEIVE_SP.ENABLED"), true); }
 		}
 
 		/// <summary>
@@ -108,7 +108,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool ReceiveMessageSPUseOutputParam
 		{
-			get { return Parser.ParseBool(PropertyValue("DATABASE.RECEIVE_SP.OUTPUT"), false); }
+			get { return Parser.ParseBool(GetValue("DATABASE.RECEIVE_SP.OUTPUT"), false); }
 		}
 		#endregion
 

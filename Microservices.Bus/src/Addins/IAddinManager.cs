@@ -4,7 +4,7 @@ namespace Microservices.Bus.Addins
 {
 	public interface IAddinManager
 	{
-		ChannelDescription[] RegisteredChannels { get; }
+		MicroserviceDescription[] RegisteredMicroservices { get; }
 
 
 		void LoadAddins();
@@ -14,6 +14,6 @@ namespace Microservices.Bus.Addins
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <returns></returns>
-		ChannelDescription FindChannelDescription(string provider);
+		MicroserviceDescription FindMicroservice(string provider);
 	}
 }

@@ -63,7 +63,7 @@ namespace Microservices.Bus.Configuration
 		{
 			get
 			{
-				string admin = Parser.ParseString(PropertyValue(".Administrator"), null);
+				string admin = Parser.ParseString(GetValue(".Administrator"), null);
 				if (admin != null)
 				{
 					try
@@ -88,7 +88,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = false;
-				return Parser.ParseBool(PropertyValue(".Debug"), defaultValue);
+				return Parser.ParseBool(GetValue(".Debug"), defaultValue);
 			}
 		}
 
@@ -100,7 +100,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = true;
-				return Parser.ParseBool(PropertyValue(".Authorization"), defaultValue);
+				return Parser.ParseBool(GetValue(".Authorization"), defaultValue);
 			}
 		}
 
@@ -112,7 +112,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				int defaultValue = (2 * 1024 * 1024 * 1023);
-				return Parser.ParseInt(PropertyValue(".MaxUploadFileSize"), defaultValue);
+				return Parser.ParseInt(GetValue(".MaxUploadFileSize"), defaultValue);
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				int defaultValue = (1024 * 1024); // ServiceEnvironment.DefaultMessageBufferSize;
-				return Parser.ParseInt(PropertyValue(".MessageBufferSize"), defaultValue);
+				return Parser.ParseInt(GetValue(".MessageBufferSize"), defaultValue);
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				string defaultValue = "";
-				return Parser.ParseString(PropertyValue(".InstanceID"), defaultValue);
+				return Parser.ParseString(GetValue(".InstanceID"), defaultValue);
 			}
 		}
 
@@ -148,7 +148,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				bool defaultValue = false;
-				return Parser.ParseBool(PropertyValue(".CheckInstanceID"), defaultValue);
+				return Parser.ParseBool(GetValue(".CheckInstanceID"), defaultValue);
 			}
 		}
 
@@ -160,7 +160,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "rms.lic");
-				string licenseFile = Parser.ParseString(PropertyValue(".LicenseFile"), defaultValue);
+				string licenseFile = Parser.ParseString(GetValue(".LicenseFile"), defaultValue);
 				return Path.GetFullPath(licenseFile);
 			}
 		}
@@ -173,7 +173,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "TEMP");
-				string tempDir = Parser.ParseString(PropertyValue(".TempDir"), defaultValue);
+				string tempDir = Parser.ParseString(GetValue(".TempDir"), defaultValue);
 				return Path.GetFullPath(tempDir);
 			}
 		}
@@ -186,7 +186,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "ADDINS");
-				string addinsDir = Parser.ParseString(PropertyValue(".AddinsDir"), defaultValue);
+				string addinsDir = Parser.ParseString(GetValue(".AddinsDir"), defaultValue);
 				return Path.GetFullPath(addinsDir);
 			}
 		}
@@ -212,7 +212,7 @@ namespace Microservices.Bus.Configuration
 			get
 			{
 				string defaultValue = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "TOOLS");
-				string toolsDir = Parser.ParseString(PropertyValue(".ToolsDir"), defaultValue);
+				string toolsDir = Parser.ParseString(GetValue(".ToolsDir"), defaultValue);
 				return Path.GetFullPath(toolsDir);
 			}
 		}

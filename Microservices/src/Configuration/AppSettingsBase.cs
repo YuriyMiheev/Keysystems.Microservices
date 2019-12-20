@@ -39,12 +39,17 @@ namespace Microservices.Configuration
 		/// </summary>
 		/// <param name="propName"></param>
 		/// <returns></returns>
-		protected string PropertyValue(string propName)
+		public string GetValue(string propName)
 		{
 			if (_appSettings.ContainsKey(propName) )
 				return _appSettings[propName].Value;
 
 			return null;
+		}
+
+		public void SetValue(string propName, string value)
+		{
+			_appSettings[propName].Value = value;
 		}
 		#endregion
 

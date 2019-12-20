@@ -8,16 +8,21 @@ namespace Microservices.Bus.Channels
 {
 	public class ChannelInfo : MainSettings
 	{
-		private readonly IDictionary<string, AppConfigSetting> _properties;
+		private readonly IDictionary<string, ChannelProperty> _properties;
 
 
 		public ChannelInfo(IDictionary<string, AppConfigSetting> appSettings)
 			: base(appSettings)
 		{
-			_properties = new Dictionary<string, AppConfigSetting>(appSettings.Where(p => !p.Key.StartsWith(TAG_PREFIX)));
+			_properties = new Dictionary<string, ChannelProperty>(appSettings.Where(p => !p.Key.StartsWith(TAG_PREFIX)).ToChannelProperties());
 		}
 
 
+		public IDictionary<string, ChannelProperty> Properties => _properties;
+
 		public int LINK { get; set; }
+
+		public bool Enabled { get; set; }
+
 	}
 }

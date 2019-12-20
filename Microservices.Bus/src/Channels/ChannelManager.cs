@@ -7,6 +7,7 @@ using Microservices.Bus.Addins;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
 using Microservices.Bus.Logging;
+using Microservices.Channels.Configuration;
 
 namespace Microservices.Bus.Channels
 {
@@ -59,7 +60,7 @@ namespace Microservices.Bus.Channels
 
 			GroupInfo deafaultGroup = GetOrCreateDefaultGroup();
 			List<ChannelInfo> allChannels = _dataAdapter.GetChannels();
-			List<GroupInfo> allGroups = _dataAdapter.GetChannelsGroups();
+			List<GroupInfo> allGroups = _dataAdapter.GetGroups();
 
 			allChannels.ForEach(channelInfo =>
 				{
@@ -69,7 +70,7 @@ namespace Microservices.Bus.Channels
 						if (!allGroups.Any(group => group.Channels.Contains(channelInfo.LINK)))
 						{
 							var map = new GroupChannelMap() { GroupLINK = deafaultGroup.LINK, ChannelLINK = channelInfo.LINK };
-							_dataAdapter.SaveGroupsChannelsMap(map);
+							_dataAdapter.SaveGroupMap(map);
 						}
 					}
 					catch (Exception ex)
@@ -88,14 +89,14 @@ namespace Microservices.Bus.Channels
 			{
 				try
 				{
-					ChannelDescription description = _addinManager.FindChannelDescription(channelInfo.Provider);
+					MicroserviceDescription description = _addinManager.FindMicroservice(channelInfo.Provider);
 					if (description == null)
 						channelInfo.Enabled = false;
 					else
 						channelInfo.SetDescription(description);
 
-					if (channelInfo.IsSystem)
-						channelInfo.RealAddress = _busSettings.Database.ConnectionString;
+					if (channelInfo.IsSystem())
+						channelInfo.SetRealAddress(_busSettings.Database.ConnectionString);
 
 					_dataAdapter.SaveChannelInfo(channelInfo);
 
@@ -260,7 +261,7 @@ namespace Microservices.Bus.Channels
 			if (!String.IsNullOrWhiteSpace(groupParams.Image))
 				groupInfo.Image = groupParams.Image;
 
-			_dataAdapter.SaveChannelsGroup(groupInfo);
+			_dataAdapter.SaveGroup(groupInfo);
 			if (!_groups.TryAdd(groupInfo.Name, groupInfo))
 				throw new InvalidOperationException($"Группа каналов с именем {groupInfo.Name} уже существует.");
 
@@ -277,23 +278,23 @@ namespace Microservices.Bus.Channels
 			if (groupInfo == null)
 				return;
 
-			_dataAdapter.DeleteChannelsGroup(groupInfo);
+			_dataAdapter.DeleteGroup(groupInfo);
 			_groups.TryRemove(groupInfo.Name, out GroupInfo g);
 
 			GroupInfo defaultGroup = GetOrCreateDefaultGroup();
-			List<GroupChannelMap> maps = _dataAdapter.GetGroupsChannelsMap();
+			List<GroupChannelMap> maps = _dataAdapter.GetGroupMap();
 
 			foreach (int channelLink in groupInfo.Channels)
 			{
 				GroupChannelMap map = maps.SingleOrDefault(x => x.GroupLINK == groupLink && x.ChannelLINK == channelLink);
 				if (map != null)
-					_dataAdapter.DeleteGroupsChannelsMap(map);
+					_dataAdapter.DeleteGroupMap(map);
 
 				GroupInfo[] groups = GetChannelGroups(channelLink);
 				if (groups.Count() == 0)
 				{
 					map = new GroupChannelMap() { GroupLINK = defaultGroup.LINK, ChannelLINK = channelLink };
-					_dataAdapter.SaveGroupsChannelsMap(map);
+					_dataAdapter.SaveGroupMap(map);
 				}
 			}
 
@@ -310,7 +311,7 @@ namespace Microservices.Bus.Channels
 			groupInfo.Name = updateParams.Name;
 			groupInfo.Image = updateParams.Image;
 
-			_dataAdapter.SaveChannelsGroup(groupInfo);
+			_dataAdapter.SaveGroup(groupInfo);
 		}
 
 		/// <summary>
@@ -330,7 +331,7 @@ namespace Microservices.Bus.Channels
 		/// <param name="channelLink"></param>
 		public void AddChannelToGroup(int groupLink, int channelLink)
 		{
-			List<GroupChannelMap> maps = _dataAdapter.GetGroupsChannelsMap();
+			List<GroupChannelMap> maps = _dataAdapter.GetGroupMap();
 			GroupChannelMap map = maps.SingleOrDefault(x => x.GroupLINK == groupLink && x.ChannelLINK == channelLink);
 			if (map == null)
 			{
@@ -340,7 +341,7 @@ namespace Microservices.Bus.Channels
 					ChannelLINK = channelLink
 				};
 
-				_dataAdapter.SaveGroupsChannelsMap(map);
+				_dataAdapter.SaveGroupMap(map);
 
 				RefreshGroups();
 			}
@@ -358,7 +359,7 @@ namespace Microservices.Bus.Channels
 
 		private void RemoveFromGroupInternal(int groupLink, int channelLink, bool force)
 		{
-			List<GroupChannelMap> maps = _dataAdapter.GetGroupsChannelsMap();
+			List<GroupChannelMap> maps = _dataAdapter.GetGroupMap();
 			GroupChannelMap map = maps.SingleOrDefault(x => x.GroupLINK == groupLink && x.ChannelLINK == channelLink);
 			if (map == null)
 				return;
@@ -370,20 +371,20 @@ namespace Microservices.Bus.Channels
 			{
 				if (force)
 				{
-					_dataAdapter.DeleteGroupsChannelsMap(map);
+					_dataAdapter.DeleteGroupMap(map);
 				}
 				else
 				{
 					if (groups[0].LINK != defaultGroup.LINK)
 					{
 						map.GroupLINK = defaultGroup.LINK;
-						_dataAdapter.SaveGroupsChannelsMap(map);
+						_dataAdapter.SaveGroupMap(map);
 					}
 				}
 			}
 			else if (groups.Count() > 1)
 			{
-				_dataAdapter.DeleteGroupsChannelsMap(map);
+				_dataAdapter.DeleteGroupMap(map);
 			}
 
 			RefreshGroups();
@@ -397,12 +398,12 @@ namespace Microservices.Bus.Channels
 			GroupInfo deafaultGroup = groups.SingleOrDefault(group => group.Name == defaultGroupName);
 			if (deafaultGroup == null)
 			{
-				groups = _dataAdapter.GetChannelsGroups();
+				groups = _dataAdapter.GetGroups();
 				deafaultGroup = groups.SingleOrDefault(group => group.Name == defaultGroupName);
 				if (deafaultGroup == null)
 				{
 					deafaultGroup = new GroupInfo(defaultGroupName);
-					_dataAdapter.SaveChannelsGroup(deafaultGroup);
+					_dataAdapter.SaveGroup(deafaultGroup);
 				}
 
 				_groups.TryAdd(deafaultGroup.Name, deafaultGroup);
@@ -413,7 +414,7 @@ namespace Microservices.Bus.Channels
 
 		private void RefreshGroups()
 		{
-			List<GroupInfo> groups = _dataAdapter.GetChannelsGroups();
+			List<GroupInfo> groups = _dataAdapter.GetGroups();
 			_groups.Clear();
 			foreach (GroupInfo group in groups)
 			{

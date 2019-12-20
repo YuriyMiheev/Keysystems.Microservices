@@ -31,7 +31,7 @@ namespace Microservices.Channels.Configuration
 
 		public int BufferSize
 		{
-			get => Parser.ParseInt(PropertyValue("X.BufferSize"), 4096) * 1024;
+			get => Parser.ParseInt(GetValue("X.BufferSize"), 4096) * 1024;
 		}
 
 		/// <summary>
@@ -39,7 +39,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool LogHttpRequest
 		{
-			get => Parser.ParseBool(PropertyValue("X.Log.HttpRequest"), false);
+			get => Parser.ParseBool(GetValue("X.Log.HttpRequest"), false);
 		}
 
 		/// <summary>
@@ -47,7 +47,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool DebugEnabled
 		{
-			get => Parser.ParseBool(PropertyValue("X.Debug.Enabled"), false);
+			get => Parser.ParseBool(GetValue("X.Debug.Enabled"), false);
 		}
 
 		//public int ProcessId

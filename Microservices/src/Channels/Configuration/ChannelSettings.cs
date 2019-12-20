@@ -30,7 +30,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool AutoOpen
 		{
-			get { return Parser.ParseBool(PropertyValue("CHANNEL.AUTO_OPEN"), false); }
+			get { return Parser.ParseBool(GetValue("CHANNEL.AUTO_OPEN"), false); }
 		}
 
 		/// <summary>
@@ -38,7 +38,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool AutoRun
 		{
-			get { return Parser.ParseBool(PropertyValue("CHANNEL.AUTO_RUN"), false); }
+			get { return Parser.ParseBool(GetValue("CHANNEL.AUTO_RUN"), false); }
 		}
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool PingEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("CHANNEL.PING.ENABLED"), false); }
+			get { return Parser.ParseBool(GetValue("CHANNEL.PING.ENABLED"), false); }
 		}
 
 		/// <summary>
@@ -54,7 +54,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public TimeSpan PingInterval
 		{
-			get { return Parser.ParseTime(PropertyValue("CHANNEL.PING.INTERVAL"), TimeSpan.FromMinutes(1)).Value; }
+			get { return Parser.ParseTime(GetValue("CHANNEL.PING.INTERVAL"), TimeSpan.FromMinutes(1)).Value; }
 		}
 
 		///// <summary>
@@ -70,7 +70,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string LogLevel
 		{
-			get { return Parser.ParseString(PropertyValue("CHANNEL.LOG.LEVEL"), "ERROR"); }
+			get { return Parser.ParseString(GetValue("CHANNEL.LOG.LEVEL"), "ERROR"); }
 		}
 
 		///// <summary>
@@ -86,7 +86,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool LogMailEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("CHANNEL.LOG.MAIL.ENABLED"), false); }
+			get { return Parser.ParseBool(GetValue("CHANNEL.LOG.MAIL.ENABLED"), false); }
 		}
 		
 		/// <summary>
@@ -94,7 +94,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string LogMailEmail
 		{
-			get { return Parser.ParseString(PropertyValue("CHANNEL.LOG.MAIL.EMAIL"), ""); }
+			get { return Parser.ParseString(GetValue("CHANNEL.LOG.MAIL.EMAIL"), ""); }
 		}
 
 		/// <summary>
@@ -102,7 +102,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool LogJabberEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("CHANNEL.LOG.JABBER.ENABLED"), false); }
+			get { return Parser.ParseBool(GetValue("CHANNEL.LOG.JABBER.ENABLED"), false); }
 		}
 		
 		/// <summary>
@@ -110,7 +110,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string LogJabberAddress
 		{
-			get { return Parser.ParseString(PropertyValue("CHANNEL.LOG.JABBER.ADDRESS"), ""); }
+			get { return Parser.ParseString(GetValue("CHANNEL.LOG.JABBER.ADDRESS"), ""); }
 		}
 		#endregion
 

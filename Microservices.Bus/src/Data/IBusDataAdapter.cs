@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using Microservices.Bus.Channels;
-using Microservices.Configuration;
 using Microservices.Data;
 
 namespace Microservices.Bus.Data
@@ -13,17 +12,17 @@ namespace Microservices.Bus.Data
 		void SaveServiceInfo(ServiceInfo serviceInfo);
 
 
-		List<GroupInfo> GetChannelsGroups();
+		List<GroupInfo> GetGroups();
 
-		void SaveChannelsGroup(GroupInfo groupInfo);
+		void SaveGroup(GroupInfo groupInfo);
 
-		void DeleteChannelsGroup(GroupInfo groupInfo);
+		void DeleteGroup(GroupInfo groupInfo);
 
-		List<GroupChannelMap> GetGroupsChannelsMap();
+		List<GroupChannelMap> GetGroupMap();
 
-		void SaveGroupsChannelsMap(GroupChannelMap map);
+		void SaveGroupMap(GroupChannelMap map);
 
-		void DeleteGroupsChannelsMap(GroupChannelMap map);
+		void DeleteGroupMap(GroupChannelMap map);
 
 
 		void SaveChannelInfo(ChannelInfo channelInfo);

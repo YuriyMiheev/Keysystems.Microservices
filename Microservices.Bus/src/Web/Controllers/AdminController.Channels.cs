@@ -34,7 +34,7 @@ namespace Microservices.Bus.Web.Controllers
 					channelInfo.SID,
 					channelInfo.RealAddress,
 					channelInfo.Timeout,
-					channelInfo.IsSystem,
+					IsSystem = channelInfo.IsSystem(),
 					channelInfo.Enabled,
 					channelInfo.Comment,
 					Opened = (channel != null ? channel.IsOpened : false),
@@ -74,8 +74,8 @@ namespace Microservices.Bus.Web.Controllers
 				if (_serviceInfo.StartupError != null)
 					return RedirectToAction("Home");
 
-				bool systemExist = runtimeChannels.Any(context => context.ChannelInfo.IsSystem);
-				var registeredChannels = _addinManager.RegisteredChannels.Select(desc =>
+				bool systemExist = runtimeChannels.Any(context => context.ChannelInfo.IsSystem());
+				var registeredChannels = _addinManager.RegisteredMicroservices.Select(desc =>
 						new
 						{
 							desc.Provider,
@@ -95,7 +95,7 @@ namespace Microservices.Bus.Web.Controllers
 		//[AdminAccess]
 		public IActionResult ChannelIcon(string provider)
 		{
-			ChannelDescription description = _addinManager.FindChannelDescription(provider);
+			MicroserviceDescription description = _addinManager.FindMicroservice(provider);
 			byte[] data = LoadIconFile(description);
 			if (data == null)
 				return null;
@@ -124,7 +124,7 @@ namespace Microservices.Bus.Web.Controllers
 			return result;
 		}
 
-		private bool IconFileExist(ChannelDescription description)
+		private bool IconFileExist(MicroserviceDescription description)
 		{
 			if (description == null)
 				return false;
@@ -139,7 +139,7 @@ namespace Microservices.Bus.Web.Controllers
 			return System.IO.File.Exists(filePath);
 		}
 
-		private byte[] LoadIconFile(ChannelDescription description)
+		private byte[] LoadIconFile(MicroserviceDescription description)
 		{
 			if (!IconFileExist(description))
 				return null;

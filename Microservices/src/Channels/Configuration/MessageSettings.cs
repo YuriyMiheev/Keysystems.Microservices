@@ -29,7 +29,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool DeleteExpired
 		{
-			get { return Parser.ParseBool(PropertyValue("MESSAGE.DELETE.EXPIRED"), false); }
+			get { return Parser.ParseBool(GetValue("MESSAGE.DELETE.EXPIRED"), false); }
 		}
 
 		/// <summary>
@@ -37,7 +37,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public int ExpiredDays
 		{
-			get { return Parser.ParseInt(PropertyValue("MESSAGE.DELETE.EXPIRED_DAYS"), 366); }
+			get { return Parser.ParseInt(GetValue("MESSAGE.DELETE.EXPIRED_DAYS"), 366); }
 		}
 
 		/// <summary>
@@ -47,7 +47,7 @@ namespace Microservices.Channels.Configuration
 		{
 			get
 			{
-				string status = Parser.ParseString(PropertyValue("MESSAGE.DELETE.EXPIRED_STATUSES"), "");
+				string status = Parser.ParseString(GetValue("MESSAGE.DELETE.EXPIRED_STATUSES"), "");
 				return status.Trim('[', ']').Split(new char[] { ' ', ',', '|' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 			}
 		}
@@ -57,7 +57,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool DeleteAfterSend
 		{
-			get { return Parser.ParseBool(PropertyValue("MESSAGE.DELETE.AFTER_SEND"), false); }
+			get { return Parser.ParseBool(GetValue("MESSAGE.DELETE.AFTER_SEND"), false); }
 		}
 
 		/// <summary>
@@ -65,7 +65,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool DeleteAfterReceive
 		{
-			get { return Parser.ParseBool(PropertyValue("MESSAGE.DELETE.AFTER_RECEIVE"), false); }
+			get { return Parser.ParseBool(GetValue("MESSAGE.DELETE.AFTER_RECEIVE"), false); }
 		}
 
 		/// <summary>
@@ -73,7 +73,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool DeleteDeleted
 		{
-			get { return Parser.ParseBool(PropertyValue("MESSAGE.DELETE.DELETED"), false); }
+			get { return Parser.ParseBool(GetValue("MESSAGE.DELETE.DELETED"), false); }
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool ScanEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("MESSAGE.SCAN.ENABLED"), true); }
+			get { return Parser.ParseBool(GetValue("MESSAGE.SCAN.ENABLED"), true); }
 		}
 
 		/// <summary>
@@ -89,7 +89,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public TimeSpan ScanInterval
 		{
-			get { return Parser.ParseTime(PropertyValue("MESSAGE.SCAN.INTERVAL"), TimeSpan.Zero).Value; }
+			get { return Parser.ParseTime(GetValue("MESSAGE.SCAN.INTERVAL"), TimeSpan.Zero).Value; }
 		}
 
 		/// <summary>
@@ -97,7 +97,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public int ScanThreads
 		{
-			get { return Parser.ParseInt(PropertyValue("MESSAGE.SCAN.THREADS"), 1); }
+			get { return Parser.ParseInt(GetValue("MESSAGE.SCAN.THREADS"), 1); }
 		}
 
 		/// <summary>
@@ -105,7 +105,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public int ScanPortion
 		{
-			get { return Parser.ParseInt(PropertyValue("MESSAGE.SCAN.PORTION"), 1000); }
+			get { return Parser.ParseInt(GetValue("MESSAGE.SCAN.PORTION"), 1000); }
 		}
 
 		/// <summary>
@@ -113,7 +113,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public bool ReliableEnabled
 		{
-			get { return Parser.ParseBool(PropertyValue("MESSAGE.RELIABLE.ENABLED"), false); }
+			get { return Parser.ParseBool(GetValue("MESSAGE.RELIABLE.ENABLED"), false); }
 		}
 
 		/// <summary>
@@ -123,7 +123,7 @@ namespace Microservices.Channels.Configuration
 		{
 			get
 			{
-				TimeSpan timeout = Parser.ParseTime(PropertyValue("MESSAGE.RELIABLE.TIMEOUT"), TimeSpan.Zero).Value;
+				TimeSpan timeout = Parser.ParseTime(GetValue("MESSAGE.RELIABLE.TIMEOUT"), TimeSpan.Zero).Value;
 				if ( timeout == TimeSpan.Zero )
 					return TimeSpan.FromMilliseconds(-1);
 				else

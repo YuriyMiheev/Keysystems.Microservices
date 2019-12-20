@@ -14,20 +14,20 @@ namespace Microservices.Bus.Addins
 	public class AddinManager : IAddinManager
 	{
 		private readonly string _addinsDir;
-		private readonly ConcurrentDictionary<string, ChannelDescription> _registeredChannels;
+		private readonly ConcurrentDictionary<string, MicroserviceDescription> _registeredChannels;
 
 
 		#region Ctor
 		public AddinManager(BusSettings busSettings)
 		{
 			_addinsDir = busSettings.AddinsDir;
-			_registeredChannels = new ConcurrentDictionary<string, ChannelDescription>();
+			_registeredChannels = new ConcurrentDictionary<string, MicroserviceDescription>();
 		}
 		#endregion
 
 
 		#region Properties
-		public ChannelDescription[] RegisteredChannels
+		public MicroserviceDescription[] RegisteredMicroservices
 		{
 			get => _registeredChannels.Values.ToArray();
 		}
@@ -45,7 +45,7 @@ namespace Microservices.Bus.Addins
 				{
 					try
 					{
-						ChannelDescription description = LoadAddin(dir);
+						MicroserviceDescription description = LoadAddin(dir);
 						if (!_registeredChannels.TryAdd(description.Provider, description))
 							throw new InvalidOperationException($"Канал типа {description.Provider} уже существует.");
 					}
@@ -68,36 +68,31 @@ namespace Microservices.Bus.Addins
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <returns></returns>
-		public ChannelDescription FindChannelDescription(string provider)
+		public MicroserviceDescription FindMicroservice(string provider)
 		{
 			#region Validate parameters
 			if (String.IsNullOrWhiteSpace(provider))
-				throw new ArgumentException("provider");
+				throw new ArgumentException(nameof(provider));
 			#endregion
 
 			if (_registeredChannels.ContainsKey(provider))
 				return _registeredChannels[provider];
 			else
 				return null;
-
-			//if (description == null)
-			//	return null;
-
-			//return new ChannelDescription(description.GetMetadata()) { BinPath = description.BinPath };
 		}
 		#endregion
 
 
 		#region Helpers
-		private ChannelDescription LoadAddin(string dir)
+		private MicroserviceDescription LoadAddin(string dir)
 		{
 			string configFile = Path.Combine(dir, "appsettings.config");
 			using var appConfguration = new XmlConfigFileConfigurationProvider(configFile);
 			appConfguration.Load();
 
-			var channelDescription = new ChannelDescription(appConfguration.GetAppSettings());
-			channelDescription.BinPath = dir; //Path.Combine(dir, channelDescription.Type);
-			return channelDescription;
+			var description = new MicroserviceDescription(appConfguration.GetAppSettings());
+			description.BinPath = dir;
+			return description;
 		}
 		#endregion
 

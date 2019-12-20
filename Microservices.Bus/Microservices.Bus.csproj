@@ -7,16 +7,17 @@
   <ItemGroup>
     <Compile Remove="src\Channels\ChannelDescriptionProperty.cs" />
     <Compile Remove="src\Channels\ChannelDescriptionPropertyExtensions.cs" />
-    <Compile Remove="src\Channels\ChannelInfoExtensions.cs" />
     <Compile Remove="src\Channels\ChannelInfoUpdateParams.cs" />
-    <Compile Remove="src\Channels\ChannelProperty.cs" />
-    <Compile Remove="src\Channels\ChannelPropertyExtensions.cs" />
     <Compile Remove="src\Channels\ChannelPropertyUpdateParams.cs" />
     <Compile Remove="src\Channels\ChannelSettings.cs" />
     <Compile Remove="src\Channels\ChannelSettingsBase.cs" />
     <Compile Remove="src\Channels\IChannelRuntime.cs" />
     <Compile Remove="src\Channels\~ChannelDescription.cs" />
+    <Compile Remove="src\Channels\~ChannelDescriptionProperty.cs" />
     <Compile Remove="src\Channels\~ChannelInfo.cs" />
+    <Compile Remove="src\Channels\~ChannelInfoExtensions.cs" />
+    <Compile Remove="src\Channels\~ChannelProperty.cs" />
+    <Compile Remove="src\Channels\~ChannelPropertyExtensions.cs" />
     <Compile Remove="src\IServiceInfoManager.cs" />
     <Compile Remove="src\MessageExtensions.cs" />
     <Compile Remove="src\ServiceInfoManager.cs" />
