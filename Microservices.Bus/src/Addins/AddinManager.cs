@@ -6,7 +6,6 @@ using System.Linq;
 
 using Microservices.Bus.Channels;
 using Microservices.Bus.Configuration;
-using Microservices.Channels.Configuration;
 using Microservices.Configuration;
 
 namespace Microservices.Bus.Addins
@@ -14,14 +13,14 @@ namespace Microservices.Bus.Addins
 	public class AddinManager : IAddinManager
 	{
 		private readonly string _addinsDir;
-		private readonly ConcurrentDictionary<string, MicroserviceDescription> _registeredChannels;
+		private readonly ConcurrentDictionary<string, MicroserviceDescription> _registeredMicroservices;
 
 
 		#region Ctor
 		public AddinManager(BusSettings busSettings)
 		{
 			_addinsDir = busSettings.AddinsDir;
-			_registeredChannels = new ConcurrentDictionary<string, MicroserviceDescription>();
+			_registeredMicroservices = new ConcurrentDictionary<string, MicroserviceDescription>();
 		}
 		#endregion
 
@@ -29,7 +28,7 @@ namespace Microservices.Bus.Addins
 		#region Properties
 		public MicroserviceDescription[] RegisteredMicroservices
 		{
-			get => _registeredChannels.Values.ToArray();
+			get => _registeredMicroservices.Values.ToArray();
 		}
 		#endregion
 
@@ -46,7 +45,7 @@ namespace Microservices.Bus.Addins
 					try
 					{
 						MicroserviceDescription description = LoadAddin(dir);
-						if (!_registeredChannels.TryAdd(description.Provider, description))
+						if (!_registeredMicroservices.TryAdd(description.Provider, description))
 							throw new InvalidOperationException($"Канал типа {description.Provider} уже существует.");
 					}
 					catch (Exception ex)
@@ -75,8 +74,8 @@ namespace Microservices.Bus.Addins
 				throw new ArgumentException(nameof(provider));
 			#endregion
 
-			if (_registeredChannels.ContainsKey(provider))
-				return _registeredChannels[provider];
+			if (_registeredMicroservices.ContainsKey(provider))
+				return _registeredMicroservices[provider];
 			else
 				return null;
 		}

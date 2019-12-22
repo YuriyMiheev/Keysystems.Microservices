@@ -8,13 +8,13 @@ using Microservices.Data.DAO;
 
 namespace Microservices.Bus.Channels
 {
-	public class HubChannel : IChannel, IDisposable
+	public class SignalRHubChannel : IChannel, IDisposable
 	{
 		private readonly ChannelInfo _channelInfo;
 		private readonly IChannelHubClient _hub;
 
 
-		public HubChannel(ChannelInfo channelInfo)
+		public SignalRHubChannel(ChannelInfo channelInfo)
 		{
 			_channelInfo = channelInfo;
 			_hub = new ChannelHubClient(channelInfo.SID);
