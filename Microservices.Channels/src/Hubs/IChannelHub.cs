@@ -1,29 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microservices.Channels.Configuration;
-using Microservices.Channels.Data;
+using Microservices.Configuration;
+using Microservices.Data;
 
 namespace Microservices.Channels.Hubs
 {
 	public interface IChannelHub
 	{
 
-		string Login(string accessKey);
+		IDictionary<string, object> Login(string accessKey);
 
 
 		#region Control
-		void Open();
+		void OpenChannel();
 
-		void Close();
+		Task CloseChannel();
 
-		void Run();
+		void RunChannel();
 
-		void Stop();
+		void StopChannel();
 		#endregion
 
 
@@ -39,11 +37,11 @@ namespace Microservices.Channels.Hubs
 
 
 		#region Settings
-		IDictionary<string, ConfigFileSetting> GetSettings();
+		IDictionary<string, AppConfigSetting> GetSettings();
 
 		void SetSettings(IDictionary<string, string> settings);
 
-		//void SaveSettings();
+		void SaveSettings();
 		#endregion
 
 
@@ -56,7 +54,7 @@ namespace Microservices.Channels.Hubs
 
 		Message GetMessage(int msgLink);
 
-		Message FindMessage(int msgLink);
+		//Message FindMessage(int msgLink);
 
 		Message FindMessageByGuid(string msgGuid, string direction);
 
@@ -64,7 +62,7 @@ namespace Microservices.Channels.Hubs
 
 		void DeleteMessage(int msgLink);
 
-		void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses);
+		//void DeleteExpiredMessages(DateTime expiredDate, List<string> statuses);
 
 		void DeleteMessages(IEnumerable<int> msgLinks);
 
@@ -122,6 +120,8 @@ namespace Microservices.Channels.Hubs
 
 
 		int? ReceiveMessage(int msgLink);
+
+		void SendMessage(int msgLink);
 		#endregion
 
 	}

@@ -1,0 +1,26 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:62723",
+      "sslPort": 0
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Microservice": {
+      "commandName": "Project",
+      "commandLineArgs": "--Urls=http://*:5005",
+      "launchBrowser": true,
+      "launchUrl": "Channel/Info",
+      "nativeDebugging": false,
+      "applicationUrl": "http://localhost:5005"
+    }
+  }
+}

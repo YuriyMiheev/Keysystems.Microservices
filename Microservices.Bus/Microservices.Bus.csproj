@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\Addins\IMicroserviceDescription.cs" />
+    <Compile Remove="src\Channels\ChannelDescriptionProperty.cs" />
+    <Compile Remove="src\Channels\ChannelDescriptionPropertyExtensions.cs" />
+    <Compile Remove="src\Channels\ChannelInfoUpdateParams.cs" />
+    <Compile Remove="src\Channels\ChannelPropertyUpdateParams.cs" />
+    <Compile Remove="src\Channels\ChannelSettings.cs" />
+    <Compile Remove="src\Channels\ChannelSettingsBase.cs" />
+    <Compile Remove="src\Channels\IChannelRuntime.cs" />
+    <Compile Remove="src\Channels\~ChannelDescription.cs" />
+    <Compile Remove="src\Channels\~ChannelDescriptionProperty.cs" />
+    <Compile Remove="src\Channels\~ChannelInfo.cs" />
+    <Compile Remove="src\Channels\~ChannelInfoExtensions.cs" />
+    <Compile Remove="src\Channels\~ChannelProperty.cs" />
+    <Compile Remove="src\Channels\~ChannelPropertyExtensions.cs" />
+    <Compile Remove="src\IServiceInfoManager.cs" />
+    <Compile Remove="src\MessageExtensions.cs" />
+    <Compile Remove="src\ServiceInfoManager.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.1.0" />
+    <ProjectReference Include="..\Microservices\Microservices.csproj" />
+  </ItemGroup>
+
+</Project>

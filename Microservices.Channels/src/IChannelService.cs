@@ -1,32 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
+using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels
 {
-	public interface IChannelService : IMessageRepository, ILogger
+	public interface IChannelService : IHostedService
 	{
 
-		#region Properties
-		string VirtAddress { get; }
+		#region Events
+		event Func<Message[], bool> SendMessages;
 
-		bool Opened { get; }
-
-		bool Running { get; }
-
-		bool? Online { get; }
+		event Action<string, object> StatusChanged;
 		#endregion
 
 
-		#region Settings
-		DatabaseSettings DatabaseSettings { get; }
+		#region Properties
+		int ProcessId { get; }
 
-		MessageSettings MessageSettings { get; }
+		string VirtAddress { get; }
+
+		ChannelStatus Status { get; }
 		#endregion
 
 
@@ -74,25 +67,6 @@ namespace Microservices.Channels
 
 
 		#region Messages
-		//IAsyncEnumerable<Message> ScanSendMessages(CancellationToken cancellationToken = default(CancellationToken));
-
-		//IAsyncEnumerable<Message> ScanPublishMessages(CancellationToken cancellationToken = default(CancellationToken));
-
-		///// <summary>
-		///// Отправить сообщение.
-		///// </summary>
-		///// <param name="msgLink"></param>
-		///// <returns></returns>
-		//int? SendMessage(int msgLink);
-
-		///// <summary>
-		///// Отправить сообщение асинхронно.
-		///// </summary>
-		///// <param name="msgLink"></param>
-		//void SendMessageAsync(int msgLink);
-
-		//Message PreSendMessage(int msgLink);
-
 		///// <summary>
 		///// Опубликовать сообщение.
 		///// </summary>
@@ -105,6 +79,13 @@ namespace Microservices.Channels
 		/// <param name="msgLink"></param>
 		/// <returns></returns>
 		int? ReceiveMessage(int msgLink);
+
+		/// <summary>
+		/// Отправить сообщение.
+		/// </summary>
+		/// <param name="msgLink"></param>
+		/// <returns></returns>
+		void SendMessage(int msgLink);
 		#endregion
 
 	}

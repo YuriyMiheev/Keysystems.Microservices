@@ -1,42 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-//using WCF = System.ServiceModel.Channels;
-//using Keysystems.RemoteMessaging.Lib;
-//using Keysystems.RemoteMessaging.Lib.Mime;
+using Microservices.Channels.Data;
+using Microservices.Channels.Logging;
 
 namespace Microservices.Channels
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public abstract class MessageReceiverBase //<TChannelServcie> where TChannelServcie : IChannelService
+	public abstract class MessageReceiverBase : IMessageReceiver
 	{
+		private IChannelDataAdapter _dataAdapter;
+		private ILogger _logger;
+
 
 		#region Ctor
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="channel"></param>
-		protected MessageReceiverBase(IChannelService channel)
+		/// <param name="dataAdapter"></param>
+		/// <param name="logger"></param>
+		protected MessageReceiverBase(IChannelDataAdapter dataAdapter, ILogger logger)
 		{
-			#region Validate parameters
-			if ( channel == null )
-				throw new ArgumentNullException("channel");
-			#endregion
-
-			this.Channel = channel;
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException("dataAdapter");
+			_logger = logger ?? throw new ArgumentNullException("logger");
 		}
-		#endregion
-
-
-		#region Properties
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public IChannelService Channel { get; private set; }
 		#endregion
 
 
@@ -59,10 +47,10 @@ namespace Microservices.Channels
 				throw new ArgumentNullException("msg");
 			#endregion
 
-			LogTrace(String.Format("Подготовка ответного сообщения {0}.", resMsg));
+			_logger.LogTrace(String.Format("Подготовка ответного сообщения {0}.", resMsg));
 
 			#region Header
-			resMsg.Channel = this.Channel.VirtAddress;
+			//resMsg.Channel = this.Channel.VirtAddress;
 
 			if ( resMsg.LINK == 0 )
 				resMsg.SetStatus(MessageStatus.NULL);
@@ -70,8 +58,8 @@ namespace Microservices.Channels
 			if ( String.IsNullOrWhiteSpace(resMsg.Direction) )
 				resMsg.Direction = MessageDirection.OUT;
 
-			if ( String.IsNullOrWhiteSpace(resMsg.From) )
-				resMsg.From = this.Channel.VirtAddress;
+			//if ( String.IsNullOrWhiteSpace(resMsg.From) )
+			//	resMsg.From = this.Channel.VirtAddress;
 
 			if ( String.IsNullOrWhiteSpace(resMsg.Version) )
 				resMsg.Version = MessageVersion.Current;
@@ -94,7 +82,7 @@ namespace Microservices.Channels
 
 				if ( resMsg.Body.Length == null )
 				{
-					using ( MessageBody body = this.Channel.GetMessageBody(resMsg.LINK) )
+					using ( MessageBody body = _dataAdapter.GetMessageBody(resMsg.LINK) )
 					{
 						resMsg.Body.Length = body.Length;
 					}
@@ -110,7 +98,7 @@ namespace Microservices.Channels
 
 				if ( contentInfo.Length == null )
 				{
-					using ( MessageContent content = this.Channel.GetMessageContent(contentInfo.LINK) )
+					using ( MessageContent content = _dataAdapter.GetMessageContent(contentInfo.LINK) )
 					{
 						contentInfo.Length = content.Length;
 					}
@@ -149,46 +137,6 @@ namespace Microservices.Channels
 
 			if ( resMsg.CorrGUID == null )
 				resMsg.CorrGUID = inMsg.GUID;
-		}
-		#endregion
-
-
-		#region Logs
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		public virtual void LogTrace(string text)
-		{
-			this.Channel.LogTrace(text);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		public virtual void LogInfo(string text)
-		{
-			this.Channel.LogInfo(text);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="error"></param>
-		public virtual void LogError(Exception error)
-		{
-			this.Channel.LogError(error);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="error"></param>
-		public virtual void LogError(string text, Exception error)
-		{
-			this.Channel.LogError(text, error);
 		}
 		#endregion
 

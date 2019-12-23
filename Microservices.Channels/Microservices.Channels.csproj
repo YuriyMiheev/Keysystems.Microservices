@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,22 +13,26 @@
   <ItemGroup>
     <Compile Remove="ChannelServiceBase.cs" />
     <Compile Remove="CommonHubClient.cs" />
+    <Compile Remove="src\AsyncStreamTextReader.cs" />
     <Compile Remove="src\ChannelServiceBase.cs" />
+    <Compile Remove="src\ChannelStatus.cs" />
+    <Compile Remove="src\Configuration\ConfigFileSetting.cs" />
+    <Compile Remove="src\Configuration\IAppSettingsConfig.cs" />
+    <Compile Remove="src\Configuration\IXmlConfigFileSettings.cs" />
     <Compile Remove="src\Configuration\ServiceSettingsChangedEventArgs.cs" />
     <Compile Remove="src\Configuration\ServiceSettingsChangeType.cs" />
+    <Compile Remove="src\Configuration\XmlConfigFileConfigurationProvider.cs" />
+    <Compile Remove="src\Configuration\XmlConfigFileConfigurationSource.cs" />
     <Compile Remove="src\Configuration\XmlConfigFileException.cs" />
-    <Compile Remove="src\Controllers\ChannelControllerBase.cs" />
-    <Compile Remove="src\DAO\MessagePost.cs" />
-    <Compile Remove="src\Data\Mappings\MessagePostMapping.cs" />
-    <Compile Remove="src\Data\MessageBodyAsyncReader.cs" />
-    <Compile Remove="src\Data\MessageContentAsyncReader.cs" />
-    <Compile Remove="src\Data\MessageTables.cs" />
+    <Compile Remove="src\Configuration\XmlConfigFileExtensions.cs" />
     <Compile Remove="src\Hubs\ChannelHubBase.cs" />
     <Compile Remove="src\Hubs\CommonHubClient.cs" />
-    <Compile Remove="src\Hubs\IChannelHubClient.cs" />
     <Compile Remove="src\Hubs\IHubClient.cs" />
     <Compile Remove="IHubClient.cs" />
+    <Compile Remove="src\MessageExtensions.cs" />
     <Compile Remove="src\MessageSender.cs" />
+    <Compile Remove="src\OrderableMessageQueue.cs" />
+    <Compile Remove="src\Parser.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,15 +40,13 @@
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="FluentNHibernate" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="3.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="3.1.0" />
     <PackageReference Include="NHibernate" Version="5.2.6" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="src\Controllers\" />
-    <Folder Include="src\DAO\" />
+    <ProjectReference Include="..\Microservices\Microservices.csproj" />
   </ItemGroup>
 
 </Project>
