@@ -27,10 +27,10 @@ namespace Microservices.Bus.Data.DAO
 		/// </summary>
 		public virtual string VirtAddress { get; set; }
 
-		/// <summary>
-		/// {Get,Set} Канал запущен в отдельном домене.
-		/// </summary>
-		public virtual bool? IsolatedDomain { get; set; }
+		///// <summary>
+		///// {Get,Set} Канал запущен в отдельном домене.
+		///// </summary>
+		//public virtual bool? IsolatedDomain { get; set; }
 
 		/// <summary>
 		/// {Get,Set} SID канала.
@@ -62,10 +62,10 @@ namespace Microservices.Bus.Data.DAO
 		/// </summary>
 		public virtual bool? Enabled { get; set; }
 
-		/// <summary>
-		/// {Get,Set} Режим доступа.
-		/// </summary>
-		public virtual string AccessMode { get; set; }
+		///// <summary>
+		///// {Get,Set} Режим доступа.
+		///// </summary>
+		//public virtual string AccessMode { get; set; }
 
 		/// <summary>
 		/// {Get,Set} Комментарий.
@@ -75,6 +75,6 @@ namespace Microservices.Bus.Data.DAO
 		/// <summary>
 		/// {Get,Set} Дополнительные свойства.
 		/// </summary>
-		public virtual IList<DAO.ChannelProperty> Properties { get; set; }
+		public virtual IList<DAO.ChannelInfoProperty> Properties { get; set; }
 	}
 }

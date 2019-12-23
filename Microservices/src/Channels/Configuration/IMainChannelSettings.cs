@@ -2,6 +2,7 @@
 {
 	public interface IMainChannelSettings
 	{
+
 		#region Properties
 		/// <summary>
 		/// {Get} Провайдер.
@@ -52,5 +53,6 @@
 
 		public string PasswordOut { get; }
 		#endregion
+
 	}
 }

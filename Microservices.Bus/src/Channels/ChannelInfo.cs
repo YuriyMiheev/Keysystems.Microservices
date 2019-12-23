@@ -14,20 +14,6 @@ namespace Microservices.Bus.Channels
 			_properties = new Dictionary<string, ChannelInfoProperty>();
 		}
 
-		//public ChannelInfo(IDictionary<string, AppConfigSetting> appSettings)
-		//	: base(appSettings)
-		//{
-		//	_properties = new Dictionary<string, ChannelInfoProperty>();
-		//	var otherSettings = appSettings.Where(p => !p.Key.StartsWith(TAG_PREFIX));
-		//	foreach (KeyValuePair<string, AppConfigSetting> kvp in otherSettings)
-		//	{
-		//		ChannelInfoProperty prop = kvp.Value.ToChannelInfoProperty();
-		//		prop.ChannelLINK = this.LINK;
-
-		//		_properties.Add(prop.Name, prop);
-		//	}
-		//}
-
 
 		public IDictionary<string, ChannelInfoProperty> Properties => _properties;
 
@@ -39,15 +25,7 @@ namespace Microservices.Bus.Channels
 
 		public string Type { get; set; }
 
-		//public string Version { get; set; }
-
 		public string Comment { get; set; }
-
-		//public string Icon { get; set; }
-
-		//public bool CanSyncContacts { get; set; }
-
-		//public bool AllowMultipleInstances { get; set; }
 
 		public string Name { get; set; }
 

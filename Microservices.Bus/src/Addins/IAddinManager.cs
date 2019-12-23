@@ -1,6 +1,4 @@
-﻿using Microservices.Bus.Channels;
-
-namespace Microservices.Bus.Addins
+﻿namespace Microservices.Bus.Addins
 {
 	public interface IAddinManager
 	{

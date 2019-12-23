@@ -14,19 +14,13 @@ namespace Microservices.Bus.Channels
 	{
 		public static void SetDescription(this ChannelInfo channelInfo, MicroserviceDescription description)
 		{
-			#region Validate parameters
 			if (channelInfo == null)
 				throw new ArgumentNullException(nameof(channelInfo));
  
 			if (description == null)
 				throw new ArgumentNullException(nameof(description));
-			#endregion
 
-			//if (this.Description != null)
-			//	throw new InvalidOperationException("Описание канала уже задано.");
-
-			//this.Description = description;
-			//this.Provider = description.Provider;
+			channelInfo.Provider = description.Provider;
 
 			IDictionary<string, ChannelInfoProperty> properties = channelInfo.Properties;
 			List<string> existProps = properties.Values.Select(p => p.Name).Where(prop => description.Properties.Values.Select(p => p.Name).Contains(prop)).ToList();
@@ -53,17 +47,25 @@ namespace Microservices.Bus.Channels
 
 		public static ChannelInfoProperty GetProperty(this ChannelInfo channelInfo, string propName)
 		{
+			if (channelInfo == null)
+				throw new ArgumentNullException(nameof(channelInfo));
+			
 			return channelInfo.Properties[propName];
 		}
 
 		public static void RemoveProperty(this ChannelInfo channelInfo, string propName)
 		{
+			if (channelInfo == null)
+				throw new ArgumentNullException(nameof(channelInfo));
+			
 			channelInfo.Properties.Remove(propName);
 		}
 
 		public static void AddNewProperty(this ChannelInfo channelInfo, ChannelInfoProperty prop)
 		{
-			#region Validate parameters
+			if (channelInfo == null)
+				throw new ArgumentNullException(nameof(channelInfo));
+
 			if (prop == null)
 				throw new ArgumentNullException(nameof(prop));
 
@@ -72,10 +74,6 @@ namespace Microservices.Bus.Channels
 
 			if (prop.LINK != 0)
 				throw new ArgumentException("Свойство должно иметь LINK = 0.", nameof(prop.LINK));
-			#endregion
-
-			if (channelInfo.Properties.ContainsKey(prop.Name))
-				throw new InvalidOperationException($"Канал уже содержит свойство {prop.Name}.");
 
 			prop.ChannelLINK = channelInfo.LINK;
 			channelInfo.Properties.Add(prop.Name, prop);
@@ -146,7 +144,7 @@ namespace Microservices.Bus.Channels
 			obj.PasswordIn = dao.PasswordIn;
 			obj.PasswordOut = dao.PasswordOut;
 			obj.Properties.Clear();
-			foreach (DAO.ChannelProperty prop in dao.Properties)
+			foreach (DAO.ChannelInfoProperty prop in dao.Properties)
 			{
 				obj.Properties.Add(prop.Name, prop.ToObj());
 			}
@@ -161,11 +159,6 @@ namespace Microservices.Bus.Channels
 		public static bool IsSystem(this ChannelInfo channelInfo)
 		{
 			return channelInfo.Provider == "SYSTEM";
-		}
-
-		public static void SetRealAddress(this ChannelInfo channelInfo, string realAddress)
-		{
-			channelInfo.Properties[".RealAddress"].Value = realAddress;
 		}
 
 		public static ChannelInfoProperty FindProperty(this ChannelInfo channelInfo, string propName)

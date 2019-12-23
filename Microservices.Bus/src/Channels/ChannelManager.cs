@@ -96,7 +96,7 @@ namespace Microservices.Bus.Channels
 						channelInfo.SetDescription(description);
 
 					if (channelInfo.IsSystem())
-						channelInfo.SetRealAddress(_busSettings.Database.ConnectionString);
+						channelInfo.RealAddress = _busSettings.Database.ConnectionString;
 
 					_dataAdapter.SaveChannelInfo(channelInfo);
 

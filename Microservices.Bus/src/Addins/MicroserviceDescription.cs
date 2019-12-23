@@ -6,14 +6,15 @@ using Microservices.Configuration;
 
 namespace Microservices.Bus.Addins
 {
-	public class MicroserviceDescription : AppSettingsBase, IMainChannelSettings
+	public class MicroserviceDescription : IMainChannelSettings //AppSettingsBase
 	{
+		private readonly IDictionary<string, AppConfigSetting> _appSettings;
 		private readonly IDictionary<string, MicroserviceDescriptionProperty> _properties;
 
 
 		public MicroserviceDescription(IDictionary<string, AppConfigSetting> appSettings)
-			: base(".", appSettings)
 		{
+			_appSettings = new Dictionary<string, AppConfigSetting>(appSettings.Where(p => p.Key.StartsWith(".")));
 			_properties = new Dictionary<string, MicroserviceDescriptionProperty>();
 			var otherSettings = appSettings.Where(p => !p.Key.StartsWith("."));
 			foreach (KeyValuePair<string, AppConfigSetting> kvp in otherSettings)
@@ -118,5 +119,14 @@ namespace Microservices.Bus.Addins
 		}
 
 		public string BinPath { get; set; }
+
+
+		private string GetValue(string propName)
+		{
+			if (_appSettings.ContainsKey(propName))
+				return _appSettings[propName].Value;
+
+			return null;
+		}
 	}
 }

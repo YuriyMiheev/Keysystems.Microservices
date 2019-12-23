@@ -5,7 +5,7 @@ namespace Microservices.Bus.Data.Mappings
 	/// <summary>
 	/// 
 	/// </summary>
-	public abstract class ChannelPropertyMappingBase : ClassMapBase<DAO.ChannelProperty>
+	public abstract class ChannelPropertyMappingBase : ClassMapBase<DAO.ChannelInfoProperty>
 	{
 		/// <summary>
 		/// 

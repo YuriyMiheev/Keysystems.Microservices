@@ -8,7 +8,7 @@ namespace Microservices.Configuration
 	/// </summary>
 	public abstract class AppSettingsBase
 	{
-		private IDictionary<string, AppConfigSetting> _appSettings;
+		private readonly IDictionary<string, AppConfigSetting> _appSettings;
 
 
 		#region Ctor

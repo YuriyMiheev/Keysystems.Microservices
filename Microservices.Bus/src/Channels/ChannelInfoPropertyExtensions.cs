@@ -32,12 +32,12 @@ namespace Microservices.Bus.Channels
 			return mapper.Map<AppConfigSetting, ChannelInfoProperty>(appSetting);
 		}
 
-		public static DAO.ChannelProperty ToDao(this ChannelInfoProperty obj, DAO.ChannelInfo channel)
+		public static DAO.ChannelInfoProperty ToDao(this ChannelInfoProperty obj, DAO.ChannelInfo channel)
 		{
 			if (obj == null)
 				return null;
 
-			var dao = new DAO.ChannelProperty();
+			var dao = new DAO.ChannelInfoProperty();
 			dao.Channel = channel;
 			dao.Comment = (String.IsNullOrEmpty(obj.Comment) ? null : obj.Comment);
 			dao.DefaultValue = obj.DefaultValue;
@@ -52,7 +52,7 @@ namespace Microservices.Bus.Channels
 			return dao;
 		}
 
-		public static ChannelInfoProperty ToObj(this DAO.ChannelProperty dao)
+		public static ChannelInfoProperty ToObj(this DAO.ChannelInfoProperty dao)
 		{
 			if (dao == null)
 				return null;

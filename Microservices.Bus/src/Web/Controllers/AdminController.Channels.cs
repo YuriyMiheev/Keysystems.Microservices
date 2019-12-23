@@ -44,7 +44,6 @@ namespace Microservices.Bus.Web.Controllers
 					//channelInfo.Online,
 					CanSyncContacts = description.CanSyncContacts,
 					LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
-					//IconCss = (string)null //(IconFileExist(channelInfo.Description) ? null : (channelInfo.Description != null ? channelInfo.Description.IconCss : null))
 				};
 			}).ToList();
 
@@ -80,7 +79,6 @@ namespace Microservices.Bus.Web.Controllers
 						new
 						{
 							desc.Provider,
-							//IconCss = (string)null, //(IconFileExist(desc) ? null : desc.IconCss),
 							desc.Comment,
 							Disabled = (desc.Provider == "SYSTEM" && systemExist || desc.Provider != "SYSTEM" && !systemExist)
 						}
