@@ -2,7 +2,7 @@
 using System.Linq;
 using Microservices.Bus.Addins;
 using Microservices.Bus.Channels;
-
+using Microservices.Channels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Microservices.Bus.Web.Controllers
@@ -22,7 +22,8 @@ namespace Microservices.Bus.Web.Controllers
 
 			var channels = runtimeChannels.Select(context =>
 			{
-				ChannelInfo channelInfo = context.ChannelInfo;
+				ChannelInfo channelInfo = context.Info;
+				ChannelStatus channelStatus = context.Status;
 				IChannel channel = context.Channel;
 				ExceptionWrapper error = context.LastError.Wrap();
 				MicroserviceDescription description = _addinManager.FindMicroservice(channelInfo.Provider);
@@ -38,10 +39,9 @@ namespace Microservices.Bus.Web.Controllers
 					IsSystem = channelInfo.IsSystem(),
 					channelInfo.Enabled,
 					channelInfo.Comment,
-					Opened = (channel != null ? channel.IsOpened : false),
-					//channelInfo.Opened,
-					//channelInfo.Running,
-					//channelInfo.Online,
+					channelStatus.Opened,
+					channelStatus.Running,
+					channelStatus.Online,
 					CanSyncContacts = description.CanSyncContacts,
 					LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
 				};
@@ -74,7 +74,7 @@ namespace Microservices.Bus.Web.Controllers
 				if (_serviceInfo.StartupError != null)
 					return RedirectToAction("Home");
 
-				bool systemExist = runtimeChannels.Any(context => context.ChannelInfo.IsSystem());
+				bool systemExist = runtimeChannels.Any(context => context.Info.IsSystem());
 				var registeredChannels = _addinManager.RegisteredMicroservices.Select(desc =>
 						new
 						{

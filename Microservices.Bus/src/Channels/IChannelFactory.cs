@@ -2,6 +2,6 @@
 {
 	public interface IChannelFactory
 	{
-		IChannel CreateChannel(ChannelInfo channelInfo);
+		IChannel CreateChannel(ChannelInfo channelInfo, IMicroserviceClient client);
 	}
 }

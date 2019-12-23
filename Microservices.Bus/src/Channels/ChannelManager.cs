@@ -8,6 +8,7 @@ using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
 using Microservices.Bus.Logging;
 using Microservices.Channels.Configuration;
+using Microservices.Channels;
 
 namespace Microservices.Bus.Channels
 {
@@ -48,7 +49,7 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		public IChannelContext[] RuntimeChannels
 		{
-			get { return _channels.Values.OrderBy(context => context.ChannelInfo.LINK).ToArray(); }
+			get { return _channels.Values.OrderBy(context => context.Info.LINK).ToArray(); }
 		}
 		#endregion
 
@@ -123,14 +124,20 @@ namespace Microservices.Bus.Channels
 			_channels.Values.ToList().ForEach(context =>
 			//_channels.Values.AsParallel().ForAll(context =>
 			{
-				ChannelInfo channelInfo = context.ChannelInfo;
-				ChannelSettings settings = channelInfo.ChannelSettings();
-				if (settings.AutoOpen)
+				ChannelSettings channelSettings = context.Info.ChannelSettings();
+				if (channelSettings.AutoOpen)
 				{
 					try
 					{
 						IChannel channel = context.CreateChannelAsync().Result;
-						//channel.SetSettingsAsync();
+						IMicroserviceClient client = context.Client;
+
+						var microserviceSettings = new Dictionary<string, string>
+						{
+							{ ".RealAddress", "" }
+						};
+						client.SetSettingsAsync(microserviceSettings).Wait();
+
 						channel.OpenAsync().Wait();
 					}
 					catch (Exception ex)
@@ -146,9 +153,10 @@ namespace Microservices.Bus.Channels
 			_channels.Values.ToList().ForEach(context =>
 			//_channels.Values.AsParallel().ForAll(context =>
 			{
-				ChannelInfo channelInfo = context.ChannelInfo;
+				ChannelInfo channelInfo = context.Info;
+				ChannelStatus channelStatus = context.Status;
 				IChannel channel = context.Channel;
-				if (channel != null && channel.IsOpened)
+				if (channel != null && channelStatus.Opened)
 				{
 					ChannelSettings settings = channelInfo.ChannelSettings();
 					if (settings.AutoRun)

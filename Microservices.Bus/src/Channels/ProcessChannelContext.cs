@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
+using Microservices.Channels;
 
 namespace Microservices.Bus.Channels
 {
@@ -14,27 +15,27 @@ namespace Microservices.Bus.Channels
 		private readonly MicroserviceDescription _description;
 		private readonly IChannelFactory _factory;
 		private readonly IBusDataAdapter _dataAdapter;
+		private readonly IMicroserviceClient _client;
 		private Process _process;
 		private IChannel _channel;
 
-
-		public ProcessChannelContext(ChannelInfo channelInfo, MicroserviceDescription description, IChannelFactory factory, IBusDataAdapter dataAdapter)
+		public ProcessChannelContext(ChannelInfo channelInfo, IMicroserviceClient client, MicroserviceDescription description, IChannelFactory factory, IBusDataAdapter dataAdapter)
 		{
 			_channelInfo = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
 			_description = description ?? throw new ArgumentNullException(nameof(description));
 			_factory = factory ?? throw new ArgumentNullException(nameof(factory));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_client = client ?? throw new ArgumentNullException(nameof(client));
 		}
 
 
-		public ChannelInfo ChannelInfo { get => _channelInfo; }
-
-		public bool IsChannelCreated
-		{
-			get { return (_channel != null); }
-		}
+		public ChannelInfo Info { get => _channelInfo; }
 
 		public IChannel Channel { get => _channel; }
+
+		public ChannelStatus Status { get => _client.Status; }
+
+		public IMicroserviceClient Client { get => _client; }
 
 		/// <summary>
 		/// {Get,Set} Ошибка.
@@ -55,7 +56,7 @@ namespace Microservices.Bus.Channels
 
 					if (_process == null)
 					{
-						
+
 						var startInfo = new ProcessStartInfo()
 						{
 							FileName = System.IO.Path.Combine(_description.BinPath, _description.Type),
@@ -75,7 +76,9 @@ namespace Microservices.Bus.Channels
 						_dataAdapter.SaveChannelInfo(_channelInfo);
 					}
 
-					return _channel = _factory.CreateChannel(_channelInfo);
+					_channel = _factory.CreateChannel(_channelInfo, _client);
+					_client.Status.Created = true;
+					return _channel;
 				}, cancellationToken);
 		}
 

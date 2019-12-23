@@ -16,8 +16,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microservices.Bus.Channels
 {
-	public class ChannelHubClient : IChannelHubClient
+	public class ChannelHubClient : IMicroserviceClient
 	{
+		private UriBuilder _hubUrl;
 		private HubConnection _hubConnection;
 		private IDisposable _logHandler;
 		private IDisposable _messagesHandler;
@@ -28,25 +29,29 @@ namespace Microservices.Bus.Channels
 
 
 		#region Ctor
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="url"></param>
-		public ChannelHubClient(string serviceUrl)
-			: this(new Uri(serviceUrl))
-		{ }
-
-		public ChannelHubClient(Uri serviceUrl)
+		public ChannelHubClient()
 		{
-			this.HubUrl = new UriBuilder(serviceUrl);
-			this.ChannelInfo = new Dictionary<string, object>();
-			this.ChannelStatus = new ChannelStatus();
+			this.Info = new Dictionary<string, object>();
 		}
 		#endregion
 
 
 		#region Properties
-		public UriBuilder HubUrl { get; private set; }
+		public string Url
+		{
+			get => _hubUrl.ToString();
+			set => _hubUrl = new UriBuilder(value);
+		}
+
+		/// <summary>
+		/// {Get}
+		/// </summary>
+		public IDictionary<string, object> Info { get; }
+
+		/// <summary>
+		/// {Get,Set}
+		/// </summary>
+		public ChannelStatus Status { get; set; }
 
 		public IWebProxy WebProxy { get; set; }
 
@@ -60,31 +65,21 @@ namespace Microservices.Bus.Channels
 				return (_hubConnection.State == HubConnectionState.Connected);
 			}
 		}
-
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public IDictionary<string, object> ChannelInfo { get; }
-
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public ChannelStatus ChannelStatus { get; }
 		#endregion
 
 
 		#region Events
-		public event Action<IChannelHubClient> Connected;
+		public event Action<IMicroserviceClient> Connected;
 
-		public event Func<IChannelHubClient, Exception, Task> Reconnecting;
+		public event Func<IMicroserviceClient, Exception, Task> Reconnecting;
 
-		public event Func<IChannelHubClient, string, Task> Reconnected;
+		public event Func<IMicroserviceClient, string, Task> Reconnected;
 
-		public event Func<IChannelHubClient, Exception, Task> Disconnected;
+		public event Func<IMicroserviceClient, Exception, Task> Disconnected;
 
-		public event Action<IChannelHubClient, IDictionary<string, object>> LogReceived;
+		public event Action<IMicroserviceClient, IDictionary<string, object>> LogReceived;
 
-		public event Action<IChannelHubClient, Message[]> MessagesReceived;
+		public event Action<IMicroserviceClient, Message[]> MessagesReceived;
 		#endregion
 
 
@@ -92,11 +87,11 @@ namespace Microservices.Bus.Channels
 		public async Task LoginAsync(string accessKey, CancellationToken cancellationToken = default)
 		{
 			if (this.IsConnected)
-				throw new InvalidOperationException($"Подключение к хабу {this.HubUrl} уже выполнено.");
+				throw new InvalidOperationException($"Подключение к хабу {this.Url} уже выполнено.");
 
-			this.ChannelInfo.Clear();
+			this.Info.Clear();
 
-			var uri = new UriBuilder(this.HubUrl.Uri);
+			var uri = new UriBuilder(_hubUrl.Uri);
 			uri.Path += "ChannelHub";
 
 			_hubConnection = CreateConnection(uri.Uri);
@@ -111,7 +106,7 @@ namespace Microservices.Bus.Channels
 
 			foreach (string key in result.Keys)
 			{
-				this.ChannelInfo[key] = result[key];
+				this.Info[key] = result[key];
 			}
 
 			this.Connected?.Invoke(this);
@@ -353,7 +348,7 @@ namespace Microservices.Bus.Channels
 			hubConnection.Reconnecting += (error) => this.Reconnecting?.Invoke(this, error);
 			hubConnection.Reconnected += (connectionId) =>
 				{
-					this.ChannelInfo["ConnectionId"] = connectionId;
+					this.Info["ConnectionId"] = connectionId;
 					return this.Reconnected?.Invoke(this, connectionId);
 				};
 			return hubConnection;
@@ -362,7 +357,7 @@ namespace Microservices.Bus.Channels
 		private void CheckConnected()
 		{
 			if (!this.IsConnected)
-				throw new InvalidOperationException($"Отсутствует подключение к хабу: {this.HubUrl}");
+				throw new InvalidOperationException($"Отсутствует подключение к хабу: {this.Url}");
 		}
 
 		void OnReceiveMessages(Message[] messages)
@@ -397,14 +392,14 @@ namespace Microservices.Bus.Channels
 
 			switch (statusName)
 			{
-				case nameof(this.ChannelStatus.Opened):
-					this.ChannelStatus.Opened = (bool)statusValue;
+				case nameof(this.Status.Opened):
+					this.Status.Opened = (bool)statusValue;
 					break;
-				case nameof(this.ChannelStatus.Running):
-					this.ChannelStatus.Running = (bool)statusValue;
+				case nameof(this.Status.Running):
+					this.Status.Running = (bool)statusValue;
 					break;
-				case nameof(this.ChannelStatus.Online):
-					this.ChannelStatus.Online = (bool?)statusValue;
+				case nameof(this.Status.Online):
+					this.Status.Online = (bool?)statusValue;
 					break;
 			}
 		}

@@ -11,75 +11,63 @@ namespace Microservices.Bus.Channels
 	public class SignalRHubChannel : IChannel, IDisposable
 	{
 		private readonly ChannelInfo _channelInfo;
-		private readonly IChannelHubClient _hub;
+		private readonly IMicroserviceClient _hubClient;
 
 
-		public SignalRHubChannel(ChannelInfo channelInfo)
+		public SignalRHubChannel(ChannelInfo channelInfo, IMicroserviceClient hubClient)
 		{
-			_channelInfo = channelInfo;
-			_hub = new ChannelHubClient(channelInfo.SID);
-		}
-
-
-		public bool IsOpened
-		{
-			get
-			{
-				if (_hub == null)
-					return false;
-
-				return _hub.IsConnected;
-			}
+			_channelInfo = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
+			_hubClient = hubClient ?? throw new ArgumentNullException(nameof(hubClient));
 		}
 
 
 		public async Task OpenAsync(CancellationToken cancellationToken = default)
 		{
-			await _hub.LoginAsync(_channelInfo.PasswordIn, cancellationToken);
+			await _hubClient.LoginAsync(_channelInfo.PasswordIn, cancellationToken);
 		}
 
 		public async Task CloseAsync(CancellationToken cancellationToken = default)
 		{
-			await _hub.CloseChannelAsync();
-			_hub.Dispose();
+			await _hubClient.CloseChannelAsync();
+			_hubClient.Dispose();
 		}
 
 		public async Task RunAsync(CancellationToken cancellationToken = default)
 		{
-			await _hub.RunChannelAsync();
+			await _hubClient.RunChannelAsync();
 		}
 
 		public async Task StopAsync(CancellationToken cancellationToken = default)
 		{
-			await _hub.StopChannelAsync();
+			await _hubClient.StopChannelAsync();
 		}
 
 
 		public bool TryConnect(out Exception error)
 		{
-			error = _hub.TryConnectAsync().Result;
+			error = _hubClient.TryConnectAsync().Result;
 			return (error == null);
 		}
 
 		public void CheckState()
 		{
-			_hub.CheckStateAsync().Wait();
+			_hubClient.CheckStateAsync().Wait();
 		}
 
 		public void Ping()
 		{
-			_hub.PingAsync().Wait();
+			_hubClient.PingAsync().Wait();
 		}
 
 		public void Repair()
 		{
-			_hub.RepairAsync().Wait();
+			_hubClient.RepairAsync().Wait();
 		}
 
 
 		public void DeleteMessage(int msgLink)
 		{
-			_hub.DeleteMessageAsync(msgLink).Wait();
+			_hubClient.DeleteMessageAsync(msgLink).Wait();
 		}
 
 		public void DeleteMessageBody(int msgLink)
@@ -92,36 +80,36 @@ namespace Microservices.Bus.Channels
 
 		public void DeleteMessages(IEnumerable<int> msgLinks)
 		{
-			_hub.DeleteMessagesAsync(msgLinks).Wait();
+			_hubClient.DeleteMessagesAsync(msgLinks).Wait();
 		}
 
 		public Message FindMessage(string msgGuid, string direction)
 		{
-			return _hub.FindMessageByGuidAsync(msgGuid, direction).Result;
+			return _hubClient.FindMessageByGuidAsync(msgGuid, direction).Result;
 		}
 
 		public List<Message> GetMessages(string status, int? skip, int? take, out int totalCount)
 		{
-			(List<Message>, int) result = _hub.GetMessagesAsync(status, skip, take).Result;
+			(List<Message>, int) result = _hubClient.GetMessagesAsync(status, skip, take).Result;
 			totalCount = result.Item2;
 			return result.Item1;
 		}
 
 		public List<Message> GetLastMessages(string status, int? skip, int? take, out int totalCount)
 		{
-			(List<Message>, int) result = _hub.GetLastMessagesAsync(status, skip, take).Result;
+			(List<Message>, int) result = _hubClient.GetLastMessagesAsync(status, skip, take).Result;
 			totalCount = result.Item2;
 			return result.Item1;
 		}
 
 		public Message GetMessage(int msgLink)
 		{
-			return _hub.GetMessageAsync(msgLink).Result;
+			return _hubClient.GetMessageAsync(msgLink).Result;
 		}
 
 		public MessageBody GetMessageBody(int msgLink)
 		{
-			Message msg = _hub.GetMessageAsync(msgLink).Result;
+			Message msg = _hubClient.GetMessageAsync(msgLink).Result;
 			return null;
 		}
 
@@ -139,7 +127,7 @@ namespace Microservices.Bus.Channels
 
 		public void SaveMessage(Message msg)
 		{
-			_hub.SaveMessageAsync(msg).Wait();
+			_hubClient.SaveMessageAsync(msg).Wait();
 		}
 
 		public void SaveMessageBody(MessageBody body)
@@ -166,6 +154,7 @@ namespace Microservices.Bus.Channels
 				if (disposing)
 				{
 					// TODO: dispose managed state (managed objects).
+					_hubClient.Dispose();
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

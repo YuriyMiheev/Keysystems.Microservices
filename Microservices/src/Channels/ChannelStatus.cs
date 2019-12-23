@@ -12,6 +12,22 @@ namespace Microservices.Channels
 		/// </summary>
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		private bool _created;
+		/// <summary>
+		/// {Get}
+		/// </summary>
+		public bool Created
+		{
+			get { return _created; }
+			set
+			{
+				if (_created != value)
+				{
+					_created = value;
+					this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Created)));
+				}
+			}
+		}
 
 		private bool _opened;
 		/// <summary>

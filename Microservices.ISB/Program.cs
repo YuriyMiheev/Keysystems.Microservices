@@ -51,6 +51,7 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<ILogger, BusLogger>();
 						services.AddSingleton<IAuthManager, AuthManager>();
 						services.AddSingleton<IChannelManager, ChannelManager>();
+						services.AddSingleton<IMicroserviceClientFactory, MicroserviceClientFactory>();
 						services.AddSingleton<IChannelFactory, ChannelFactory>();
 						services.AddSingleton<IChannelContextFactory, ChannelContextFactory>();
 						services.AddSingleton<AddinManagerOptions>(serviceProvider =>
@@ -61,10 +62,6 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<IAddinManager, AddinManager>();
 						services.AddSingleton<ILicenseManager, LicenseManager>();
 						services.AddSingleton<ServiceInfo>();
-						//services.AddSingleton<IMessageService>(serviceProvider =>
-						//	{
-						//		return new MessageService(serviceProvider);
-						//	});
 						services.AddSingleton<IMessageService, MessageService>();
 						services.AddHostedService<IMessageService>(serviceProvider =>
 							{

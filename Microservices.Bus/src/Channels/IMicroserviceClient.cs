@@ -11,37 +11,37 @@ using Microservices.Data;
 
 namespace Microservices.Bus.Channels
 {
-	public interface IChannelHubClient : IDisposable
+	public interface IMicroserviceClient : IDisposable
 	{
 
 		#region Events
 		/// <summary>
 		/// Подключение установлено.
 		/// </summary>
-		event Action<IChannelHubClient> Connected;
+		event Action<IMicroserviceClient> Connected;
 
-		event Func<IChannelHubClient, Exception, Task> Reconnecting;
+		event Func<IMicroserviceClient, Exception, Task> Reconnecting;
 
-		event Func<IChannelHubClient, string, Task> Reconnected;
+		event Func<IMicroserviceClient, string, Task> Reconnected;
 
-		event Func<IChannelHubClient, Exception, Task> Disconnected;
+		event Func<IMicroserviceClient, Exception, Task> Disconnected;
 		
-		event Action<IChannelHubClient, IDictionary<string, object>> LogReceived;
+		event Action<IMicroserviceClient, IDictionary<string, object>> LogReceived;
 
-		event Action<IChannelHubClient, Message[]> MessagesReceived;
+		event Action<IMicroserviceClient, Message[]> MessagesReceived;
 		#endregion
 
 
 		#region Properties
-		UriBuilder HubUrl { get; }
+		string Url { get; set; }
 
+		IDictionary<string, object> Info { get; }
+
+		ChannelStatus Status { get; set; }
+		
 		IWebProxy WebProxy { get; set; }
 
 		bool IsConnected { get; }
-
-		IDictionary<string, object> ChannelInfo { get; }
-
-		ChannelStatus ChannelStatus { get; }
 		#endregion
 
 

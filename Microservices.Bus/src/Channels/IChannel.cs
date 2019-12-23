@@ -12,55 +12,6 @@ namespace Microservices.Bus.Channels
 	public interface IChannel : IMessageRepository, IDisposable
 	{
 
-		#region Properties
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//string Id { get; }
-
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//int LINK { get; }
-
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//string Provider { get; }
-
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//string VirtAddress { get; }
-
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//ChannelSettings ChannelSettings { get; }
-
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//MessageSettings MessageSettings { get; }
-
-		/// <summary>
-		/// {Get} Канал открыт.
-		/// </summary>
-		bool IsOpened { get; }
-
-
-		///// <summary>
-		///// {Get} Канал разрушен.
-		///// </summary>
-		//bool IsDisposed { get; }
-
-		///// <summary>
-		///// {Get}
-		///// </summary>
-		//bool Enabled { get; }
-		#endregion
-
-
 		//#region Info
 		///// <summary>
 		///// Обновить информацию о канале.
@@ -78,12 +29,6 @@ namespace Microservices.Bus.Channels
 
 
 		#region Control
-		///// <summary>
-		///// 
-		///// </summary>
-		///// <returns></returns>
-		//IChannelRuntime CreateRuntime();
-
 		/// <summary>
 		/// Открыть канал.
 		/// </summary>

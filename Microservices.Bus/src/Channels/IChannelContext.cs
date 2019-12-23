@@ -2,15 +2,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microservices.Channels;
+
 namespace Microservices.Bus.Channels
 {
 	public interface IChannelContext : IDisposable
 	{
-		ChannelInfo ChannelInfo { get; }
+		ChannelInfo Info { get; }
 
-		bool IsChannelCreated { get; }
+		ChannelStatus Status { get; }
 
-		IChannel Channel { get ; }
+		IChannel Channel { get; }
+
+		IMicroserviceClient Client { get; }
 
 		/// <summary>
 		/// {Get,Set} Ошибка.
