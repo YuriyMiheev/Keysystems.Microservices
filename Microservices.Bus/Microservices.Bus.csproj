@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Addins\IMicroserviceDescription.cs" />
     <Compile Remove="src\Channels\ChannelDescriptionProperty.cs" />
     <Compile Remove="src\Channels\ChannelDescriptionPropertyExtensions.cs" />
     <Compile Remove="src\Channels\ChannelInfoUpdateParams.cs" />

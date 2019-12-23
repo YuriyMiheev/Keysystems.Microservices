@@ -5,7 +5,7 @@ namespace Microservices.Configuration
 {
 	[DebuggerDisplay("{this.Value}")]
 	[Serializable]
-	public class AppConfigSetting
+	public class AppConfigSetting : IAppConfigSetting
 	{
 		public AppConfigSetting()
 		{ }
@@ -25,7 +25,7 @@ namespace Microservices.Configuration
 
 		public string Format { get; set; }
 
-		public string Default { get; set; }
+		public string DefaultValue { get; set; }
 
 		public string Comment { get; set; }
 

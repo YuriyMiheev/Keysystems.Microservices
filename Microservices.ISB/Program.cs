@@ -53,14 +53,19 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<IChannelManager, ChannelManager>();
 						services.AddSingleton<IChannelFactory, ChannelFactory>();
 						services.AddSingleton<IChannelContextFactory, ChannelContextFactory>();
+						services.AddSingleton<AddinManagerOptions>(serviceProvider =>
+							{
+								var busSettings = serviceProvider.GetRequiredService<BusSettings>();
+								return new AddinManagerOptions { AddinsDirectory = busSettings.AddinsDir, ConfigFileName = "appsettings.config" };
+							});
 						services.AddSingleton<IAddinManager, AddinManager>();
 						services.AddSingleton<ILicenseManager, LicenseManager>();
 						services.AddSingleton<ServiceInfo>();
-						//services.AddSingleton<IServiceInfoManager, ServiceInfoManager>();
-						services.AddSingleton<IMessageService>(serviceProvider =>
-							{
-								return new MessageService(serviceProvider);
-							});
+						//services.AddSingleton<IMessageService>(serviceProvider =>
+						//	{
+						//		return new MessageService(serviceProvider);
+						//	});
+						services.AddSingleton<IMessageService, MessageService>();
 						services.AddHostedService<IMessageService>(serviceProvider =>
 							{
 								return serviceProvider.GetRequiredService<IMessageService>();

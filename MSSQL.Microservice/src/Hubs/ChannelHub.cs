@@ -43,7 +43,7 @@ namespace MSSQL.Microservice.Hubs
 		//[HubMethodName("")]
 		public IDictionary<string, object> Login(string accessKey)
 		{
-			MainSettings settings = _appConfig.MainSettings();
+			MainChannelSettings settings = _appConfig.MainChannelSettings();
 			if ((accessKey ?? "") == settings.PasswordIn)
 			{
 				string connectionId = this.Context.ConnectionId;

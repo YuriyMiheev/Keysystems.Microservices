@@ -1,8 +1,6 @@
-﻿using Microservices.Configuration;
-
-namespace Microservices.Bus.Channels
+﻿namespace Microservices.Bus.Addins
 {
-	public static class ChannelDescriptionExtensions
+	public static class MicroserviceDescriptionExtensions
 	{
 		public static MicroserviceDescriptionProperty GetProperty(this MicroserviceDescription description, string propName)
 		{

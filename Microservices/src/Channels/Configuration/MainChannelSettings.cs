@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microservices.Configuration;
 
@@ -8,7 +7,7 @@ namespace Microservices.Channels.Configuration
 	/// <summary>
 	/// 
 	/// </summary>
-	public class MainSettings : AppSettingsBase
+	public class MainChannelSettings : AppSettingsBase, IMainChannelSettings
 	{
 		public const string TAG_PREFIX = ".";
 
@@ -18,7 +17,7 @@ namespace Microservices.Channels.Configuration
 		/// 
 		/// </summary>
 		/// <param name="configuration"></param>
-		public MainSettings(IDictionary<string, AppConfigSetting> appSettings)
+		public MainChannelSettings(IDictionary<string, AppConfigSetting> appSettings)
 			: base(TAG_PREFIX, appSettings)
 		{ }
 		#endregion
@@ -30,7 +29,7 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Provider
 		{
-			get { return Parser.ParseString(GetValue(".Provider"), ""); }
+			get => Parser.ParseString(GetValue(".Provider"), "");
 		}
 
 		/// <summary>
@@ -38,48 +37,48 @@ namespace Microservices.Channels.Configuration
 		/// </summary>
 		public string Type
 		{
-			get { return Parser.ParseString(GetValue(".Type"), ""); }
+			get => Parser.ParseString(GetValue(".Type"), "");
 		}
 
-		/// <summary>
-		/// {Get} Версия.
-		/// </summary>
-		public string Version
-		{
-			get { return Parser.ParseString(GetValue(".Version"), ""); }
-		}
+		///// <summary>
+		///// {Get} Версия.
+		///// </summary>
+		//public string Version
+		//{
+		//	get => Parser.ParseString(GetValue(".Version"), "");
+		//}
 
 		/// <summary>
 		/// {Get} Комментарий.
 		/// </summary>
 		public string Comment
 		{
-			get { return Parser.ParseString(GetValue(".Comment"), ""); }
+			get => Parser.ParseString(GetValue(".Comment"), "");
 		}
 
-		/// <summary>
-		/// {Get} Имя файла иконки.
-		/// </summary>
-		public string Icon
-		{
-			get { return Parser.ParseString(GetValue(".Icon"), "favicon.png"); }
-		}
+		///// <summary>
+		///// {Get} Имя файла иконки.
+		///// </summary>
+		//public string Icon
+		//{
+		//	get => Parser.ParseString(GetValue(".Icon"), "favicon.png");
+		//}
 
-		/// <summary>
-		/// {Get} Может обновлять список контактов.
-		/// </summary>
-		public bool CanSyncContacts
-		{
-			get { return Parser.ParseBool(GetValue(".CanSyncContacts"), false); }
-		}
+		///// <summary>
+		///// {Get} Может обновлять список контактов.
+		///// </summary>
+		//public bool CanSyncContacts
+		//{
+		//	get { return Parser.ParseBool(GetValue(".CanSyncContacts"), false); }
+		//}
 
-		/// <summary>
-		/// {Get} Поддержка множества экземпляров.
-		/// </summary>
-		public bool AllowMultipleInstances
-		{
-			get { return Parser.ParseBool(GetValue(".AllowMultipleInstances"), false); }
-		}
+		///// <summary>
+		///// {Get} Поддержка множества экземпляров.
+		///// </summary>
+		//public bool AllowMultipleInstances
+		//{
+		//	get { return Parser.ParseBool(GetValue(".AllowMultipleInstances"), false); }
+		//}
 
 		public string Name
 		{
@@ -101,9 +100,9 @@ namespace Microservices.Channels.Configuration
 			get { return Parser.ParseString(GetValue(".SID"), ""); }
 		}
 
-		public TimeSpan Timeout
+		public int Timeout
 		{
-			get { return Parser.ParseTime(GetValue(".Timeout"), TimeSpan.FromSeconds(30)).Value; }
+			get { return Parser.ParseInt(GetValue(".Timeout"), 30); }
 		}
 
 		public string PasswordIn

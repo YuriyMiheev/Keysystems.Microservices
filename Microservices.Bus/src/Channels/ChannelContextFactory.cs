@@ -1,16 +1,20 @@
 ﻿using System;
+
+using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
 
 namespace Microservices.Bus.Channels
 {
 	public class ChannelContextFactory : IChannelContextFactory
 	{
+		private readonly IAddinManager _addinManager;
 		private readonly IChannelFactory _factory;
 		private readonly IBusDataAdapter _dataAdapter;
 
 
-		public ChannelContextFactory(IChannelFactory factory, IBusDataAdapter dataAdapter)
+		public ChannelContextFactory(IAddinManager addinManager, IChannelFactory factory, IBusDataAdapter dataAdapter)
 		{
+			_addinManager = addinManager ?? throw new ArgumentNullException(nameof(addinManager));
 			_factory = factory ?? throw new ArgumentNullException(nameof(factory));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 		}
@@ -29,7 +33,8 @@ namespace Microservices.Bus.Channels
 			#endregion
 
 			//channelInfo.Description.Type
-			return new ProcessChannelContext(channelInfo, _factory, _dataAdapter);
+			MicroserviceDescription description = _addinManager.FindMicroservice(channelInfo.Provider);
+			return new ProcessChannelContext(channelInfo, description, _factory, _dataAdapter);
 		}
 	}
 }

@@ -12,14 +12,14 @@ namespace Microservices.Bus.Addins
 {
 	public class AddinManager : IAddinManager
 	{
-		private readonly string _addinsDir;
+		private readonly AddinManagerOptions _options;
 		private readonly ConcurrentDictionary<string, MicroserviceDescription> _registeredMicroservices;
 
 
 		#region Ctor
-		public AddinManager(BusSettings busSettings)
+		public AddinManager(AddinManagerOptions options)
 		{
-			_addinsDir = busSettings.AddinsDir;
+			_options = options ?? throw new ArgumentNullException(nameof(options));
 			_registeredMicroservices = new ConcurrentDictionary<string, MicroserviceDescription>();
 		}
 		#endregion
@@ -38,9 +38,9 @@ namespace Microservices.Bus.Addins
 		{
 			var errors = new List<Exception>();
 
-			List<string> addinDirs = Directory.GetDirectories(_addinsDir, "*.Addin", SearchOption.TopDirectoryOnly).ToList();
-			//addinDirs.ForEach(dir =>
-			addinDirs.AsParallel().ForAll(dir =>
+			List<string> addinDirs = Directory.GetDirectories(_options.AddinsDirectory, "*.Addin", SearchOption.TopDirectoryOnly).ToList();
+			addinDirs.ForEach(dir =>
+			//addinDirs.AsParallel().ForAll(dir =>
 				{
 					try
 					{
@@ -85,8 +85,8 @@ namespace Microservices.Bus.Addins
 		#region Helpers
 		private MicroserviceDescription LoadAddin(string dir)
 		{
-			string configFile = Path.Combine(dir, "appsettings.config");
-			using var appConfguration = new XmlConfigFileConfigurationProvider(configFile);
+			string configFilePath = Path.Combine(dir, _options.ConfigFileName);
+			using var appConfguration = new XmlConfigFileConfigurationProvider(configFilePath);
 			appConfguration.Load();
 
 			var description = new MicroserviceDescription(appConfguration.GetAppSettings());

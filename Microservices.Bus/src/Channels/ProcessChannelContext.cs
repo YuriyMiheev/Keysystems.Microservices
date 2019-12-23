@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
 
 namespace Microservices.Bus.Channels
@@ -10,15 +11,17 @@ namespace Microservices.Bus.Channels
 	public class ProcessChannelContext : IChannelContext, IDisposable
 	{
 		private readonly ChannelInfo _channelInfo;
+		private readonly MicroserviceDescription _description;
 		private readonly IChannelFactory _factory;
 		private readonly IBusDataAdapter _dataAdapter;
 		private Process _process;
 		private IChannel _channel;
 
 
-		public ProcessChannelContext(ChannelInfo channelInfo, IChannelFactory factory, IBusDataAdapter dataAdapter)
+		public ProcessChannelContext(ChannelInfo channelInfo, MicroserviceDescription description, IChannelFactory factory, IBusDataAdapter dataAdapter)
 		{
 			_channelInfo = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
+			_description = description ?? throw new ArgumentNullException(nameof(description));
 			_factory = factory ?? throw new ArgumentNullException(nameof(factory));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 		}
@@ -46,15 +49,16 @@ namespace Microservices.Bus.Channels
 
 			return await Task<IChannel>.Run(() =>
 				{
-					ChannelProperty prop = _channelInfo.FindProperty("X.ProcessId");
+					ChannelInfoProperty prop = _channelInfo.FindProperty("X.ProcessId");
 					if (prop != null && Int32.TryParse(prop.Value, out int processId))
 						_process = Process.GetProcesses().FindProcessById(processId);
 
 					if (_process == null)
 					{
+						
 						var startInfo = new ProcessStartInfo()
 						{
-							FileName = System.IO.Path.Combine(_channelInfo.Description.BinPath, _channelInfo.Description.Type),
+							FileName = System.IO.Path.Combine(_description.BinPath, _description.Type),
 							//UseShellExecute = false,
 							CreateNoWindow = true,
 							Arguments = $"--Urls {_channelInfo.SID}"
@@ -63,7 +67,7 @@ namespace Microservices.Bus.Channels
 
 						if (prop == null)
 						{
-							prop = new ChannelProperty() { Name = "X.ProcessId" };
+							prop = new ChannelInfoProperty() { Name = "X.ProcessId" };
 							_channelInfo.AddNewProperty(prop);
 						}
 

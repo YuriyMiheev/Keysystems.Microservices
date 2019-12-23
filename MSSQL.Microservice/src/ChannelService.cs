@@ -32,7 +32,7 @@ namespace MSSQL.Microservice
 		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
-		private readonly MainSettings _mainSettings;
+		private readonly MainChannelSettings _mainChannelSettings;
 		private readonly ChannelSettings _channelSettings;
 		private readonly DatabaseSettings _databaseSettings;
 		private readonly MessageSettings _messageSettings;
@@ -58,14 +58,14 @@ namespace MSSQL.Microservice
 			_scanner.NewMessages += Scanner_NewMessages;
 			_channelStatus.PropertyChanged += ChannelStatus_Changed;
 
-			_mainSettings = _appConfig.MainSettings();
+			_mainChannelSettings = _appConfig.MainChannelSettings();
 			_channelSettings = _appConfig.ChannelSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();
 			_messageSettings = _appConfig.MessageSettings();
 			//_serviceSettings = _appConfig.ServiceSettings();
 
 			this.ProcessId = Process.GetCurrentProcess().Id;
-			this.VirtAddress = _mainSettings.VirtAddress;
+			this.VirtAddress = _mainChannelSettings.VirtAddress;
 		}
 		#endregion
 
@@ -171,37 +171,37 @@ namespace MSSQL.Microservice
 				}
 			}
 
-			void ResetSendingMessages()
-			{
-				try
-				{
-					string statusInfo = "Отправка сообщения была прервана.";
-					string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
-					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
-					int count = _dataAdapter.ExecuteUpdate(sql);
-					_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex);
-				}
-			}
+			//void ResetSendingMessages()
+			//{
+			//	try
+			//	{
+			//		string statusInfo = "Отправка сообщения была прервана.";
+			//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+			//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
+			//		int count = _dataAdapter.ExecuteUpdate(sql);
+			//		_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
+			//	}
+			//	catch (Exception ex)
+			//	{
+			//		_logger.LogError(ex);
+			//	}
+			//}
 
-			void ResetReceivingMessages()
-			{
-				try
-				{
-					string statusInfo = "Прием сообщения был прерван.";
-					string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
-					string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
-					int count = _dataAdapter.ExecuteUpdate(sql);
-					_logger.LogTrace($"Найдено непринятых сообщений: {count}");
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex);
-				}
-			}
+			//void ResetReceivingMessages()
+			//{
+			//	try
+			//	{
+			//		string statusInfo = "Прием сообщения был прерван.";
+			//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+			//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
+			//		int count = _dataAdapter.ExecuteUpdate(sql);
+			//		_logger.LogTrace($"Найдено непринятых сообщений: {count}");
+			//	}
+			//	catch (Exception ex)
+			//	{
+			//		_logger.LogError(ex);
+			//	}
+			//}
 
 			DeleteDeletedMessages();
 			//ResetSendingMessages();
@@ -696,7 +696,7 @@ namespace MSSQL.Microservice
 					_cancellationSource = new CancellationTokenSource();
 
 				_database.Schema = _databaseSettings.Schema;
-				_database.ConnectionString = _mainSettings.RealAddress;
+				_database.ConnectionString = _mainChannelSettings.RealAddress;
 				_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
 			}
 		}

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Microservices.Bus.Addins;
 using Microservices.Channels.Configuration;
 using Microservices.Configuration;
 
@@ -27,7 +28,7 @@ namespace Microservices.Bus.Channels
 			//this.Description = description;
 			//this.Provider = description.Provider;
 
-			IDictionary<string, ChannelProperty> properties = channelInfo.Properties;
+			IDictionary<string, ChannelInfoProperty> properties = channelInfo.Properties;
 			List<string> existProps = properties.Values.Select(p => p.Name).Where(prop => description.Properties.Values.Select(p => p.Name).Contains(prop)).ToList();
 			List<string> delProps = properties.Values.Select(p => p.Name).Where(prop => !description.Properties.Values.Select(p => p.Name).Contains(prop)).ToList();
 			List<string> newProps = description.Properties.Values.Select(p => p.Name).Where(prop => !properties.Values.Select(p => p.Name).Contains(prop)).ToList();
@@ -35,7 +36,7 @@ namespace Microservices.Bus.Channels
 			existProps.ForEach(p =>
 			{
 				MicroserviceDescriptionProperty dp = description.GetProperty(p);
-				ChannelProperty prop = channelInfo.GetProperty(p);
+				ChannelInfoProperty prop = channelInfo.GetProperty(p);
 				string value = prop.Value;
 				dp.CopyTo(prop);
 				prop.Value = value;
@@ -44,13 +45,13 @@ namespace Microservices.Bus.Channels
 			newProps.ForEach(p =>
 			{
 				MicroserviceDescriptionProperty dp = description.GetProperty(p);
-				var prop = new ChannelProperty();
+				var prop = new ChannelInfoProperty();
 				dp.CopyTo(prop);
 				channelInfo.AddNewProperty(prop);
 			});
 		}
 
-		public static ChannelProperty GetProperty(this ChannelInfo channelInfo, string propName)
+		public static ChannelInfoProperty GetProperty(this ChannelInfo channelInfo, string propName)
 		{
 			return channelInfo.Properties[propName];
 		}
@@ -60,7 +61,7 @@ namespace Microservices.Bus.Channels
 			channelInfo.Properties.Remove(propName);
 		}
 
-		public static void AddNewProperty(this ChannelInfo channelInfo, ChannelProperty prop)
+		public static void AddNewProperty(this ChannelInfo channelInfo, ChannelInfoProperty prop)
 		{
 			#region Validate parameters
 			if (prop == null)
@@ -82,7 +83,14 @@ namespace Microservices.Bus.Channels
 
 		public static ChannelSettings ChannelSettings(this ChannelInfo channelInfo)
 		{
-			return new ChannelSettings(channelInfo.Properties.ToAppSettings());
+			var appConfigSettings = new Dictionary<string, AppConfigSetting>();
+			foreach (ChannelInfoProperty channelProp in channelInfo.Properties.Values)
+			{
+				AppConfigSetting appConfigSetting = channelProp.ToAppConfigSetting();
+				appConfigSettings.Add(appConfigSetting.Name, appConfigSetting);
+			}
+
+			return new ChannelSettings(appConfigSettings);
 		}
 
 		public static DAO.ChannelInfo ToDao(this ChannelInfo obj)
@@ -103,10 +111,51 @@ namespace Microservices.Bus.Channels
 			dao.Provider = obj.Provider;
 			dao.RealAddress = obj.RealAddress;
 			dao.SID = (String.IsNullOrEmpty(obj.SID) ? null : obj.SID);
-			dao.Timeout = (obj.Timeout.TotalSeconds == 0 ? new Nullable<int>() : (int)obj.Timeout.TotalSeconds);
+			dao.Timeout = obj.Timeout;
 			dao.VirtAddress = obj.VirtAddress;
 
 			return dao;
+		}
+
+		public static ChannelInfo ToObj(this DAO.ChannelInfo dao)
+		{
+			if (dao == null)
+				return null;
+
+			var obj = new ChannelInfo();
+			dao.CloneTo(obj);
+
+			return obj;
+		}
+
+		public static void CloneTo(this DAO.ChannelInfo dao, ChannelInfo obj)
+		{
+			#region Validate parameters
+			if (dao == null)
+				throw new ArgumentNullException("dao");
+
+			if (obj == null)
+				throw new ArgumentNullException("obj");
+			#endregion
+
+			//obj.AccessMode = dao.AccessMode;
+			obj.Comment = dao.Comment;
+			obj.Enabled = (dao.Enabled == null ? false : dao.Enabled.Value);
+			obj.LINK = dao.LINK;
+			obj.Name = dao.Name;
+			obj.PasswordIn = dao.PasswordIn;
+			obj.PasswordOut = dao.PasswordOut;
+			obj.Properties.Clear();
+			foreach (DAO.ChannelProperty prop in dao.Properties)
+			{
+				obj.Properties.Add(prop.Name, prop.ToObj());
+			}
+			//obj.Properties = dao.Properties.Select(prop => prop.ToObj()).ToArray();
+			obj.Provider = dao.Provider;
+			obj.RealAddress = dao.RealAddress;
+			obj.SID = dao.SID;
+			obj.Timeout = (dao.Timeout == null ? 0 : dao.Timeout.Value);
+			obj.VirtAddress = dao.VirtAddress;
 		}
 
 		public static bool IsSystem(this ChannelInfo channelInfo)
@@ -117,6 +166,14 @@ namespace Microservices.Bus.Channels
 		public static void SetRealAddress(this ChannelInfo channelInfo, string realAddress)
 		{
 			channelInfo.Properties[".RealAddress"].Value = realAddress;
+		}
+
+		public static ChannelInfoProperty FindProperty(this ChannelInfo channelInfo, string propName)
+		{
+			if (channelInfo.Properties.ContainsKey(propName))
+				return channelInfo.Properties[propName];
+			else
+				return null;
 		}
 	}
 }

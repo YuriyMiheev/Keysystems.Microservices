@@ -82,7 +82,7 @@ namespace Microservices.Configuration
 				bool readOnly = Parser.ParseBool(node.Attributes["readonly"]?.Value, false);
 				bool secret = Parser.ParseBool(node.Attributes["secret"]?.Value, false);
 
-				var setting = new AppConfigSetting(key, value) { Type = type, Format = format, Default = defaultValue, Comment = comment, ReadOnly = readOnly, Secret = secret };
+				var setting = new AppConfigSetting(key, value) { Type = type, Format = format, DefaultValue = defaultValue, Comment = comment, ReadOnly = readOnly, Secret = secret };
 				_appSettings.Add(setting.Name, setting);
 
 				//this.Data.Add(key, value);

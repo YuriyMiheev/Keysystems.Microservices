@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-
+using Microservices.Bus.Addins;
 using Microservices.Bus.Channels;
 
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +25,7 @@ namespace Microservices.Bus.Web.Controllers
 				ChannelInfo channelInfo = context.ChannelInfo;
 				IChannel channel = context.Channel;
 				ExceptionWrapper error = context.LastError.Wrap();
+				MicroserviceDescription description = _addinManager.FindMicroservice(channelInfo.Provider);
 				return new
 				{
 					channelInfo.LINK,
@@ -41,7 +42,7 @@ namespace Microservices.Bus.Web.Controllers
 					//channelInfo.Opened,
 					//channelInfo.Running,
 					//channelInfo.Online,
-					channelInfo.CanSyncContacts,
+					CanSyncContacts = description.CanSyncContacts,
 					LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
 					//IconCss = (string)null //(IconFileExist(channelInfo.Description) ? null : (channelInfo.Description != null ? channelInfo.Description.IconCss : null))
 				};
