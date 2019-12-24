@@ -6,7 +6,7 @@ using Microservices.Configuration;
 namespace Microservices.Bus.Addins
 {
 	/// <summary>
-	/// Описание дополнения, загружаемого из конфиг файла.
+	/// Описание дополнения из конфиг файла.
 	/// </summary>
 	public class AddinDescription : IAddinDescription
 	{
@@ -22,7 +22,7 @@ namespace Microservices.Bus.Addins
 
 			foreach (KeyValuePair<string, AppConfigSetting> kvp in otherSettings)
 			{
-				AddinDescriptionProperty prop = kvp.Value.ToMicroserviceDescriptionProperty();
+				AddinDescriptionProperty prop = kvp.Value.ToDescriptionProperty();
 				this.Properties.Add(prop.Name, prop);
 			}
 		}
@@ -57,27 +57,27 @@ namespace Microservices.Bus.Addins
 
 		public bool CanSyncContacts
 		{
-			get { return Parser.ParseBool(GetValue(".CanSyncContacts"), false); }
+			get => Parser.ParseBool(GetValue(".CanSyncContacts"), false);
 		}
 
 		public bool AllowMultipleInstances
 		{
-			get { return Parser.ParseBool(GetValue(".AllowMultipleInstances"), false); }
+			get => Parser.ParseBool(GetValue(".AllowMultipleInstances"), false);
 		}
 
 		public string RealAddress
 		{
-			get { return Parser.ParseString(GetValue(".RealAddress"), ""); }
+			get => Parser.ParseString(GetValue(".RealAddress"), "");
 		}
 
 		public string SID
 		{
-			get { return Parser.ParseString(GetValue(".SID"), ""); }
+			get => Parser.ParseString(GetValue(".SID"), "");
 		}
 
 		public int Timeout
 		{
-			get { return Parser.ParseInt(GetValue(".Timeout"), 30); }
+			get => Parser.ParseInt(GetValue(".Timeout"), 30);
 		}
 
 		public string BinPath { get; set; }

@@ -9,6 +9,9 @@ using Microservices.Channels;
 
 namespace Microservices.Bus.Channels
 {
+	/// <summary>
+	/// Контекст канала, работающего в отдельном процессе.
+	/// </summary>
 	public class ProcessChannelContext : IChannelContext, IDisposable
 	{
 		private readonly IAddinDescription _description;
@@ -35,15 +38,12 @@ namespace Microservices.Bus.Channels
 
 		public IMicroserviceClient Client { get; }
 
-		/// <summary>
-		/// {Get,Set} Ошибка.
-		/// </summary>
 		public Exception LastError { get; set; }
 
 
-		public async Task ActivateAsync(CancellationToken cancellationToken = default)
+		public Task ActivateAsync(CancellationToken cancellationToken = default)
 		{
-			await Task.Run(() =>
+			return Task.Run(() =>
 				{
 					ChannelInfoProperty prop = this.Info.FindProperty("X.ProcessId");
 					if (prop != null && Int32.TryParse(prop.Value, out int processId))
@@ -77,26 +77,25 @@ namespace Microservices.Bus.Channels
 
 		public async Task TerminateChannelAsync(CancellationToken cancellationToken = default)
 		{
-			if (this.Channel != null)
+			//if (this.Channel != null)
+			//{
+			try
 			{
-				try
-				{
-					await this.Channel.CloseAsync(cancellationToken);
-					this.Channel.Dispose();
-				}
-				finally
-				{
-					this.Channel = null;
-					this.Status.Created = false;
+				await this.Channel.CloseAsync(cancellationToken);
+			}
+			finally
+			{
+				this.Channel.Dispose();
+				//this.Channel = null;
+				this.Status.Created = false;
 
-					if (_process != null)
-					{
-						_process.Kill(true);
-						_process.Dispose();
-						_process = null;
-					}
+				if (_process != null)
+				{
+					_process.Kill(true);
+					_process.Dispose();
 				}
 			}
+			//}
 		}
 
 
@@ -111,12 +110,12 @@ namespace Microservices.Bus.Channels
 			if (disposing)
 			{
 				// TODO: dispose managed state (managed objects).
-				if (this.Channel != null)
-				{
+				//if (this.Channel != null)
+				//{
 					this.Channel.Dispose();
-					this.Channel = null;
+					//this.Channel = null;
 					this.Status.Created = false;
-				}
+				//}
 
 				if (_process != null)
 					_process.Dispose();

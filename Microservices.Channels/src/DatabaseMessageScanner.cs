@@ -88,14 +88,13 @@ namespace Microservices.Channels
 		{
 			if (_started)
 			{
-				var messages = new List<Message>();
 				bool sending = false;
 
 				try
 				{
 					using IDataQuery dataQuery = _dataAdapter.OpenQuery();
 					var query = CreateOfflineSelectMessagesQuery();
-					messages = query.GetExecutableQueryOver(dataQuery.Session)
+					List<Message> messages = query.GetExecutableQueryOver(dataQuery.Session)
 						 .Take(_portion).List()
 						 .Select(msg => msg.ToObj()).ToList();
 

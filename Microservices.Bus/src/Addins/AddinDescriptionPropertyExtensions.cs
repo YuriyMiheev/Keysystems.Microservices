@@ -27,7 +27,7 @@ namespace Microservices.Bus.Addins
 		//	return mapper.Map<MicroserviceDescriptionProperty, AppConfigSetting>(descriptionProperty);
 		//}
 
-		public static AddinDescriptionProperty ToMicroserviceDescriptionProperty(this AppConfigSetting appConfigSetting)
+		public static AddinDescriptionProperty ToDescriptionProperty(this AppConfigSetting appConfigSetting)
 		{
 			if (appConfigSetting == null)
 				throw new ArgumentNullException(nameof(appConfigSetting));

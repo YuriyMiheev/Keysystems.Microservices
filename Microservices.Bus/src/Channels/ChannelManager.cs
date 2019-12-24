@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Microservices.Bus.Addins;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
 using Microservices.Bus.Logging;
-using Microservices.Channels.Configuration;
 using Microservices.Channels;
-using System.Threading.Tasks;
-using System.Threading;
+using Microservices.Channels.Configuration;
 
 namespace Microservices.Bus.Channels
 {
@@ -109,10 +108,10 @@ namespace Microservices.Bus.Channels
 
 						if (channelInfo.Enabled)
 						{
-							IChannelContext channel = _channelFactory.CreateChannel(channelInfo);
-							if (!_channels.TryAdd(channel.Info.VirtAddress, channel))
+							IChannelContext channelContext = _channelFactory.CreateChannel(channelInfo);
+							if (!_channels.TryAdd(channelContext.Info.VirtAddress, channelContext))
 							{
-								channel.Dispose();
+								channelContext.Dispose();
 								throw new InvalidOperationException($"Канал {channelInfo.VirtAddress} уже существует.");
 							}
 						}
@@ -129,27 +128,24 @@ namespace Microservices.Bus.Channels
 
 			void OpenChannels()
 			{
-				_channels.Values.ToList().ForEach(context =>
-				//_channels.Values.AsParallel().ForAll(context =>
+				_channels.Values.ToList().ForEach(channelContext =>
+				//_channels.Values.AsParallel().ForAll(channelContext =>
 				{
-					ChannelSettings channelSettings = context.Info.ChannelSettings();
+					ChannelSettings channelSettings = channelContext.Info.ChannelSettings();
 					if (channelSettings.AutoOpen)
 					{
 						try
 						{
-							context.ActivateAsync().Wait();
+							channelContext.ActivateAsync().Wait();
+							channelContext.Client.LoginAsync(channelContext.Info.PasswordIn).Wait();
 
-							IMicroserviceClient client = context.Client;
-							client.LoginAsync(context.Info.PasswordIn).Wait();
-
-							var microserviceSettings = new Dictionary<string, string>
+							var newSettings = new Dictionary<string, string>
 								{
 									{ ".RealAddress", "" }
 								};
-							//client.SetSettingsAsync(microserviceSettings, cancellationToken).Wait();
+							//channelContext.Client.SetSettingsAsync(newSettings, cancellationToken).Wait();
 
-							IChannel channel = context.Channel;
-							channel.OpenAsync().Wait();
+							channelContext.Channel.OpenAsync().Wait();
 						}
 						catch (Exception ex)
 						{
@@ -164,20 +160,18 @@ namespace Microservices.Bus.Channels
 
 			void RunChannels()
 			{
-				_channels.Values.ToList().ForEach(context =>
-				//_channels.Values.AsParallel().ForAll(context =>
+				_channels.Values.ToList().ForEach(channelContext =>
+				//_channels.Values.AsParallel().ForAll(channelContext =>
 				{
-					ChannelInfo channelInfo = context.Info;
-					ChannelStatus channelStatus = context.Status;
-					IChannel channel = context.Channel;
-					if (channel != null && channelStatus.Opened)
+					ChannelStatus channelStatus = channelContext.Status;
+					if (channelStatus.Created && channelStatus.Opened)
 					{
-						ChannelSettings channelSettings = channelInfo.ChannelSettings();
+						ChannelSettings channelSettings = channelContext.Info.ChannelSettings();
 						if (channelSettings.AutoRun)
 						{
 							try
 							{
-								channel.RunAsync().Wait();
+								channelContext.Channel.RunAsync().Wait();
 							}
 							catch (Exception ex)
 							{

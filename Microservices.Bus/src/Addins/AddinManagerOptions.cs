@@ -4,6 +4,6 @@
 	{
 		public string AddinsDirectory { get; set; }
 
-		public string ConfigFileName { get; set; }
+		public string AddinDescriptionFileName { get; set; }
 	}
 }
