@@ -94,7 +94,7 @@ namespace Microservices.Bus
 		#region IHostedService
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
-			return Task.Run(() =>
+			return Task.Run(async () =>
 				{
 					_logger.LogTrace("Старт сервиса.");
 
@@ -131,7 +131,7 @@ namespace Microservices.Bus
 						_addinManager.LoadAddins();
 
 						//_licManager.LoadLicenses();
-						_channelManager.LoadChannels();
+						await _channelManager.LoadChannelsAsync();
 
 						_serviceInfo.StartupError = null;
 						_serviceInfo.Running = true;

@@ -1,10 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Microservices.Bus.Channels;
 using Microservices.Data;
 
 namespace Microservices.Bus.Data
 {
+	/// <summary>
+	/// Адаптер БД шины.
+	/// </summary>
 	public interface IBusDataAdapter : IMessageDataAdapter
 	{
 		List<DAO.ServiceInfo> GetServiceInstances();
@@ -12,7 +17,7 @@ namespace Microservices.Bus.Data
 		void SaveServiceInfo(ServiceInfo serviceInfo);
 
 
-		List<GroupInfo> GetGroups();
+		Task<List<GroupInfo>> GetGroupsAsync(CancellationToken cancellationToken = default);
 
 		void SaveGroup(GroupInfo groupInfo);
 
@@ -27,6 +32,6 @@ namespace Microservices.Bus.Data
 
 		void SaveChannelInfo(ChannelInfo channelInfo);
 
-		List<ChannelInfo> GetChannels();
+		Task<List<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken = default);
 	}
 }

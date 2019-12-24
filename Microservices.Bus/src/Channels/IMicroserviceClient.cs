@@ -11,6 +11,9 @@ using Microservices.Data;
 
 namespace Microservices.Bus.Channels
 {
+	/// <summary>
+	/// Клиент (коннектор) микросервиса.
+	/// </summary>
 	public interface IMicroserviceClient : IDisposable
 	{
 
@@ -33,14 +36,29 @@ namespace Microservices.Bus.Channels
 
 
 		#region Properties
+		/// <summary>
+		/// Адрес подключения.
+		/// </summary>
 		string Url { get; set; }
 
+		/// <summary>
+		/// Информация, получаемая от микросервиса.
+		/// </summary>
 		IDictionary<string, object> Info { get; }
 
-		ChannelStatus Status { get; set; }
+		/// <summary>
+		/// Статус канала микросервиса.
+		/// </summary>
+		ChannelStatus Status { get; }
 		
+		/// <summary>
+		/// Прокси для подключения к микросервису.
+		/// </summary>
 		IWebProxy WebProxy { get; set; }
 
+		/// <summary>
+		/// Признак подключения к микросервису.
+		/// </summary>
 		bool IsConnected { get; }
 		#endregion
 

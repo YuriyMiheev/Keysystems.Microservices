@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+
 using AutoMapper;
 
 using Microservices.Bus.Channels;
@@ -7,17 +7,17 @@ using Microservices.Configuration;
 
 namespace Microservices.Bus.Addins
 {
-	public static class MicroserviceDescriptionPropertyExtensions
+	public static class AddinDescriptionPropertyExtensions
 	{
 		private readonly static IMapper mapper;
 
-		static MicroserviceDescriptionPropertyExtensions()
+		static AddinDescriptionPropertyExtensions()
 		{
 			var config = new MapperConfiguration(cfg =>
 			{
 				//cfg.CreateMap<MicroserviceDescriptionProperty, AppConfigSetting>();
-				cfg.CreateMap<MicroserviceDescriptionProperty, ChannelInfoProperty>();
-				cfg.CreateMap<AppConfigSetting, MicroserviceDescriptionProperty>();
+				cfg.CreateMap<AddinDescriptionProperty, ChannelInfoProperty>();
+				cfg.CreateMap<AppConfigSetting, AddinDescriptionProperty>();
 			});
 			mapper = config.CreateMapper();
 		}
@@ -27,15 +27,15 @@ namespace Microservices.Bus.Addins
 		//	return mapper.Map<MicroserviceDescriptionProperty, AppConfigSetting>(descriptionProperty);
 		//}
 
-		public static MicroserviceDescriptionProperty ToMicroserviceDescriptionProperty(this AppConfigSetting appConfigSetting)
+		public static AddinDescriptionProperty ToMicroserviceDescriptionProperty(this AppConfigSetting appConfigSetting)
 		{
 			if (appConfigSetting == null)
 				throw new ArgumentNullException(nameof(appConfigSetting));
 
-			return mapper.Map<AppConfigSetting, MicroserviceDescriptionProperty>(appConfigSetting);
+			return mapper.Map<AppConfigSetting, AddinDescriptionProperty>(appConfigSetting);
 		}
 
-		public static void CopyTo(this MicroserviceDescriptionProperty descriptionProperty, ChannelInfoProperty channelProperty)
+		public static void CopyTo(this AddinDescriptionProperty descriptionProperty, ChannelInfoProperty channelProperty)
 		{
 			if (descriptionProperty == null)
 				throw new ArgumentNullException(nameof(descriptionProperty));
@@ -43,7 +43,7 @@ namespace Microservices.Bus.Addins
 			if (channelProperty == null)
 				throw new ArgumentNullException(nameof(channelProperty));
 
-			mapper.Map<MicroserviceDescriptionProperty, ChannelInfoProperty>(descriptionProperty, channelProperty);
+			mapper.Map<AddinDescriptionProperty, ChannelInfoProperty>(descriptionProperty, channelProperty);
 		}
 	}
 }

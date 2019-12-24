@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Threading;
+using System.Threading.Tasks;
 using Microservices.Bus.Channels;
 using Microservices.Data;
 using Microservices.Data.MSSQL;
@@ -81,11 +82,12 @@ namespace Microservices.Bus.Data.MSSQL
 		}
 
 
-		public List<ChannelInfo> GetChannels()
+		public async Task<List<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken = default)
 		{
 			using (IDataQuery dataQuery = OpenQuery())
 			{
-				return dataQuery.Open<DAO.ChannelInfo>().List().Select(dao => dao.ToObj()).ToList();
+				var list = await dataQuery.Open<DAO.ChannelInfo>().ListAsync(cancellationToken);
+				return list.Select(dao => dao.ToObj()).ToList();
 			}
 		}
 
@@ -112,12 +114,16 @@ namespace Microservices.Bus.Data.MSSQL
 		}
 
 
-		public List<GroupInfo> GetGroups()
+		public async Task<List<GroupInfo>> GetGroupsAsync(CancellationToken cancellationToken = default)
 		{
 			using (IDataQuery dataQuery = OpenQuery())
 			{
-				List<GroupInfo> groups = dataQuery.Open<DAO.GroupInfo>().List().Select(dao => dao.ToObj()).ToList();
-				List<GroupChannelMap> map = dataQuery.Open<DAO.GroupChannelMap>().List().Select(dao => dao.ToObj()).ToList();
+				var listGroups = await dataQuery.Open<DAO.GroupInfo>().ListAsync(cancellationToken);
+				List<GroupInfo> groups = listGroups.Select(dao => dao.ToObj()).ToList();
+
+				var listMaps = await dataQuery.Open<DAO.GroupChannelMap>().ListAsync(cancellationToken);
+				List<GroupChannelMap> map = listMaps.Select(dao => dao.ToObj()).ToList();
+
 				foreach (GroupInfo group in groups)
 				{
 					group.Channels = map.Where(x => x.GroupLINK == group.LINK).Where(x => x.ChannelLINK != null).Select(x => x.ChannelLINK.Value).ToArray();

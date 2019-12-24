@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Addins\IChannelDescriptionProperty.cs" />
     <Compile Remove="src\Addins\IMicroserviceDescription.cs" />
     <Compile Remove="src\Channels\ChannelDescriptionProperty.cs" />
     <Compile Remove="src\Channels\ChannelDescriptionPropertyExtensions.cs" />
@@ -13,12 +14,16 @@
     <Compile Remove="src\Channels\ChannelSettings.cs" />
     <Compile Remove="src\Channels\ChannelSettingsBase.cs" />
     <Compile Remove="src\Channels\IChannelRuntime.cs" />
+    <Compile Remove="src\Channels\IMicroserviceClientFactory.cs" />
+    <Compile Remove="src\Channels\MicroserviceClientFactory.cs" />
     <Compile Remove="src\Channels\~ChannelDescription.cs" />
     <Compile Remove="src\Channels\~ChannelDescriptionProperty.cs" />
+    <Compile Remove="src\Channels\~ChannelFactory.cs" />
     <Compile Remove="src\Channels\~ChannelInfo.cs" />
     <Compile Remove="src\Channels\~ChannelInfoExtensions.cs" />
     <Compile Remove="src\Channels\~ChannelProperty.cs" />
     <Compile Remove="src\Channels\~ChannelPropertyExtensions.cs" />
+    <Compile Remove="src\Channels\~IChannelFactory.cs" />
     <Compile Remove="src\IServiceInfoManager.cs" />
     <Compile Remove="src\MessageExtensions.cs" />
     <Compile Remove="src\ServiceInfoManager.cs" />

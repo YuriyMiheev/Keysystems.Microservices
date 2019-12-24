@@ -22,7 +22,7 @@ namespace Microservices.Bus.Channels
 		Exception LastError { get; set; }
 
 
-		Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default);
+		Task ActivateAsync(CancellationToken cancellationToken = default);
 
 		Task TerminateChannelAsync(CancellationToken cancellationToken = default);
 

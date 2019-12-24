@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microservices.Bus.Channels
 {
-	public class ChannelHubClient : IMicroserviceClient
+	public class SignalRHubClient : IMicroserviceClient
 	{
 		private UriBuilder _hubUrl;
 		private HubConnection _hubConnection;
@@ -29,8 +29,10 @@ namespace Microservices.Bus.Channels
 
 
 		#region Ctor
-		public ChannelHubClient()
+		public SignalRHubClient(string url)
 		{
+			this.Url = url ?? throw new ArgumentNullException(nameof(url));
+			this.Status = new ChannelStatus();
 			this.Info = new Dictionary<string, object>();
 		}
 		#endregion
@@ -51,7 +53,7 @@ namespace Microservices.Bus.Channels
 		/// <summary>
 		/// {Get,Set}
 		/// </summary>
-		public ChannelStatus Status { get; set; }
+		public ChannelStatus Status { get; }
 
 		public IWebProxy WebProxy { get; set; }
 
@@ -443,7 +445,7 @@ namespace Microservices.Bus.Channels
 		}
 
 		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		~ChannelHubClient()
+		~SignalRHubClient()
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(false);

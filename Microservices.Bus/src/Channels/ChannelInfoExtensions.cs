@@ -12,7 +12,7 @@ namespace Microservices.Bus.Channels
 {
 	public static class ChannelInfoExtensions
 	{
-		public static void SetDescription(this ChannelInfo channelInfo, MicroserviceDescription description)
+		public static void SetDescription(this ChannelInfo channelInfo, IAddinDescription description)
 		{
 			if (channelInfo == null)
 				throw new ArgumentNullException(nameof(channelInfo));
@@ -29,7 +29,7 @@ namespace Microservices.Bus.Channels
 
 			existProps.ForEach(p =>
 			{
-				MicroserviceDescriptionProperty dp = description.GetProperty(p);
+				AddinDescriptionProperty dp = description.GetProperty(p);
 				ChannelInfoProperty prop = channelInfo.GetProperty(p);
 				string value = prop.Value;
 				dp.CopyTo(prop);
@@ -38,7 +38,7 @@ namespace Microservices.Bus.Channels
 			delProps.ForEach(p => channelInfo.RemoveProperty(p));
 			newProps.ForEach(p =>
 			{
-				MicroserviceDescriptionProperty dp = description.GetProperty(p);
+				AddinDescriptionProperty dp = description.GetProperty(p);
 				var prop = new ChannelInfoProperty();
 				dp.CopyTo(prop);
 				channelInfo.AddNewProperty(prop);

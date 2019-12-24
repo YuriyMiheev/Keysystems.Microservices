@@ -6,10 +6,7 @@ namespace Microservices.Bus.Channels
 	{
 		public IMicroserviceClient CreateMicroserviceClient(ChannelInfo channelInfo)
 		{
-			IMicroserviceClient client = new ChannelHubClient();
-			client.Url = channelInfo.SID;
-			client.Status = new ChannelStatus();
-			return client;
+			return new SignalRHubClient(channelInfo.SID, new ChannelStatus());
 		}
 	}
 }

@@ -9,6 +9,8 @@ using Microservices.Bus.Data;
 using Microservices.Bus.Logging;
 using Microservices.Channels.Configuration;
 using Microservices.Channels;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Microservices.Bus.Channels
 {
@@ -16,17 +18,17 @@ namespace Microservices.Bus.Channels
 	{
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly ILogger _logger;
-		private readonly IChannelContextFactory _contextFactory;
+		private readonly IChannelFactory _channelFactory;
 		private readonly ConcurrentDictionary<string, GroupInfo> _groups;
 		private readonly ConcurrentDictionary<string, IChannelContext> _channels;
 		private readonly IAddinManager _addinManager;
 		private readonly BusSettings _busSettings;
 
 
-		public ChannelManager(IAddinManager addinManager, IChannelContextFactory contextFactory, BusSettings busSettings, IBusDataAdapter dataAdapter, ILogger logger)
+		public ChannelManager(IAddinManager addinManager, IChannelFactory channelFactory, BusSettings busSettings, IBusDataAdapter dataAdapter, ILogger logger)
 		{
 			_addinManager = addinManager ?? throw new ArgumentNullException(nameof(addinManager));
-			_contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+			_channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
 			_busSettings = busSettings ?? throw new ArgumentNullException(nameof(addinManager));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -55,23 +57,64 @@ namespace Microservices.Bus.Channels
 
 
 		#region Channels
-		public void LoadChannels()
+		public async Task LoadChannelsAsync()
 		{
 			var errors = new List<Exception>();
 
-			GroupInfo deafaultGroup = GetOrCreateDefaultGroup();
-			List<ChannelInfo> allChannels = _dataAdapter.GetChannels();
-			List<GroupInfo> allGroups = _dataAdapter.GetGroups();
+			List<ChannelInfo> allChannels = await _dataAdapter.GetChannelsAsync();
 
-			allChannels.ForEach(channelInfo =>
+			void LoadGroups()
+			{
+				GroupInfo deafaultGroup = GetOrCreateDefaultGroup();
+				List<GroupInfo> allGroups = _dataAdapter.GetGroupsAsync().Result;
+
+				allChannels.ForEach(channelInfo =>
+					{
+						try
+						{
+							// Если канал не принадлежит ни одной группе, то включаем его в группу по умолчанию
+							if (!allGroups.Any(group => group.Channels.Contains(channelInfo.LINK)))
+							{
+								var map = new GroupChannelMap() { GroupLINK = deafaultGroup.LINK, ChannelLINK = channelInfo.LINK };
+								_dataAdapter.SaveGroupMap(map);
+							}
+						}
+						catch (Exception ex)
+						{
+							lock (errors)
+							{
+								errors.Add(ex);
+							}
+						}
+					});
+			}
+
+			void CreateChannels()
+			{
+				allChannels.ForEach(channelInfo =>
+				//allChannels.AsParallel().ForAll(channelInfo =>
 				{
 					try
 					{
-						// Если канал не принадлежит ни одной группе, то включаем его в группу по умолчанию
-						if (!allGroups.Any(group => group.Channels.Contains(channelInfo.LINK)))
+						IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+						if (description == null)
+							channelInfo.Enabled = false;
+						else
+							channelInfo.SetDescription(description);
+
+						if (channelInfo.IsSystem())
+							channelInfo.RealAddress = _busSettings.Database.ConnectionString;
+
+						_dataAdapter.SaveChannelInfo(channelInfo);
+
+						if (channelInfo.Enabled)
 						{
-							var map = new GroupChannelMap() { GroupLINK = deafaultGroup.LINK, ChannelLINK = channelInfo.LINK };
-							_dataAdapter.SaveGroupMap(map);
+							IChannelContext channel = _channelFactory.CreateChannel(channelInfo);
+							if (!_channels.TryAdd(channel.Info.VirtAddress, channel))
+							{
+								channel.Dispose();
+								throw new InvalidOperationException($"Канал {channelInfo.VirtAddress} уже существует.");
+							}
 						}
 					}
 					catch (Exception ex)
@@ -82,88 +125,31 @@ namespace Microservices.Bus.Channels
 						}
 					}
 				});
-			RefreshGroups();
+			}
 
-			// Создание и запуск каналов
-			allChannels.ForEach(channelInfo =>
-			//allChannels.AsParallel().ForAll(channelInfo =>
+			void OpenChannels()
 			{
-				try
+				_channels.Values.ToList().ForEach(context =>
+				//_channels.Values.AsParallel().ForAll(context =>
 				{
-					MicroserviceDescription description = _addinManager.FindMicroservice(channelInfo.Provider);
-					if (description == null)
-						channelInfo.Enabled = false;
-					else
-						channelInfo.SetDescription(description);
-
-					if (channelInfo.IsSystem())
-						channelInfo.RealAddress = _busSettings.Database.ConnectionString;
-
-					_dataAdapter.SaveChannelInfo(channelInfo);
-
-					if (channelInfo.Enabled)
-					{
-						IChannelContext context = _contextFactory.CreateContext(channelInfo);
-						if (!_channels.TryAdd(channelInfo.VirtAddress, context))
-						{
-							context.Dispose();
-							throw new InvalidOperationException($"Канал {channelInfo.VirtAddress} уже существует.");
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					lock (errors)
-					{
-						errors.Add(ex);
-					}
-				}
-			});
-
-
-			_channels.Values.ToList().ForEach(context =>
-			//_channels.Values.AsParallel().ForAll(context =>
-			{
-				ChannelSettings channelSettings = context.Info.ChannelSettings();
-				if (channelSettings.AutoOpen)
-				{
-					try
-					{
-						IChannel channel = context.CreateChannelAsync().Result;
-						IMicroserviceClient client = context.Client;
-
-						var microserviceSettings = new Dictionary<string, string>
-						{
-							{ ".RealAddress", "" }
-						};
-						client.SetSettingsAsync(microserviceSettings).Wait();
-
-						channel.OpenAsync().Wait();
-					}
-					catch (Exception ex)
-					{
-						lock (errors)
-						{
-							errors.Add(ex);
-						}
-					}
-				}
-			});
-
-			_channels.Values.ToList().ForEach(context =>
-			//_channels.Values.AsParallel().ForAll(context =>
-			{
-				ChannelInfo channelInfo = context.Info;
-				ChannelStatus channelStatus = context.Status;
-				IChannel channel = context.Channel;
-				if (channel != null && channelStatus.Opened)
-				{
-					ChannelSettings settings = channelInfo.ChannelSettings();
-					if (settings.AutoRun)
+					ChannelSettings channelSettings = context.Info.ChannelSettings();
+					if (channelSettings.AutoOpen)
 					{
 						try
 						{
-							channel.RunAsync().Wait();
+							context.ActivateAsync().Wait();
+
+							IMicroserviceClient client = context.Client;
+							client.LoginAsync(context.Info.PasswordIn).Wait();
+
+							var microserviceSettings = new Dictionary<string, string>
+								{
+									{ ".RealAddress", "" }
+								};
+							//client.SetSettingsAsync(microserviceSettings, cancellationToken).Wait();
+
+							IChannel channel = context.Channel;
+							channel.OpenAsync().Wait();
 						}
 						catch (Exception ex)
 						{
@@ -173,8 +159,43 @@ namespace Microservices.Bus.Channels
 							}
 						}
 					}
-				}
-			});
+				});
+			}
+
+			void RunChannels()
+			{
+				_channels.Values.ToList().ForEach(context =>
+				//_channels.Values.AsParallel().ForAll(context =>
+				{
+					ChannelInfo channelInfo = context.Info;
+					ChannelStatus channelStatus = context.Status;
+					IChannel channel = context.Channel;
+					if (channel != null && channelStatus.Opened)
+					{
+						ChannelSettings channelSettings = channelInfo.ChannelSettings();
+						if (channelSettings.AutoRun)
+						{
+							try
+							{
+								channel.RunAsync().Wait();
+							}
+							catch (Exception ex)
+							{
+								lock (errors)
+								{
+									errors.Add(ex);
+								}
+							}
+						}
+					}
+				});
+			}
+
+			LoadGroups();
+			RefreshGroups();
+			CreateChannels();
+			OpenChannels();
+			RunChannels();
 
 			if (errors.Count > 0)
 				throw new AggregateException(errors);
@@ -406,7 +427,7 @@ namespace Microservices.Bus.Channels
 			GroupInfo deafaultGroup = groups.SingleOrDefault(group => group.Name == defaultGroupName);
 			if (deafaultGroup == null)
 			{
-				groups = _dataAdapter.GetGroups();
+				groups = _dataAdapter.GetGroupsAsync().Result;
 				deafaultGroup = groups.SingleOrDefault(group => group.Name == defaultGroupName);
 				if (deafaultGroup == null)
 				{
@@ -422,7 +443,7 @@ namespace Microservices.Bus.Channels
 
 		private void RefreshGroups()
 		{
-			List<GroupInfo> groups = _dataAdapter.GetGroups();
+			List<GroupInfo> groups = _dataAdapter.GetGroupsAsync().Result;
 			_groups.Clear();
 			foreach (GroupInfo group in groups)
 			{

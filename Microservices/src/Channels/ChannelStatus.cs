@@ -3,7 +3,7 @@
 namespace Microservices.Channels
 {
 	/// <summary>
-	/// 
+	/// Статус канала.
 	/// </summary>
 	public class ChannelStatus : INotifyPropertyChanged
 	{

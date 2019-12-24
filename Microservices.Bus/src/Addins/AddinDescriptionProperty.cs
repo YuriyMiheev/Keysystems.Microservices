@@ -1,8 +1,12 @@
-﻿using Microservices.Configuration;
+﻿using System.Diagnostics;
 
 namespace Microservices.Bus.Addins
 {
-	public class MicroserviceDescriptionProperty : IAppConfigSetting
+	/// <summary>
+	/// Св-во описания дополнения.
+	/// </summary>
+	[DebuggerDisplay("{this.Name}={this.Value}")]
+	public class AddinDescriptionProperty
 	{
 		public string Name { get; set; }
 

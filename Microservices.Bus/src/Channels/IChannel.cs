@@ -7,7 +7,7 @@ using Microservices.Data;
 namespace Microservices.Bus.Channels
 {
 	/// <summary>
-	/// Канал сервиса.
+	/// Канал шины.
 	/// </summary>
 	public interface IChannel : IMessageRepository, IDisposable
 	{

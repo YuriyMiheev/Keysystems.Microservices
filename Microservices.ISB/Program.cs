@@ -51,9 +51,9 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<ILogger, BusLogger>();
 						services.AddSingleton<IAuthManager, AuthManager>();
 						services.AddSingleton<IChannelManager, ChannelManager>();
-						services.AddSingleton<IMicroserviceClientFactory, MicroserviceClientFactory>();
+						//services.AddSingleton<IMicroserviceClientFactory, MicroserviceClientFactory>();
+						//services.AddSingleton<IChannelFactory, ChannelFactory>();
 						services.AddSingleton<IChannelFactory, ChannelFactory>();
-						services.AddSingleton<IChannelContextFactory, ChannelContextFactory>();
 						services.AddSingleton<AddinManagerOptions>(serviceProvider =>
 							{
 								var busSettings = serviceProvider.GetRequiredService<BusSettings>();

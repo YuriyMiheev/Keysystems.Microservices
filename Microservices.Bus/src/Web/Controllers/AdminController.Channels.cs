@@ -26,7 +26,7 @@ namespace Microservices.Bus.Web.Controllers
 				ChannelStatus channelStatus = context.Status;
 				IChannel channel = context.Channel;
 				ExceptionWrapper error = context.LastError.Wrap();
-				MicroserviceDescription description = _addinManager.FindMicroservice(channelInfo.Provider);
+				IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
 				return new
 				{
 					channelInfo.LINK,
@@ -75,7 +75,7 @@ namespace Microservices.Bus.Web.Controllers
 					return RedirectToAction("Home");
 
 				bool systemExist = runtimeChannels.Any(context => context.Info.IsSystem());
-				var registeredChannels = _addinManager.RegisteredMicroservices.Select(desc =>
+				var registeredChannels = _addinManager.RegisteredChannels.Select(desc =>
 						new
 						{
 							desc.Provider,
@@ -94,7 +94,7 @@ namespace Microservices.Bus.Web.Controllers
 		//[AdminAccess]
 		public IActionResult ChannelIcon(string provider)
 		{
-			MicroserviceDescription description = _addinManager.FindMicroservice(provider);
+			IAddinDescription description = _addinManager.FindDescription(provider);
 			byte[] data = LoadIconFile(description);
 			if (data == null)
 				return null;
@@ -123,7 +123,7 @@ namespace Microservices.Bus.Web.Controllers
 			return result;
 		}
 
-		private bool IconFileExist(MicroserviceDescription description)
+		private bool IconFileExist(IAddinDescription description)
 		{
 			if (description == null)
 				return false;
@@ -138,7 +138,7 @@ namespace Microservices.Bus.Web.Controllers
 			return System.IO.File.Exists(filePath);
 		}
 
-		private byte[] LoadIconFile(MicroserviceDescription description)
+		private byte[] LoadIconFile(IAddinDescription description)
 		{
 			if (!IconFileExist(description))
 				return null;

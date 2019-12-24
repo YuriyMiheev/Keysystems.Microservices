@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 
-using Microservices.Channels.Configuration;
-
 namespace Microservices.Bus.Channels
 {
-	public class ChannelInfo : IMainChannelSettings
+	/// <summary>
+	/// Информация о канале.
+	/// </summary>
+	public class ChannelInfo //: IMainChannelSettings
 	{
 		private readonly IDictionary<string, ChannelInfoProperty> _properties;
 

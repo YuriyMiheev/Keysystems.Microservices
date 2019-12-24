@@ -11,31 +11,29 @@ namespace Microservices.Bus.Channels
 {
 	public class ProcessChannelContext : IChannelContext, IDisposable
 	{
-		private readonly ChannelInfo _channelInfo;
-		private readonly MicroserviceDescription _description;
-		private readonly IChannelFactory _factory;
+		private readonly IAddinDescription _description;
+		private readonly Func<ChannelInfo, IMicroserviceClient, IChannel> CreateChannel;
 		private readonly IBusDataAdapter _dataAdapter;
-		private readonly IMicroserviceClient _client;
 		private Process _process;
-		private IChannel _channel;
 
-		public ProcessChannelContext(ChannelInfo channelInfo, IMicroserviceClient client, MicroserviceDescription description, IChannelFactory factory, IBusDataAdapter dataAdapter)
+
+		public ProcessChannelContext(IAddinDescription description, ChannelInfo channelInfo, IMicroserviceClient client, IBusDataAdapter dataAdapter, Func<ChannelInfo, IMicroserviceClient, IChannel> createChannel)
 		{
-			_channelInfo = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
 			_description = description ?? throw new ArgumentNullException(nameof(description));
-			_factory = factory ?? throw new ArgumentNullException(nameof(factory));
+			this.Info = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
+			this.Client = client ?? throw new ArgumentNullException(nameof(client));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
-			_client = client ?? throw new ArgumentNullException(nameof(client));
+			CreateChannel = createChannel ?? throw new ArgumentNullException(nameof(createChannel));
 		}
 
 
-		public ChannelInfo Info { get => _channelInfo; }
+		public ChannelInfo Info { get; }
 
-		public IChannel Channel { get => _channel; }
+		public IChannel Channel { get; private set; }
 
-		public ChannelStatus Status { get => _client.Status; }
+		public ChannelStatus Status { get => this.Client.Status; }
 
-		public IMicroserviceClient Client { get => _client; }
+		public IMicroserviceClient Client { get; }
 
 		/// <summary>
 		/// {Get,Set} Ошибка.
@@ -43,63 +41,60 @@ namespace Microservices.Bus.Channels
 		public Exception LastError { get; set; }
 
 
-		public async Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken = default)
+		public async Task ActivateAsync(CancellationToken cancellationToken = default)
 		{
-			if (_channel != null)
-				return _channel;
-
-			return await Task<IChannel>.Run(() =>
+			await Task.Run(() =>
 				{
-					ChannelInfoProperty prop = _channelInfo.FindProperty("X.ProcessId");
+					ChannelInfoProperty prop = this.Info.FindProperty("X.ProcessId");
 					if (prop != null && Int32.TryParse(prop.Value, out int processId))
 						_process = Process.GetProcesses().FindProcessById(processId);
 
 					if (_process == null)
 					{
-
 						var startInfo = new ProcessStartInfo()
 						{
 							FileName = System.IO.Path.Combine(_description.BinPath, _description.Type),
 							//UseShellExecute = false,
 							CreateNoWindow = true,
-							Arguments = $"--Urls {_channelInfo.SID}"
+							Arguments = $"--Urls {this.Info.SID}"
 						};
 						_process = Process.Start(startInfo);
 
 						if (prop == null)
 						{
 							prop = new ChannelInfoProperty() { Name = "X.ProcessId" };
-							_channelInfo.AddNewProperty(prop);
+							this.Info.AddNewProperty(prop);
 						}
 
 						prop.Value = _process.Id.ToString();
-						_dataAdapter.SaveChannelInfo(_channelInfo);
+						_dataAdapter.SaveChannelInfo(this.Info);
 					}
 
-					_channel = _factory.CreateChannel(_channelInfo, _client);
-					_client.Status.Created = true;
-					return _channel;
+					this.Channel = CreateChannel(this.Info, this.Client);
+					this.Status.Created = true;
 				}, cancellationToken);
 		}
 
 		public async Task TerminateChannelAsync(CancellationToken cancellationToken = default)
 		{
-			if (_channel != null)
+			if (this.Channel != null)
 			{
 				try
 				{
-					await _channel.CloseAsync(cancellationToken);
+					await this.Channel.CloseAsync(cancellationToken);
+					this.Channel.Dispose();
 				}
 				finally
 				{
+					this.Channel = null;
+					this.Status.Created = false;
+
 					if (_process != null)
 					{
 						_process.Kill(true);
 						_process.Dispose();
 						_process = null;
 					}
-
-					_channel = null;
 				}
 			}
 		}
@@ -116,10 +111,11 @@ namespace Microservices.Bus.Channels
 			if (disposing)
 			{
 				// TODO: dispose managed state (managed objects).
-				if (_channel != null)
+				if (this.Channel != null)
 				{
-					_channel.Dispose();
-					_channel = null;
+					this.Channel.Dispose();
+					this.Channel = null;
+					this.Status.Created = false;
 				}
 
 				if (_process != null)
