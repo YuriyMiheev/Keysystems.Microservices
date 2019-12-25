@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 using Microsoft.Extensions.Configuration;
 
@@ -15,6 +13,10 @@ namespace Microservices.Configuration
 		public XmlConfigFileConfigurationSource(string path)
 		{
 			this.Path = path;
+			this.OnLoadException = new Action<FileLoadExceptionContext>(context =>
+			{
+				context.Ignore = false;
+			});
 		}
 
 

@@ -128,13 +128,13 @@ namespace Microservices.Bus.Web.Controllers
 			if (description == null)
 				return false;
 
-			if (String.IsNullOrWhiteSpace(description.BinPath))
+			if (String.IsNullOrWhiteSpace(description.AddinPath))
 				return false;
 
 			if (String.IsNullOrWhiteSpace(description.Icon))
 				return false;
 
-			string filePath = System.IO.Path.Combine(description.BinPath, "wwwroot", description.Icon);
+			string filePath = System.IO.Path.Combine(description.AddinPath, "wwwroot", description.Icon);
 			return System.IO.File.Exists(filePath);
 		}
 
@@ -143,7 +143,7 @@ namespace Microservices.Bus.Web.Controllers
 			if (!IconFileExist(description))
 				return null;
 
-			string filePath = System.IO.Path.Combine(description.BinPath, "wwwroot", description.Icon);
+			string filePath = System.IO.Path.Combine(description.AddinPath, "wwwroot", description.Icon);
 			return System.IO.File.ReadAllBytes(filePath);
 		}
 	}

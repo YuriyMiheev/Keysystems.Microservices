@@ -43,7 +43,7 @@ namespace Microservices.Bus.Addins
 			if (channelProperty == null)
 				throw new ArgumentNullException(nameof(channelProperty));
 
-			mapper.Map<AddinDescriptionProperty, ChannelInfoProperty>(descriptionProperty, channelProperty);
+			mapper.Map(descriptionProperty, channelProperty);
 		}
 	}
 }

@@ -2,8 +2,14 @@
 {
 	public class AddinManagerOptions
 	{
+		/// <summary>
+		/// Каталог с дополнениями.
+		/// </summary>
 		public string AddinsDirectory { get; set; }
 
-		public string AddinDescriptionFileName { get; set; }
+		/// <summary>
+		/// Файл с описанием дополнения.
+		/// </summary>
+		public string AddinDescriptionFile { get; set; }
 	}
 }

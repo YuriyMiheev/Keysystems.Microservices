@@ -8,65 +8,70 @@ namespace Microservices.Bus.Addins
 	public interface IAddinDescription
 	{
 		/// <summary>
-		/// {Get} Св-ва дополнения.
+		/// Св-ва дополнения.
 		/// </summary>
 		IDictionary<string, AddinDescriptionProperty> Properties { get; }
 
 
 		/// <summary>
-		/// {Get} Провайдер.
+		/// Провайдер.
 		/// </summary>
 		string Provider { get; }
 
 		/// <summary>
-		/// {Get} Имя типа/сборки/исполняемого файла.
+		/// Имя типа/сборки/исполняемого файла.
 		/// </summary>
-		public string Type { get; }
+		string Type { get; }
 
 		/// <summary>
-		/// {Get} Версия.
+		/// Версия.
 		/// </summary>
-		public string Version { get; }
+		string Version { get; }
 
 		/// <summary>
-		/// {Get} Комментарий.
+		/// Комментарий.
 		/// </summary>
-		public string Comment { get; }
+		string Comment { get; }
 
 		/// <summary>
-		/// {Get} Имя файла иконки.
+		/// Имя файла иконки.
 		/// </summary>
-		public string Icon { get; }
+		string Icon { get; }
 
 		/// <summary>
-		/// {Get} Может обновлять список контактов.
+		/// Может обновлять список контактов.
 		/// </summary>
-		public bool CanSyncContacts { get; }
+		bool CanSyncContacts { get; }
 
 		/// <summary>
-		/// {Get} Поддержка множества экземпляров.
+		/// Поддержка множества экземпляров.
 		/// </summary>
-		public bool AllowMultipleInstances { get; }
+		bool AllowMultipleInstances { get; }
 
 		/// <summary>
-		/// {Get} Формат строки подключения.
+		/// Формат строки подключения.
 		/// </summary>
-		public string RealAddress { get; }
+		string RealAddress { get; }
 
 		/// <summary>
-		/// {Get} Формат строки Url адреса.
+		/// Формат строки Url адреса.
 		/// </summary>
-		public string SID { get; }
+		string SID { get; }
 
 		/// <summary>
-		/// {Get} Таймаут подключения по умолчанию.
+		/// Таймаут подключения по умолчанию.
 		/// </summary>
-		public int Timeout { get; }
+		int Timeout { get; }
 
 		/// <summary>
-		/// {Get} Путь к каталогу с исполняемыми файлами.
+		/// Путь к каталогу с исполняемыми файлами.
 		/// </summary>
-		public string BinPath { get; set; }
+		string AddinPath { get; }
+
+		/// <summary>
+		/// Файл с описанием дополнения.
+		/// </summary>
+		string DescriptionFile { get; }
 
 	}
 }

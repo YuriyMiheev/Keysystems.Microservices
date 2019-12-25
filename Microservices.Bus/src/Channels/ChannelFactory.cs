@@ -32,6 +32,7 @@ namespace Microservices.Bus.Channels
 				throw new ArgumentNullException(nameof(channelInfo));
 
 			IMicroserviceClient client = new SignalRHubClient(channelInfo.SID);
+			//IMicroserviceClient client = new GrpcClient(channelInfo.SID);
 			IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
 			return new ProcessChannelContext(description, channelInfo, client, _dataAdapter, CreateChannel);
 		}

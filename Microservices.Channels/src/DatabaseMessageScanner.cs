@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 
-using Microservices;
 using Microservices.Channels.Data;
 using Microservices.Channels.Logging;
 using Microservices.Data;
@@ -19,13 +18,12 @@ namespace Microservices.Channels
 	/// </summary>
 	public abstract class DatabaseMessageScanner : IMessageScanner, IDisposable
 	{
-		//private MessageSettings _settings;
+		private readonly IChannelDataAdapter _dataAdapter;
+		private readonly ILogger _logger;
+		private readonly Timer _queryTimer;
+		private System.Threading.CancellationToken _cancellationToken;
 		private TimeSpan _interval;
 		private int _portion;
-		private IChannelDataAdapter _dataAdapter;
-		private ILogger _logger;
-		private System.Threading.CancellationToken _cancellationToken;
-		private Timer _queryTimer;
 		private bool _started;
 
 
@@ -67,7 +65,6 @@ namespace Microservices.Channels
 				return;
 
 			_started = true;
-			//this.Recipient = recipient ?? throw new ArgumentException("Пустой адрес получателя сообщений.", nameof(recipient));
 			_interval = interval;
 			_portion = portion;
 
@@ -88,7 +85,7 @@ namespace Microservices.Channels
 		{
 			if (_started)
 			{
-				bool sending = false;
+				bool founded = false;
 
 				try
 				{
@@ -98,7 +95,7 @@ namespace Microservices.Channels
 						 .Take(_portion).List()
 						 .Select(msg => msg.ToObj()).ToList();
 
-					_logger.LogTrace($"Найдено {messages.Count} новых сообщений.");
+					_logger.LogTrace($"Найдено {messages.Count} сообщений.");
 
 					if (messages.Count > 0)
 					{
@@ -108,7 +105,7 @@ namespace Microservices.Channels
 						{
 							if (this.NewMessages.Invoke(messages.ToArray()))
 							{
-								sending = true;
+								founded = true;
 								string links = String.Join(",", messages.Select(msg => msg.LINK));
 								string statusInfo = "Сообщение доставляется.";
 								string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
@@ -120,15 +117,14 @@ namespace Microservices.Channels
 				}
 				catch (Exception ex)
 				{
-					var error = new InvalidOperationException("Ошибка сканирования новых сообщений.", ex);
-					_logger.LogError(ex);
-					//this.Error?.Invoke(error);
+					var error = new InvalidOperationException("Ошибка сканирования сообщений.", ex);
+					_logger.LogError(error);
 				}
 				finally
 				{
 					if (_started)
 					{
-						if (sending)
+						if (founded)
 							_queryTimer.Interval = 1;
 						else
 							_queryTimer.Interval = _interval.TotalMilliseconds;
@@ -206,8 +202,6 @@ namespace Microservices.Channels
 			if (disposing)
 			{
 				_queryTimer.Dispose();
-				_dataAdapter = null;
-				_logger = null;
 			}
 
 			_disposed = true;

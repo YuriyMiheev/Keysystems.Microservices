@@ -57,7 +57,7 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<AddinManagerOptions>(serviceProvider =>
 							{
 								var busSettings = serviceProvider.GetRequiredService<BusSettings>();
-								return new AddinManagerOptions { AddinsDirectory = busSettings.AddinsDir, AddinDescriptionFileName = "appsettings.config" };
+								return new AddinManagerOptions { AddinsDirectory = busSettings.AddinsDir, AddinDescriptionFile = "appsettings.config" };
 							});
 						services.AddSingleton<IAddinManager, AddinManager>();
 						services.AddSingleton<ILicenseManager, LicenseManager>();

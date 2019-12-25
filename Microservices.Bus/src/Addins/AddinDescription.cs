@@ -10,17 +10,19 @@ namespace Microservices.Bus.Addins
 	/// </summary>
 	public class AddinDescription : IAddinDescription
 	{
-		private readonly IDictionary<string, AppConfigSetting> _appSettings;
+		private readonly IDictionary<string, AppConfigSetting> _mainSettings;
 
 
-		public AddinDescription(IDictionary<string, AppConfigSetting> appSettings)
+		public AddinDescription(string addinPath, string descriptionFile, IDictionary<string, AppConfigSetting> addinSettings )
 		{
+			this.AddinPath = addinPath;
+			this.DescriptionFile = descriptionFile;
+
+			_mainSettings = new Dictionary<string, AppConfigSetting>(addinSettings.Where(p => p.Key.StartsWith(".")));
+			var propSettings = addinSettings.Where(p => !p.Key.StartsWith("."));
+
 			this.Properties = new Dictionary<string, AddinDescriptionProperty>();
-
-			_appSettings = new Dictionary<string, AppConfigSetting>(appSettings.Where(p => p.Key.StartsWith(".")));
-			var otherSettings = appSettings.Where(p => !p.Key.StartsWith("."));
-
-			foreach (KeyValuePair<string, AppConfigSetting> kvp in otherSettings)
+			foreach (KeyValuePair<string, AppConfigSetting> kvp in propSettings)
 			{
 				AddinDescriptionProperty prop = kvp.Value.ToDescriptionProperty();
 				this.Properties.Add(prop.Name, prop);
@@ -80,13 +82,15 @@ namespace Microservices.Bus.Addins
 			get => Parser.ParseInt(GetValue(".Timeout"), 30);
 		}
 
-		public string BinPath { get; set; }
+		public string AddinPath { get; }
+
+		public string DescriptionFile { get; }
 
 
 		private string GetValue(string propName)
 		{
-			if (_appSettings.ContainsKey(propName))
-				return _appSettings[propName].Value;
+			if (_mainSettings.ContainsKey(propName))
+				return _mainSettings[propName].Value;
 
 			return null;
 		}

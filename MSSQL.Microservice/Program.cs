@@ -35,7 +35,7 @@ namespace MSSQL.Microservice
 				.ConfigureWebHostDefaults(webBuilder =>
 					{
 						// Несколько вызовов ConfigureServices добавляются друг к другу.
-						//При наличии нескольких вызовов метода Configure используется последний вызов Configure.
+						// При наличии нескольких вызовов метода Configure используется последний вызов Configure.
 						webBuilder
 							.UseConfiguration(hostConfiguration)
 							.UseStartup<Startup>();

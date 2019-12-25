@@ -26,7 +26,7 @@ namespace Microservices.Bus.Channels
 			this.Info = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
 			this.Client = client ?? throw new ArgumentNullException(nameof(client));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
-			CreateChannel = createChannel ?? throw new ArgumentNullException(nameof(createChannel));
+			this.CreateChannel = createChannel ?? throw new ArgumentNullException(nameof(createChannel));
 		}
 
 
@@ -53,11 +53,12 @@ namespace Microservices.Bus.Channels
 					{
 						var startInfo = new ProcessStartInfo()
 						{
-							FileName = System.IO.Path.Combine(_description.BinPath, _description.Type),
+							FileName = System.IO.Path.Combine(_description.AddinPath, _description.Type),
 							UseShellExecute = true,
 							//CreateNoWindow = true,
 							//WindowStyle = ProcessWindowStyle.Normal,
-							Arguments = $"--Urls {this.Info.SID}"
+							Arguments = $"--Urls {this.Info.SID}",
+							WorkingDirectory = _description.AddinPath
 						};
 						_process = Process.Start(startInfo);
 
@@ -78,8 +79,6 @@ namespace Microservices.Bus.Channels
 
 		public async Task TerminateChannelAsync(CancellationToken cancellationToken = default)
 		{
-			//if (this.Channel != null)
-			//{
 			try
 			{
 				await this.Channel.CloseAsync(cancellationToken);
@@ -87,7 +86,6 @@ namespace Microservices.Bus.Channels
 			finally
 			{
 				this.Channel.Dispose();
-				//this.Channel = null;
 				this.Status.Created = false;
 
 				if (_process != null)
@@ -96,7 +94,6 @@ namespace Microservices.Bus.Channels
 					_process.Dispose();
 				}
 			}
-			//}
 		}
 
 
@@ -111,12 +108,8 @@ namespace Microservices.Bus.Channels
 			if (disposing)
 			{
 				// TODO: dispose managed state (managed objects).
-				//if (this.Channel != null)
-				//{
 				this.Channel.Dispose();
-				//this.Channel = null;
 				this.Status.Created = false;
-				//}
 
 				if (_process != null)
 					_process.Dispose();
