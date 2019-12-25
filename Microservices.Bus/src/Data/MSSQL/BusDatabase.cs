@@ -31,7 +31,7 @@ namespace Microservices.Bus.Data.MSSQL
 
 		#region Properties
 		/// <summary>
-		/// {Get} Тип провайдера.
+		/// Тип провайдера.
 		/// </summary>
 		public string Provider
 		{
@@ -39,13 +39,13 @@ namespace Microservices.Bus.Data.MSSQL
 		}
 
 		/// <summary>
-		/// {Get, Set} Схема БД.
+		/// Схема БД.
 		/// </summary>
 		public string Schema { get; set; }
 
 		private string connString;
 		/// <summary>
-		/// {Get,Set} Строка подключения.
+		/// Строка подключения.
 		/// </summary>
 		public string ConnectionString
 		{
@@ -53,14 +53,14 @@ namespace Microservices.Bus.Data.MSSQL
 			set
 			{
 				if (String.IsNullOrEmpty(value))
-					throw new ArgumentException("Пустое значение.", "value");
+					throw new ArgumentException("Пустое значение.", nameof(value));
 
 				connString = value;
 			}
 		}
 
 		/// <summary>
-		/// {Get,Set} Timeout подключения. (Default: 15 сек)
+		/// Timeout подключения. (Default: 15 сек)
 		/// </summary>
 		public int ConnectionTimeout { get; set; }
 		#endregion

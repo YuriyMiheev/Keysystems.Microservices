@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microservices;
 using Microservices.Channels;
 using Microservices.Channels.Configuration;
@@ -43,24 +44,34 @@ namespace MSSQL.Microservice.Hubs
 		//[HubMethodName("")]
 		public IDictionary<string, object> Login(string accessKey)
 		{
-			MainChannelSettings settings = _appConfig.MainChannelSettings();
-			if ((accessKey ?? "") == settings.PasswordIn)
+			try
 			{
-				string connectionId = this.Context.ConnectionId;
-				if (!_connections.TryGet(connectionId, out IHubConnection connection))
+				MainSettings settings = _appConfig.MainSettings();
+				LogTrace($"accessKey ={accessKey}");
+				LogTrace($"PasswordIn={settings.PasswordIn}");
+				if ((accessKey ?? "") == settings.PasswordIn)
 				{
-					IChannelHubClient client = this.Clients.Client(connectionId);
-					connection = new HubConnection(connectionId, client);
-					_connections.Add(connection);
+					string connectionId = this.Context.ConnectionId;
+					if (!_connections.TryGet(connectionId, out IHubConnection connection))
+					{
+						IChannelHubClient client = this.Clients.Client(connectionId);
+						connection = new HubConnection(connectionId, client);
+						_connections.Add(connection);
 
-					_channelService.SendMessages += SendMessages;
-					_channelService.StatusChanged += StatusChanged;
+						_channelService.SendMessages += SendMessages;
+						_channelService.StatusChanged += StatusChanged;
+					}
+
+					return ChannelInfo();
 				}
-
-				return ChannelInfo();
+				else
+				{
+					return null;
+				}
 			}
-			else
+			catch (Exception ex)
 			{
+				LogError(ex);
 				return null;
 			}
 		}
@@ -80,6 +91,7 @@ namespace MSSQL.Microservice.Hubs
 			catch (Exception ex)
 			{
 				LogError(ex);
+				//throw;
 			}
 		}
 
@@ -405,24 +417,28 @@ namespace MSSQL.Microservice.Hubs
 		#region Logging
 		void LogError(Exception error)
 		{
+			Console.WriteLine(error);
 			_logger.LogError(error);
 			SendLog("ERROR", error.ToString());
 		}
 
 		void LogError(string text, Exception error)
 		{
+			Console.WriteLine(text + Environment.NewLine + error);
 			_logger.LogError(text, error);
 			SendLog("ERROR", text + Environment.NewLine + error);
 		}
 
 		void LogInfo(string text)
 		{
+			Console.WriteLine(text);
 			_logger.LogInfo(text);
 			SendLog("INFO", text);
 		}
 
 		void LogTrace(string text)
 		{
+			Console.WriteLine(text);
 			_logger.LogTrace(text);
 			SendLog("TRACE", text);
 		}

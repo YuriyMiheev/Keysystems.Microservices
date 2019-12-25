@@ -32,40 +32,39 @@ namespace MSSQL.Microservice
 		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		//private MessagePublisher _publisher;
-		private readonly MainChannelSettings _mainChannelSettings;
+		private readonly MainSettings _mainSettings;
 		private readonly ChannelSettings _channelSettings;
 		private readonly DatabaseSettings _databaseSettings;
 		private readonly MessageSettings _messageSettings;
 		//private readonly ServiceSettings _serviceSettings;
-		private readonly ChannelStatus _channelStatus;
 
 
 		#region Ctor
 		public ChannelService(IServiceProvider serviceProvider)
 		{
-			//_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+			var sp = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 			_cancellationSource = new CancellationTokenSource();
 
-			_appConfig = serviceProvider.GetRequiredService<IAppSettingsConfig>();
-			_logger = serviceProvider.GetRequiredService<ILogger>();
-			_database = serviceProvider.GetRequiredService<IDatabase>();
-			_dataAdapter = serviceProvider.GetRequiredService<IChannelDataAdapter>();
-			_scanner = serviceProvider.GetRequiredService<IMessageScanner>();
-			_receiver = serviceProvider.GetRequiredService<IMessageReceiver>();
-			_channelStatus = serviceProvider.GetRequiredService<ChannelStatus>();
+			_appConfig = sp.GetRequiredService<IAppSettingsConfig>();
+			_logger = sp.GetRequiredService<ILogger>();
+			_database = sp.GetRequiredService<IDatabase>();
+			_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>();
+			_scanner = sp.GetRequiredService<IMessageScanner>();
+			_receiver = sp.GetRequiredService<IMessageReceiver>();
+			this.Status = sp.GetRequiredService<ChannelStatus>();
 			//_publisher = new MessagePublisher(this);
 
 			_scanner.NewMessages += Scanner_NewMessages;
-			_channelStatus.PropertyChanged += ChannelStatus_Changed;
+			this.Status.PropertyChanged += Status_Changed;
 
-			_mainChannelSettings = _appConfig.MainChannelSettings();
+			_mainSettings = _appConfig.MainSettings();
 			_channelSettings = _appConfig.ChannelSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();
 			_messageSettings = _appConfig.MessageSettings();
 			//_serviceSettings = _appConfig.ServiceSettings();
 
 			this.ProcessId = Process.GetCurrentProcess().Id;
-			this.VirtAddress = _mainChannelSettings.VirtAddress;
+			this.VirtAddress = _mainSettings.VirtAddress;
 		}
 		#endregion
 
@@ -87,20 +86,17 @@ namespace MSSQL.Microservice
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public int ProcessId { get; private set; }
+		public int ProcessId { get; }
 
 		/// <summary>
 		/// {Get} Виртуальный адрес канала.
 		/// </summary>
-		public string VirtAddress { get; private set; }
+		public string VirtAddress { get; }
 
 		/// <summary>
 		/// {Get}
 		/// </summary>
-		public ChannelStatus Status
-		{
-			get => _channelStatus;
-		}
+		public ChannelStatus Status { get; }
 		#endregion
 
 
@@ -109,7 +105,7 @@ namespace MSSQL.Microservice
 		{
 			Initialize();
 
-			_channelStatus.Opened = true;
+			this.Status.Opened = true;
 			//UpdateMyselfContact(this.Info);
 
 			//ServiceInfo serviceInfo = this.MessageService.GetInfo();
@@ -218,7 +214,7 @@ namespace MSSQL.Microservice
 				//		this.scanSubscriber.Start(this.MessageSettings.ScanThreads, this.cancelToken);
 			}
 
-			_channelStatus.Running = true;
+			this.Status.Running = true;
 
 			//UpdateMyselfContact(this.Info);
 		}
@@ -227,8 +223,8 @@ namespace MSSQL.Microservice
 		{
 			_cancellationSource.Token.Register(() =>
 				{
-					_channelStatus.Running = false;
-					_channelStatus.Online = null;
+					this.Status.Running = false;
+					this.Status.Online = null;
 				});
 			_cancellationSource.Cancel();
 			//OnStopping();
@@ -255,7 +251,7 @@ namespace MSSQL.Microservice
 		{
 			_cancellationSource.Token.Register(() =>
 				{
-					_channelStatus.Opened = false;
+					this.Status.Opened = false;
 					//this.Running = false;
 					//this.Online = null;
 				});
@@ -282,13 +278,13 @@ namespace MSSQL.Microservice
 			if (_database.TryConnect(out ex))
 			{
 				error = null;
-				_channelStatus.Online = true;
+				this.Status.Online = true;
 				return true;
 			}
 			else
 			{
 				error = ex;
-				_channelStatus.Online = false;
+				this.Status.Online = false;
 				return false;
 			}
 		}
@@ -688,16 +684,22 @@ namespace MSSQL.Microservice
 		#region Helper
 		private void Initialize()
 		{
-			if (!_initialized)
+			if (_initialized)
+				return;
+
+			lock (this)
 			{
-				_initialized = true;
+				if (_initialized)
+					return;
 
 				if (_cancellationSource.IsCancellationRequested)
 					_cancellationSource = new CancellationTokenSource();
 
 				_database.Schema = _databaseSettings.Schema;
-				_database.ConnectionString = _mainChannelSettings.RealAddress;
+				_database.ConnectionString = _mainSettings.RealAddress;
 				_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
+
+				_initialized = true;
 			}
 		}
 
@@ -720,7 +722,7 @@ namespace MSSQL.Microservice
 
 		private void CheckOpened()
 		{
-			if (!_channelStatus.Opened)
+			if (!this.Status.Opened)
 				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
 
@@ -732,18 +734,18 @@ namespace MSSQL.Microservice
 				return false;
 		}
 
-		private void ChannelStatus_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			switch (e.PropertyName)
 			{
-				case nameof(_channelStatus.Opened):
-					this.StatusChanged?.Invoke(e.PropertyName, _channelStatus.Opened);
+				case nameof(this.Status.Opened):
+					this.StatusChanged?.Invoke(e.PropertyName, this.Status.Opened);
 					break;
-				case nameof(_channelStatus.Running):
-					this.StatusChanged?.Invoke(e.PropertyName, _channelStatus.Running);
+				case nameof(this.Status.Running):
+					this.StatusChanged?.Invoke(e.PropertyName, this.Status.Running);
 					break;
-				case nameof(_channelStatus.Online):
-					this.StatusChanged?.Invoke(e.PropertyName, _channelStatus.Online);
+				case nameof(this.Status.Online):
+					this.StatusChanged?.Invoke(e.PropertyName, this.Status.Online);
 					break;
 			}
 		}
@@ -765,9 +767,9 @@ namespace MSSQL.Microservice
 
 				_database.Close();
 
-				_channelStatus.Opened = false;
-				_channelStatus.Running = false;
-				_channelStatus.Online = null;
+				this.Status.Opened = false;
+				this.Status.Running = false;
+				this.Status.Online = null;
 			}
 
 			// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

@@ -51,10 +51,7 @@ namespace MSSQL.Microservice
 						services.AddSingleton<IMessageScanner, MessageScanner>();
 						services.AddSingleton<IMessageReceiver, MessageReceiver>();
 						services.AddSingleton<ChannelStatus>();
-						services.AddSingleton<IChannelService>(serviceProvider =>
-							{
-								return new ChannelService(serviceProvider);
-							});
+						services.AddSingleton<IChannelService, ChannelService>();
 						services.AddHostedService<IChannelService>(serviceProvider =>
 							{
 								return serviceProvider.GetRequiredService<IChannelService>();

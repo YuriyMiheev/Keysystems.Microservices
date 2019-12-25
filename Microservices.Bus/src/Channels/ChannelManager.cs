@@ -68,24 +68,27 @@ namespace Microservices.Bus.Channels
 				List<GroupInfo> allGroups = _dataAdapter.GetGroupsAsync().Result;
 
 				allChannels.ForEach(channelInfo =>
+				//allChannels.AsParallel().ForAll(channelInfo =>
+				{
+					try
 					{
-						try
+						// Если канал не принадлежит ни одной группе, то включаем его в группу по умолчанию
+						if (!allGroups.Any(group => group.Channels.Contains(channelInfo.LINK)))
 						{
-							// Если канал не принадлежит ни одной группе, то включаем его в группу по умолчанию
-							if (!allGroups.Any(group => group.Channels.Contains(channelInfo.LINK)))
-							{
-								var map = new GroupChannelMap() { GroupLINK = deafaultGroup.LINK, ChannelLINK = channelInfo.LINK };
-								_dataAdapter.SaveGroupMap(map);
-							}
+							var map = new GroupChannelMap() { GroupLINK = deafaultGroup.LINK, ChannelLINK = channelInfo.LINK };
+							_dataAdapter.SaveGroupMap(map);
 						}
-						catch (Exception ex)
+					}
+					catch (Exception ex)
+					{
+						lock (errors)
 						{
-							lock (errors)
-							{
-								errors.Add(ex);
-							}
+							errors.Add(ex);
 						}
-					});
+					}
+				});
+
+				RefreshGroups();
 			}
 
 			void CreateChannels()
@@ -186,7 +189,6 @@ namespace Microservices.Bus.Channels
 			}
 
 			LoadGroups();
-			RefreshGroups();
 			CreateChannels();
 			OpenChannels();
 			RunChannels();

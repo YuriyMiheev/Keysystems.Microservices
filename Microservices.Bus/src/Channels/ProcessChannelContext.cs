@@ -54,8 +54,9 @@ namespace Microservices.Bus.Channels
 						var startInfo = new ProcessStartInfo()
 						{
 							FileName = System.IO.Path.Combine(_description.BinPath, _description.Type),
-							//UseShellExecute = false,
-							CreateNoWindow = true,
+							UseShellExecute = true,
+							//CreateNoWindow = true,
+							//WindowStyle = ProcessWindowStyle.Normal,
 							Arguments = $"--Urls {this.Info.SID}"
 						};
 						_process = Process.Start(startInfo);
@@ -112,9 +113,9 @@ namespace Microservices.Bus.Channels
 				// TODO: dispose managed state (managed objects).
 				//if (this.Channel != null)
 				//{
-					this.Channel.Dispose();
-					//this.Channel = null;
-					this.Status.Created = false;
+				this.Channel.Dispose();
+				//this.Channel = null;
+				this.Status.Created = false;
 				//}
 
 				if (_process != null)

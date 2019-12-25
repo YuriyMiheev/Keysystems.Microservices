@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="src\Channels\Configuration\IMainChannelSettings.cs" />
     <Compile Remove="src\Channels\Configuration\MainChannelSettingsExtensions.cs" />
     <Compile Remove="src\Configuration\AppConfigSettingExtensions.cs" />
     <Compile Remove="src\Data\DAO\MessagePost.cs" />
