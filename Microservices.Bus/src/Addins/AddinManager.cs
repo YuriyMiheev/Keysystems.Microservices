@@ -83,11 +83,11 @@ namespace Microservices.Bus.Addins
 		#region Helpers
 		private IAddinDescription LoadAddin(string dir)
 		{
-			string filePath = Path.Combine(dir, _options.AddinDescriptionFile);
+			string filePath = Path.Combine(dir, _options.DescriptionFile);
 			using var configProvider = new XmlConfigFileConfigurationProvider(filePath);
 			configProvider.Load();
 
-			return new AddinDescription(dir, _options.AddinDescriptionFile, configProvider.GetAppSettings() );
+			return new AddinDescription(dir, _options.DescriptionFile, configProvider.GetAppSettings() );
 		}
 		#endregion
 

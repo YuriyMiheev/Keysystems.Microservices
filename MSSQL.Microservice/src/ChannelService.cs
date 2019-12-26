@@ -26,17 +26,14 @@ namespace MSSQL.Microservice
 		private CancellationTokenSource _cancellationSource;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly ILogger _logger;
-		//private IServiceProvider _serviceProvider;
 		private readonly IDatabase _database;
 		private readonly IChannelDataAdapter _dataAdapter;
 		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
-		//private MessagePublisher _publisher;
 		private readonly MainSettings _mainSettings;
 		private readonly ChannelSettings _channelSettings;
 		private readonly DatabaseSettings _databaseSettings;
 		private readonly MessageSettings _messageSettings;
-		//private readonly ServiceSettings _serviceSettings;
 
 
 		#region Ctor
@@ -45,7 +42,6 @@ namespace MSSQL.Microservice
 			var sp = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 			_cancellationSource = new CancellationTokenSource();
 
-			_appConfig = sp.GetRequiredService<IAppSettingsConfig>() ?? throw new ArgumentNullException(nameof(IAppSettingsConfig));
 			_logger = sp.GetRequiredService<ILogger>() ?? throw new ArgumentNullException(nameof(ILogger));
 			_database = sp.GetRequiredService<IDatabase>() ?? throw new ArgumentNullException(nameof(IDatabase));
 			_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>() ?? throw new ArgumentNullException(nameof(IChannelDataAdapter));
@@ -57,6 +53,7 @@ namespace MSSQL.Microservice
 			_scanner.NewMessages += Scanner_NewMessages;
 			this.Status.PropertyChanged += Status_Changed;
 
+			_appConfig = sp.GetRequiredService<IAppSettingsConfig>() ?? throw new ArgumentNullException(nameof(IAppSettingsConfig));
 			_mainSettings = _appConfig.MainSettings();
 			_channelSettings = _appConfig.ChannelSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();

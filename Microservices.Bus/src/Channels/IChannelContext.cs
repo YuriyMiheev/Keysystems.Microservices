@@ -29,7 +29,7 @@ namespace Microservices.Bus.Channels
 		/// <summary>
 		/// Клиент микросервиса.
 		/// </summary>
-		IMicroserviceClient Client { get; }
+		IChannelClient Client { get; }
 
 		/// <summary>
 		/// Ошибка.

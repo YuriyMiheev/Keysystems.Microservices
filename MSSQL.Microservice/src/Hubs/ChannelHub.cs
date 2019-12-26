@@ -15,7 +15,6 @@ using Microservices.Configuration;
 using Microservices.Data;
 
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Hosting;
 
 namespace MSSQL.Microservice.Hubs
 {
@@ -64,12 +63,14 @@ namespace MSSQL.Microservice.Hubs
 				}
 				else
 				{
+					//this.Context.Abort();
 					return null;
 				}
 			}
 			catch (Exception ex)
 			{
 				LogError(ex);
+				//this.Context.Abort();
 				return null;
 			}
 		}

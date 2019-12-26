@@ -131,7 +131,7 @@ namespace Microservices.Bus.Channels
 
 			void OpenChannels()
 			{
-				_channels.Values.ToList().ForEach(channelContext =>
+				_channels.Values.ToList().ForEach(async channelContext =>
 				//_channels.Values.AsParallel().ForAll(channelContext =>
 				{
 					ChannelSettings channelSettings = channelContext.Info.ChannelSettings();
@@ -139,18 +139,18 @@ namespace Microservices.Bus.Channels
 					{
 						try
 						{
-							channelContext.ActivateAsync().Wait();
-							channelContext.Client.LoginAsync(channelContext.Info.PasswordIn).Wait();
+							await channelContext.ActivateAsync();
+							await channelContext.Client.ConnectAsync(channelContext.Info.PasswordIn);
 
-							var microserviceSettings = channelContext.Client.GetSettingsAsync().Result;
+							var microserviceSettings = await channelContext.Client.GetChannelSettingsAsync();
 
 							var newSettings = new Dictionary<string, string>
 								{
 									{ ".RealAddress", channelContext.Info.RealAddress }
 								};
-							//channelContext.Client.SetSettingsAsync(newSettings, cancellationToken).Wait();
+							//await channelContext.Client.SetSettingsAsync(newSettings, cancellationToken);
 
-							channelContext.Channel.OpenAsync().Wait();
+							await channelContext.Channel.OpenAsync();
 						}
 						catch (Exception ex)
 						{
@@ -165,18 +165,17 @@ namespace Microservices.Bus.Channels
 
 			void RunChannels()
 			{
-				_channels.Values.ToList().ForEach(channelContext =>
+				_channels.Values.ToList().ForEach(async channelContext =>
 				//_channels.Values.AsParallel().ForAll(channelContext =>
 				{
-					ChannelStatus channelStatus = channelContext.Status;
-					if (channelStatus.Created && channelStatus.Opened)
+					if (channelContext.Status.Created)
 					{
 						ChannelSettings channelSettings = channelContext.Info.ChannelSettings();
-						if (channelSettings.AutoRun)
+						if (channelSettings.AutoOpen && channelSettings.AutoRun)
 						{
 							try
 							{
-								channelContext.Channel.RunAsync().Wait();
+								await channelContext.Channel.RunAsync();
 							}
 							catch (Exception ex)
 							{
@@ -193,7 +192,7 @@ namespace Microservices.Bus.Channels
 			LoadGroups();
 			CreateChannels();
 			OpenChannels();
-			System.Threading.Thread.Sleep(1000);
+			//System.Threading.Thread.Sleep(1000);
 			RunChannels();
 
 			if (errors.Count > 0)

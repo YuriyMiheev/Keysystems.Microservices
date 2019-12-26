@@ -2,6 +2,8 @@
 
 using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
+using Microservices.Bus.Logging;
+using Microservices.Channels;
 
 namespace Microservices.Bus.Channels
 {
@@ -12,12 +14,14 @@ namespace Microservices.Bus.Channels
 	{
 		private readonly IAddinManager _addinManager;
 		private readonly IBusDataAdapter _dataAdapter;
+		private readonly ILogger _logger;
 
 
-		public ChannelFactory(IAddinManager addinManager, IBusDataAdapter dataAdapter)
+		public ChannelFactory(IAddinManager addinManager, IBusDataAdapter dataAdapter, ILogger logger)
 		{
 			_addinManager = addinManager ?? throw new ArgumentNullException(nameof(addinManager));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 
@@ -31,15 +35,16 @@ namespace Microservices.Bus.Channels
 			if (channelInfo == null)
 				throw new ArgumentNullException(nameof(channelInfo));
 
-			IMicroserviceClient client = new SignalRHubClient(channelInfo.SID);
-			//IMicroserviceClient client = new GrpcClient(channelInfo.SID);
+			var channelStatus = new ChannelStatus();
+			IChannelClient client = new SignalRHubClient(channelInfo.SID, channelStatus, _logger);
+			//IMicroserviceClient client = new GrpcClient(channelInfo.SID, channelStatus, _logger);
 			IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
-			return new ProcessChannelContext(description, channelInfo, client, _dataAdapter, CreateChannel);
+			return new ProcessChannelContext(description, channelInfo, client, _dataAdapter, _logger, CreateChannel);
 		}
 
-		private IChannel CreateChannel(ChannelInfo channelInfo, IMicroserviceClient client)
+		private IChannel CreateChannel(ChannelInfo channelInfo, IChannelClient client, ILogger logger)
 		{
-			return new MicroserviceChannel(client);
+			return new MicroserviceChannel(client, logger);
 		}
 	}
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,61 +11,61 @@ using Microservices.Data;
 namespace Microservices.Bus.Channels
 {
 	/// <summary>
-	/// Клиент (коннектор) микросервиса.
+	/// Клиент (коннектор) канала.
 	/// </summary>
-	public interface IMicroserviceClient : IDisposable
+	public interface IChannelClient : IDisposable
 	{
 
 		#region Events
 		/// <summary>
 		/// Подключение установлено.
 		/// </summary>
-		event Action<IMicroserviceClient> Connected;
+		event Action<IChannelClient> Connected;
 
-		event Func<IMicroserviceClient, Exception, Task> Reconnecting;
+		/// <summary>
+		/// Переподключение началось.
+		/// </summary>
+		event Func<IChannelClient, Exception, Task> Reconnecting;
 
-		event Func<IMicroserviceClient, string, Task> Reconnected;
+		/// <summary>
+		/// Переподключение произошло.
+		/// </summary>
+		event Func<IChannelClient, string, Task> Reconnected;
 
-		event Func<IMicroserviceClient, Exception, Task> Disconnected;
+		/// <summary>
+		/// Подключение разорвано.
+		/// </summary>
+		event Func<IChannelClient, Exception, Task> Disconnected;
 		
-		event Action<IMicroserviceClient, IDictionary<string, object>> LogReceived;
+		/// <summary>
+		/// Лог принят.
+		/// </summary>
+		event Action<IChannelClient, IDictionary<string, object>> LogReceived;
 
-		event Action<IMicroserviceClient, Message[]> MessagesReceived;
+		/// <summary>
+		/// Сообщения приняты.
+		/// </summary>
+		event Action<IChannelClient, Message[]> MessagesReceived;
 		#endregion
 
 
 		#region Properties
 		/// <summary>
-		/// Адрес подключения.
-		/// </summary>
-		string Url { get; set; }
-
-		/// <summary>
-		/// Информация, получаемая от микросервиса.
-		/// </summary>
-		IDictionary<string, object> Info { get; }
-
-		/// <summary>
-		/// Статус канала микросервиса.
+		/// Статус канала.
 		/// </summary>
 		ChannelStatus Status { get; }
 		
 		/// <summary>
-		/// Прокси для подключения к микросервису.
-		/// </summary>
-		IWebProxy WebProxy { get; set; }
-
-		/// <summary>
-		/// Признак подключения к микросервису.
+		/// Признак подключения к каналу.
 		/// </summary>
 		bool IsConnected { get; }
 		#endregion
 
 
-		#region Login/Logout
-		Task LoginAsync(string accessKey, CancellationToken cancellationToken = default);
+		#region Connect/Disconnect
+		Task ConnectAsync(string accessKey, CancellationToken cancellationToken = default);
 
-		Task LogoutAsync(CancellationToken cancellationToken = default);
+		Task DisconnectAsync(CancellationToken cancellationToken = default);
 		#endregion
 
 
@@ -82,22 +81,22 @@ namespace Microservices.Bus.Channels
 
 
 		#region Diagnostic
-		Task<Exception> TryConnectAsync(CancellationToken cancellationToken = default);
+		Task<Exception> TryConnectToChannelAsync(CancellationToken cancellationToken = default);
 
-		Task<Exception> CheckStateAsync(CancellationToken cancellationToken = default);
+		Task<Exception> CheckChannelStateAsync(CancellationToken cancellationToken = default);
 
-		Task RepairAsync(CancellationToken cancellationToken = default);
+		Task RepairChannelAsync(CancellationToken cancellationToken = default);
 
-		Task PingAsync(CancellationToken cancellationToken = default);
+		Task PingChannelAsync(CancellationToken cancellationToken = default);
 		#endregion
 
 
 		#region Settings
-		Task<IDictionary<string, AppConfigSetting>> GetSettingsAsync(CancellationToken cancellationToken = default);
+		Task<IDictionary<string, AppConfigSetting>> GetChannelSettingsAsync(CancellationToken cancellationToken = default);
 
-		Task SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default);
+		Task SetChannelSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default);
 
-		Task SaveSettings(CancellationToken cancellationToken = default);
+		Task SaveChannelSettings(CancellationToken cancellationToken = default);
 		#endregion
 
 

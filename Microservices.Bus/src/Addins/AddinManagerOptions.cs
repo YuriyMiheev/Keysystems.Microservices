@@ -10,6 +10,6 @@
 		/// <summary>
 		/// Файл с описанием дополнения.
 		/// </summary>
-		public string AddinDescriptionFile { get; set; }
+		public string DescriptionFile { get; set; }
 	}
 }

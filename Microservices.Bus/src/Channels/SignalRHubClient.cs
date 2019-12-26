@@ -6,7 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-
+using Microservices.Bus.Logging;
 using Microservices.Channels;
 using Microservices.Configuration;
 using Microservices.Data;
@@ -16,9 +16,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microservices.Bus.Channels
 {
-	public class SignalRHubClient : IMicroserviceClient
+	public class SignalRHubClient : IChannelClient
 	{
-		private UriBuilder _hubUrl;
+		private readonly UriBuilder _hubUrl;
+		private readonly ILogger _logger;
+
+		private IDictionary<string, object> _info;
 		private HubConnection _hubConnection;
 		private IDisposable _logHandler;
 		private IDisposable _messagesHandler;
@@ -29,29 +32,18 @@ namespace Microservices.Bus.Channels
 
 
 		#region Ctor
-		public SignalRHubClient(string url)
+		public SignalRHubClient(string url, ChannelStatus status, ILogger logger)
 		{
-			this.Url = url ?? throw new ArgumentNullException(nameof(url));
-			this.Status = new ChannelStatus();
-			this.Info = new Dictionary<string, object>();
+			_hubUrl = new UriBuilder(url);
+			this.Status = status ?? throw new ArgumentNullException(nameof(status));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 		#endregion
 
 
 		#region Properties
-		public string Url
-		{
-			get => _hubUrl.ToString();
-			set => _hubUrl = new UriBuilder(value);
-		}
-
 		/// <summary>
-		/// {Get}
-		/// </summary>
-		public IDictionary<string, object> Info { get; }
-
-		/// <summary>
-		/// {Get,Set}
+		/// 
 		/// </summary>
 		public ChannelStatus Status { get; }
 
@@ -71,27 +63,27 @@ namespace Microservices.Bus.Channels
 
 
 		#region Events
-		public event Action<IMicroserviceClient> Connected;
+		public event Action<IChannelClient> Connected;
 
-		public event Func<IMicroserviceClient, Exception, Task> Reconnecting;
+		public event Func<IChannelClient, Exception, Task> Reconnecting;
 
-		public event Func<IMicroserviceClient, string, Task> Reconnected;
+		public event Func<IChannelClient, string, Task> Reconnected;
 
-		public event Func<IMicroserviceClient, Exception, Task> Disconnected;
+		public event Func<IChannelClient, Exception, Task> Disconnected;
 
-		public event Action<IMicroserviceClient, IDictionary<string, object>> LogReceived;
+		public event Action<IChannelClient, IDictionary<string, object>> LogReceived;
 
-		public event Action<IMicroserviceClient, Message[]> MessagesReceived;
+		public event Action<IChannelClient, Message[]> MessagesReceived;
 		#endregion
 
 
-		#region Login/Logout
-		public async Task LoginAsync(string accessKey, CancellationToken cancellationToken = default)
+		#region Connect/Disconnect
+		public async Task ConnectAsync(string accessKey, CancellationToken cancellationToken = default)
 		{
 			if (this.IsConnected)
-				throw new InvalidOperationException($"Подключение к хабу {this.Url} уже выполнено.");
+				throw new InvalidOperationException($"Подключение к хабу {_hubUrl} уже выполнено.");
 
-			this.Info.Clear();
+			this._info.Clear();
 
 			var uri = new UriBuilder(_hubUrl.Uri);
 			uri.Path += "ChannelHub";
@@ -99,16 +91,11 @@ namespace Microservices.Bus.Channels
 			_hubConnection = CreateConnection(uri.Uri);
 			await _hubConnection.StartAsync(cancellationToken);
 
-			var result = await _hubConnection.InvokeAsync<IDictionary<string, object>>("Login", accessKey, cancellationToken);
-			if (result == null)
+			_info = await _hubConnection.InvokeAsync<IDictionary<string, object>>("Login", accessKey, cancellationToken);
+			if (_info == null)
 			{
 				await _hubConnection.StopAsync();
 				throw new InvalidOperationException("Неверный ключ доступа.");
-			}
-
-			foreach (string key in result.Keys)
-			{
-				this.Info[key] = result[key];
 			}
 
 			this.Connected?.Invoke(this);
@@ -123,12 +110,10 @@ namespace Microservices.Bus.Channels
 			_statusHandler = _hubConnection.On<string, object>("ReceiveStatus", OnReceiveStatus);
 		}
 
-		public Task LogoutAsync(CancellationToken cancellationToken = default)
+		public async Task DisconnectAsync(CancellationToken cancellationToken = default)
 		{
 			if (this.IsConnected)
-				return _hubConnection.StopAsync(cancellationToken);
-			else
-				return Task.CompletedTask;
+				await _hubConnection.StopAsync(cancellationToken);
 		}
 		#endregion
 
@@ -161,25 +146,25 @@ namespace Microservices.Bus.Channels
 
 
 		#region Diagnostic
-		public Task<Exception> TryConnectAsync(CancellationToken cancellationToken = default)
+		public Task<Exception> TryConnectToChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<Exception>("TryConnect", cancellationToken);
 		}
 
-		public Task<Exception> CheckStateAsync(CancellationToken cancellationToken = default)
+		public Task<Exception> CheckChannelStateAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<Exception>("CheckState", cancellationToken);
 		}
 
-		public Task RepairAsync(CancellationToken cancellationToken = default)
+		public Task RepairChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("Repair", cancellationToken);
 		}
 
-		public Task PingAsync(CancellationToken cancellationToken = default)
+		public Task PingChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("Ping", cancellationToken);
@@ -188,19 +173,19 @@ namespace Microservices.Bus.Channels
 
 
 		#region Settings
-		public Task<IDictionary<string, AppConfigSetting>> GetSettingsAsync(CancellationToken cancellationToken = default)
+		public Task<IDictionary<string, AppConfigSetting>> GetChannelSettingsAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync<IDictionary<string, AppConfigSetting>>("GetSettings", cancellationToken);
 		}
 
-		public Task SetSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default)
+		public Task SetChannelSettingsAsync(IDictionary<string, string> settings, CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("SetSettings", settings, cancellationToken);
 		}
 
-		public Task SaveSettings(CancellationToken cancellationToken = default)
+		public Task SaveChannelSettings(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
 			return _hubConnection.InvokeAsync("SaveSettings", cancellationToken);
@@ -350,7 +335,7 @@ namespace Microservices.Bus.Channels
 			hubConnection.Reconnecting += (error) => this.Reconnecting?.Invoke(this, error);
 			hubConnection.Reconnected += (connectionId) =>
 				{
-					this.Info["ConnectionId"] = connectionId;
+					this._info["ConnectionId"] = connectionId;
 					return this.Reconnected?.Invoke(this, connectionId);
 				};
 			return hubConnection;
@@ -359,7 +344,7 @@ namespace Microservices.Bus.Channels
 		private void CheckConnected()
 		{
 			if (!this.IsConnected)
-				throw new InvalidOperationException($"Отсутствует подключение к хабу: {this.Url}");
+				throw new InvalidOperationException($"Отсутствует подключение к хабу: {_hubUrl}");
 		}
 
 		void OnReceiveMessages(Message[] messages)
@@ -428,7 +413,6 @@ namespace Microservices.Bus.Channels
 						_statusHandler.Dispose();
 
 					_hubConnection?.DisposeAsync();
-					//_hubConnection = null;
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microservices.Bus.Logging;
 using Microservices.Data;
 using Microservices.Data.DAO;
 
@@ -10,12 +11,14 @@ namespace Microservices.Bus.Channels
 {
 	public class MicroserviceChannel : IChannel, IDisposable
 	{
-		private readonly IMicroserviceClient _client;
+		private readonly IChannelClient _client;
+		private readonly ILogger _logger;
 
 
-		public MicroserviceChannel(IMicroserviceClient client)
+		public MicroserviceChannel(IChannelClient client, ILogger logger)
 		{
 			_client = client ?? throw new ArgumentNullException(nameof(client));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 
@@ -43,23 +46,23 @@ namespace Microservices.Bus.Channels
 
 		public bool TryConnect(out Exception error)
 		{
-			error = _client.TryConnectAsync().Result;
+			error = _client.TryConnectToChannelAsync().Result;
 			return (error == null);
 		}
 
 		public void CheckState()
 		{
-			_client.CheckStateAsync().Wait();
+			_client.CheckChannelStateAsync().Wait();
 		}
 
 		public void Ping()
 		{
-			_client.PingAsync().Wait();
+			_client.PingChannelAsync().Wait();
 		}
 
 		public void Repair()
 		{
-			_client.RepairAsync().Wait();
+			_client.RepairChannelAsync().Wait();
 		}
 
 

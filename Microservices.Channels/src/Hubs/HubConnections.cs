@@ -36,10 +36,11 @@ namespace Microservices.Channels.Hubs
 			if (_connections.Count == 0)
 				return false;
 
-			_connections.Values.AsParallel().ForAll(async conn =>
-				{
-					await conn.Client.ReceiveLog(record);
-				});
+			_connections.Values.ToList().ForEach(async conn =>
+			//_connections.Values.AsParallel().ForAll(async conn =>
+			{
+				await conn.Client.ReceiveLog(record);
+			});
 			return true;
 		}
 
@@ -48,19 +49,21 @@ namespace Microservices.Channels.Hubs
 			if (_connections.Count == 0)
 				return false;
 
-			_connections.Values.AsParallel().ForAll(async conn => 
-				{
-					await conn.Client.ReceiveMessages(messages);
-				});
+			_connections.Values.ToList().ForEach(async conn =>
+			//_connections.Values.AsParallel().ForAll(async conn => 
+			{
+				await conn.Client.ReceiveMessages(messages);
+			});
 			return true;
 		}
 
 		public void SendStatusToClient(string statusName, object statusValue)
 		{
-			_connections.Values.AsParallel().ForAll(async conn =>
-				{
-					await conn.Client.ReceiveStatus(statusName, statusValue);
-				});
+			_connections.Values.ToList().ForEach(async conn =>
+			//_connections.Values.AsParallel().ForAll(async conn =>
+			{
+				await conn.Client.ReceiveStatus(statusName, statusValue);
+			});
 		}
 
 	}

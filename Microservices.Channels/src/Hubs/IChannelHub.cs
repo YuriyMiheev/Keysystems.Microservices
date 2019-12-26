@@ -8,6 +8,9 @@ using Microservices.Data;
 
 namespace Microservices.Channels.Hubs
 {
+	/// <summary>
+	/// Хаб микросервиса.
+	/// </summary>
 	public interface IChannelHub
 	{
 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
+using Microservices.Bus.Logging;
 using Microservices.Channels;
 
 namespace Microservices.Bus.Channels
@@ -15,17 +16,19 @@ namespace Microservices.Bus.Channels
 	public class ProcessChannelContext : IChannelContext, IDisposable
 	{
 		private readonly IAddinDescription _description;
-		private readonly Func<ChannelInfo, IMicroserviceClient, IChannel> CreateChannel;
+		private readonly Func<ChannelInfo, IChannelClient, ILogger, IChannel> CreateChannel;
 		private readonly IBusDataAdapter _dataAdapter;
+		private readonly ILogger _logger;
 		private Process _process;
 
 
-		public ProcessChannelContext(IAddinDescription description, ChannelInfo channelInfo, IMicroserviceClient client, IBusDataAdapter dataAdapter, Func<ChannelInfo, IMicroserviceClient, IChannel> createChannel)
+		public ProcessChannelContext(IAddinDescription description, ChannelInfo channelInfo, IChannelClient channelClient, IBusDataAdapter dataAdapter, ILogger logger, Func<ChannelInfo, IChannelClient, ILogger, IChannel> createChannel)
 		{
 			_description = description ?? throw new ArgumentNullException(nameof(description));
 			this.Info = channelInfo ?? throw new ArgumentNullException(nameof(channelInfo));
-			this.Client = client ?? throw new ArgumentNullException(nameof(client));
+			this.Client = channelClient ?? throw new ArgumentNullException(nameof(channelClient));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.CreateChannel = createChannel ?? throw new ArgumentNullException(nameof(createChannel));
 		}
 
@@ -36,7 +39,7 @@ namespace Microservices.Bus.Channels
 
 		public ChannelStatus Status { get => this.Client.Status; }
 
-		public IMicroserviceClient Client { get; }
+		public IChannelClient Client { get; }
 
 		public Exception LastError { get; set; }
 
@@ -72,7 +75,7 @@ namespace Microservices.Bus.Channels
 						_dataAdapter.SaveChannelInfo(this.Info);
 					}
 
-					this.Channel = CreateChannel(this.Info, this.Client);
+					this.Channel = CreateChannel(this.Info, this.Client, _logger);
 					this.Status.Created = true;
 				}, cancellationToken);
 		}
