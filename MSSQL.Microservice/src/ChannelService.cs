@@ -45,13 +45,13 @@ namespace MSSQL.Microservice
 			var sp = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 			_cancellationSource = new CancellationTokenSource();
 
-			_appConfig = sp.GetRequiredService<IAppSettingsConfig>();
-			_logger = sp.GetRequiredService<ILogger>();
-			_database = sp.GetRequiredService<IDatabase>();
-			_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>();
-			_scanner = sp.GetRequiredService<IMessageScanner>();
-			_receiver = sp.GetRequiredService<IMessageReceiver>();
-			this.Status = sp.GetRequiredService<ChannelStatus>();
+			_appConfig = sp.GetRequiredService<IAppSettingsConfig>() ?? throw new ArgumentNullException(nameof(IAppSettingsConfig));
+			_logger = sp.GetRequiredService<ILogger>() ?? throw new ArgumentNullException(nameof(ILogger));
+			_database = sp.GetRequiredService<IDatabase>() ?? throw new ArgumentNullException(nameof(IDatabase));
+			_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>() ?? throw new ArgumentNullException(nameof(IChannelDataAdapter));
+			_scanner = sp.GetRequiredService<IMessageScanner>() ?? throw new ArgumentNullException(nameof(IMessageScanner));
+			_receiver = sp.GetRequiredService<IMessageReceiver>() ?? throw new ArgumentNullException(nameof(IMessageReceiver));
+			this.Status = sp.GetRequiredService<ChannelStatus>() ?? throw new ArgumentNullException(nameof(ChannelStatus));
 			//_publisher = new MessagePublisher(this);
 
 			_scanner.NewMessages += Scanner_NewMessages;
@@ -146,8 +146,7 @@ namespace MSSQL.Microservice
 			if (_cancellationSource.IsCancellationRequested)
 				_cancellationSource = new CancellationTokenSource();
 
-			Exception error;
-			if (!TryConnect(out error))
+			if (!TryConnect(out Exception error))
 				throw error;
 
 			void DeleteDeletedMessages()
@@ -221,44 +220,25 @@ namespace MSSQL.Microservice
 
 		public void Stop()
 		{
-			_cancellationSource.Token.Register(() =>
-				{
-					this.Status.Running = false;
-					this.Status.Online = null;
-				});
-			_cancellationSource.Cancel();
-			//OnStopping();
+			_cancellationSource.Cancel(); //_scanner.StopScan();
 
-			//try
-			//{
-			//	List<Task> completions = _scanSenders.Select(sender => sender.Completion).ToList();
-			//	completions.Add(_scanPublisher.Completion);
-			//	completions.AddRange(_scanSubscriber.Completion);
-			//	Task[] notCompletions = completions.Where(task => task != null).Where(task => !task.IsCompleted && !task.IsCanceled && !task.IsFaulted).ToArray();
-
-			//	Task.WaitAll(notCompletions);
-			//}
-			//catch
-			//{ }
-			//finally
-			//{
-			//}
+			this.Status.Running = false;
+			this.Status.Online = null;
 
 			//UpdateMyselfContact(this.Info);
 		}
 
 		public void Close()
 		{
-			_cancellationSource.Token.Register(() =>
-				{
-					this.Status.Opened = false;
-					//this.Running = false;
-					//this.Online = null;
-				});
-
 			try
 			{
-				Stop();
+				//Stop();
+				_cancellationSource.Cancel();
+
+				this.Status.Running = false;
+				this.Status.Online = null;
+				this.Status.Opened = false;
+
 				//UpdateMyselfContact(myInfo);
 			}
 			finally
@@ -274,8 +254,7 @@ namespace MSSQL.Microservice
 		{
 			Initialize();
 
-			ConnectionException ex;
-			if (_database.TryConnect(out ex))
+			if (_database.TryConnect(out ConnectionException ex))
 			{
 				error = null;
 				this.Status.Online = true;

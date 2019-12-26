@@ -142,9 +142,11 @@ namespace Microservices.Bus.Channels
 							channelContext.ActivateAsync().Wait();
 							channelContext.Client.LoginAsync(channelContext.Info.PasswordIn).Wait();
 
+							var microserviceSettings = channelContext.Client.GetSettingsAsync().Result;
+
 							var newSettings = new Dictionary<string, string>
 								{
-									{ ".RealAddress", "" }
+									{ ".RealAddress", channelContext.Info.RealAddress }
 								};
 							//channelContext.Client.SetSettingsAsync(newSettings, cancellationToken).Wait();
 
@@ -191,6 +193,7 @@ namespace Microservices.Bus.Channels
 			LoadGroups();
 			CreateChannels();
 			OpenChannels();
+			System.Threading.Thread.Sleep(1000);
 			RunChannels();
 
 			if (errors.Count > 0)

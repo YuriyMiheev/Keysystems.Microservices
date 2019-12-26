@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Microservices.Channels
 {
 	/// <summary>
 	/// Статус канала.
 	/// </summary>
+	[DebuggerDisplay("{this.Created|this.Opened|this.Running|this.Online}")]
 	public class ChannelStatus : INotifyPropertyChanged
 	{
 		/// <summary>

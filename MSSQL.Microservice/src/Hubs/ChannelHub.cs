@@ -34,8 +34,8 @@ namespace MSSQL.Microservice.Hubs
 			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
-			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 		#endregion
 
@@ -47,8 +47,6 @@ namespace MSSQL.Microservice.Hubs
 			try
 			{
 				MainSettings settings = _appConfig.MainSettings();
-				LogTrace($"accessKey ={accessKey}");
-				LogTrace($"PasswordIn={settings.PasswordIn}");
 				if ((accessKey ?? "") == settings.PasswordIn)
 				{
 					string connectionId = this.Context.ConnectionId;
@@ -62,7 +60,7 @@ namespace MSSQL.Microservice.Hubs
 						_channelService.StatusChanged += StatusChanged;
 					}
 
-					return ChannelInfo();
+					return GetCurrentInfo();
 				}
 				else
 				{
@@ -91,16 +89,16 @@ namespace MSSQL.Microservice.Hubs
 			catch (Exception ex)
 			{
 				LogError(ex);
-				//throw;
 			}
 		}
 
-		public async Task CloseChannel()
+		public void CloseChannel()
 		{
 			try
 			{
 				LogTrace("Closing");
-				await (_channelService as IHostedService)?.StopAsync(CancellationToken.None);
+				//await (_channelService as IHostedService)?.StopAsync(CancellationToken.None);
+				_channelService.Close();
 				LogTrace("Closed");
 			}
 			catch (Exception ex)
@@ -417,28 +415,24 @@ namespace MSSQL.Microservice.Hubs
 		#region Logging
 		void LogError(Exception error)
 		{
-			Console.WriteLine(error);
 			_logger.LogError(error);
 			SendLog("ERROR", error.ToString());
 		}
 
 		void LogError(string text, Exception error)
 		{
-			Console.WriteLine(text + Environment.NewLine + error);
 			_logger.LogError(text, error);
 			SendLog("ERROR", text + Environment.NewLine + error);
 		}
 
 		void LogInfo(string text)
 		{
-			Console.WriteLine(text);
 			_logger.LogInfo(text);
 			SendLog("INFO", text);
 		}
 
 		void LogTrace(string text)
 		{
-			Console.WriteLine(text);
 			_logger.LogTrace(text);
 			SendLog("TRACE", text);
 		}
@@ -448,14 +442,14 @@ namespace MSSQL.Microservice.Hubs
 		#region Helper
 		private bool SendLog(string logLevel, string text)
 		{
-			IDictionary<string, object> record = ChannelInfo();
+			IDictionary<string, object> record = GetCurrentInfo();
 			record.Add("LogLevel", logLevel);
 			record.Add("Text", text);
 
 			return _connections.SendLogToClient(record);
 		}
 
-		private IDictionary<string, object> ChannelInfo()
+		private IDictionary<string, object> GetCurrentInfo()
 		{
 			var result = new Dictionary<string, object>();
 			result.Add("MachineName", Environment.MachineName);
@@ -467,11 +461,13 @@ namespace MSSQL.Microservice.Hubs
 
 		private bool SendMessages(Message[] messages)
 		{
+			_logger.LogTrace($"SendMessages: {messages.Length}");
 			return _connections.SendMessagesToClient(messages);
 		}
 
 		private void StatusChanged(string statusName, object statusValue)
 		{
+			_logger.LogTrace($"SendStatus: {statusName}={statusValue}");
 			_connections.SendStatusToClient(statusName, statusValue);
 		}
 		#endregion

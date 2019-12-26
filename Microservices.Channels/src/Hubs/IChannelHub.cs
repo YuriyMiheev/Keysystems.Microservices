@@ -17,7 +17,7 @@ namespace Microservices.Channels.Hubs
 		#region Control
 		void OpenChannel();
 
-		Task CloseChannel();
+		void CloseChannel();
 
 		void RunChannel();
 
