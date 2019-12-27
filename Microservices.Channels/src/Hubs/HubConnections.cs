@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microservices.Channels.Hubs
 {
@@ -31,16 +32,17 @@ namespace Microservices.Channels.Hubs
 			return _connections.TryRemove(connectionId, out connection);
 		}
 
-		public bool SendLogToClient(IDictionary<string, object> record)
+		public bool SendLogToClient(IDictionary<string, object> logRecord)
 		{
 			if (_connections.Count == 0)
 				return false;
 
-			_connections.Values.ToList().ForEach(async conn =>
+			//foreach (IHubConnection conn in _connections.Values)
 			//_connections.Values.AsParallel().ForAll(async conn =>
-			{
-				await conn.Client.ReceiveLog(record);
-			});
+			_connections.Values.ToList().ForEach(async conn =>
+				{
+					await conn.Client.ReceiveLog(logRecord);
+				});
 			return true;
 		}
 
@@ -49,21 +51,21 @@ namespace Microservices.Channels.Hubs
 			if (_connections.Count == 0)
 				return false;
 
-			_connections.Values.ToList().ForEach(async conn =>
 			//_connections.Values.AsParallel().ForAll(async conn => 
-			{
-				await conn.Client.ReceiveMessages(messages);
-			});
+			_connections.Values.ToList().ForEach(async conn =>
+				{
+					await conn.Client.ReceiveMessages(messages);
+				});
 			return true;
 		}
 
 		public void SendStatusToClient(string statusName, object statusValue)
 		{
-			_connections.Values.ToList().ForEach(async conn =>
 			//_connections.Values.AsParallel().ForAll(async conn =>
-			{
-				await conn.Client.ReceiveStatus(statusName, statusValue);
-			});
+			_connections.Values.ToList().ForEach(async conn =>
+				{
+					await conn.Client.ReceiveStatus(statusName, statusValue);
+				});
 		}
 
 	}

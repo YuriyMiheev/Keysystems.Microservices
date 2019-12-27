@@ -24,12 +24,14 @@ namespace MSSQL.Microservice
 	{
 		private bool _initialized;
 		private CancellationTokenSource _cancellationSource;
+		private readonly IChannelControl _control;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly ILogger _logger;
 		private readonly IDatabase _database;
 		private readonly IChannelDataAdapter _dataAdapter;
 		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
+		private readonly ChannelStatus _status;
 		private readonly MainSettings _mainSettings;
 		private readonly ChannelSettings _channelSettings;
 		private readonly DatabaseSettings _databaseSettings;
@@ -37,28 +39,26 @@ namespace MSSQL.Microservice
 
 
 		#region Ctor
-		public ChannelService(IServiceProvider serviceProvider)
+		public ChannelService(IChannelControl control)
 		{
-			var sp = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+			_control = control ?? throw new ArgumentNullException(nameof(control));
 			_cancellationSource = new CancellationTokenSource();
 
-			_logger = sp.GetRequiredService<ILogger>() ?? throw new ArgumentNullException(nameof(ILogger));
-			_database = sp.GetRequiredService<IDatabase>() ?? throw new ArgumentNullException(nameof(IDatabase));
-			_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>() ?? throw new ArgumentNullException(nameof(IChannelDataAdapter));
-			_scanner = sp.GetRequiredService<IMessageScanner>() ?? throw new ArgumentNullException(nameof(IMessageScanner));
-			_receiver = sp.GetRequiredService<IMessageReceiver>() ?? throw new ArgumentNullException(nameof(IMessageReceiver));
-			this.Status = sp.GetRequiredService<ChannelStatus>() ?? throw new ArgumentNullException(nameof(ChannelStatus));
-			//_publisher = new MessagePublisher(this);
+			//_logger = sp.GetRequiredService<ILogger>() ?? throw new ArgumentNullException(nameof(ILogger));
+			//_database = sp.GetRequiredService<IDatabase>() ?? throw new ArgumentNullException(nameof(IDatabase));
+			//_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>() ?? throw new ArgumentNullException(nameof(IChannelDataAdapter));
+			//_scanner = sp.GetRequiredService<IMessageScanner>() ?? throw new ArgumentNullException(nameof(IMessageScanner));
+			//_receiver = sp.GetRequiredService<IMessageReceiver>() ?? throw new ArgumentNullException(nameof(IMessageReceiver));
+			//_status = sp.GetRequiredService<ChannelStatus>() ?? throw new ArgumentNullException(nameof(ChannelStatus));
 
-			_scanner.NewMessages += Scanner_NewMessages;
-			this.Status.PropertyChanged += Status_Changed;
+			//_scanner.NewMessages += Scanner_NewMessages;
+			//_status.PropertyChanged += Status_Changed;
 
-			_appConfig = sp.GetRequiredService<IAppSettingsConfig>() ?? throw new ArgumentNullException(nameof(IAppSettingsConfig));
-			_mainSettings = _appConfig.MainSettings();
-			_channelSettings = _appConfig.ChannelSettings();
-			_databaseSettings = _appConfig.DatabaseSettings();
-			_messageSettings = _appConfig.MessageSettings();
-			//_serviceSettings = _appConfig.ServiceSettings();
+			//_appConfig = sp.GetRequiredService<IAppSettingsConfig>() ?? throw new ArgumentNullException(nameof(IAppSettingsConfig));
+			//_mainSettings = _appConfig.MainSettings();
+			//_channelSettings = _appConfig.ChannelSettings();
+			//_databaseSettings = _appConfig.DatabaseSettings();
+			//_messageSettings = _appConfig.MessageSettings();
 
 			this.ProcessId = Process.GetCurrentProcess().Id;
 			this.VirtAddress = _mainSettings.VirtAddress;
@@ -66,17 +66,17 @@ namespace MSSQL.Microservice
 		#endregion
 
 
-		#region Events
-		/// <summary>
-		/// 
-		/// </summary>
-		public event Func<Message[], bool> SendMessages;
+		//#region Events
+		///// <summary>
+		///// 
+		///// </summary>
+		//public event Func<Message[], bool> SendMessages;
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public event Action<string, object> StatusChanged;
-		#endregion
+		///// <summary>
+		///// 
+		///// </summary>
+		//public event Action<string, object> StatusChanged;
+		//#endregion
 
 
 		#region Properties
@@ -89,270 +89,12 @@ namespace MSSQL.Microservice
 		/// {Get} Виртуальный адрес канала.
 		/// </summary>
 		public string VirtAddress { get; }
-
-		/// <summary>
-		/// {Get}
-		/// </summary>
-		public ChannelStatus Status { get; }
 		#endregion
 
 
-		#region Control
-		public void Open()
-		{
-			Initialize();
-
-			this.Status.Opened = true;
-			//UpdateMyselfContact(this.Info);
-
-			//ServiceInfo serviceInfo = this.MessageService.GetInfo();
-			//if (serviceInfo.ChannelsSettings.CheckDatabaseUsed)
-			//{
-			//	ChannelInfo existChannel;
-			//	if (TryCheckDatabaseUsedOtherChannel(out existChannel))
-			//	{
-			//		if (existChannel.LINK != this.LINK)
-			//		{
-			//			var error = new ChannelException(this, String.Format("БД уже используется другим каналом: {0}.", existChannel));
-			//			error.ErrorCode = ChannelException.DatabaseUsedOtherChannel;
-			//			error.Data.Add("OtherChannelInfo", existChannel.ToDto());
-
-			//			throw error;
-			//		}
-			//	}
-
-			//	Uri rmsUri;
-			//	Contact contact;
-			//	if (TryCheckDatabaseUsedOtherRms(out rmsUri, out contact))
-			//	{
-			//		var error = new ChannelException(this, String.Format("БД уже используется другим RMS сервисом: {0}.", rmsUri.Host));
-			//		error.ErrorCode = ChannelException.DatabaseUsedOtherRms;
-			//		error.Data.Add("OtherRmsUri", rmsUri);
-			//		if (contact != null)
-			//			error.Data.Add("OtherRmsContact", contact.ToDto());
-
-			//		throw error;
-			//	}
-			//}
-		}
-
-		public void Run()
-		{
-			CheckOpened();
-
-			if (_cancellationSource.IsCancellationRequested)
-				_cancellationSource = new CancellationTokenSource();
-
-			if (!TryConnect(out Exception error))
-				throw error;
-
-			void DeleteDeletedMessages()
-			{
-				if (_messageSettings.DeleteDeleted)
-				{
-					try
-					{
-						string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
-						int count = _dataAdapter.ExecuteUpdate(sql);
-						_logger.LogTrace($"Удалено сообщений: {count}");
-					}
-					catch (Exception ex)
-					{
-						_logger.LogError(ex);
-					}
-				}
-			}
-
-			//void ResetSendingMessages()
-			//{
-			//	try
-			//	{
-			//		string statusInfo = "Отправка сообщения была прервана.";
-			//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
-			//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
-			//		int count = _dataAdapter.ExecuteUpdate(sql);
-			//		_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		_logger.LogError(ex);
-			//	}
-			//}
-
-			//void ResetReceivingMessages()
-			//{
-			//	try
-			//	{
-			//		string statusInfo = "Прием сообщения был прерван.";
-			//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
-			//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
-			//		int count = _dataAdapter.ExecuteUpdate(sql);
-			//		_logger.LogTrace($"Найдено непринятых сообщений: {count}");
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		_logger.LogError(ex);
-			//	}
-			//}
-
-			DeleteDeletedMessages();
-			//ResetSendingMessages();
-			//ResetReceivingMessages();
-
-			if (_messageSettings.ScanEnabled)
-			{
-				_scanner.StartScan(_messageSettings.ScanInterval, _messageSettings.ScanPortion, _cancellationSource.Token);
-
-				//	if (this.MessageService.ChannelManager.GetSubscribers(this.LINK).Count > 0)
-				//		this.scanPublisher.Start(this.MessageSettings.ScanThreads, this.cancelToken);
-
-				//	if (this.MessageService.ChannelManager.GetPublishers(this.LINK).Count > 0)
-				//		this.scanSubscriber.Start(this.MessageSettings.ScanThreads, this.cancelToken);
-			}
-
-			this.Status.Running = true;
-
-			//UpdateMyselfContact(this.Info);
-		}
-
-		public void Stop()
-		{
-			_cancellationSource.Cancel(); //_scanner.StopScan();
-
-			this.Status.Running = false;
-			this.Status.Online = null;
-
-			//UpdateMyselfContact(this.Info);
-		}
-
-		public void Close()
-		{
-			try
-			{
-				//Stop();
-				_cancellationSource.Cancel();
-
-				this.Status.Running = false;
-				this.Status.Online = null;
-				this.Status.Opened = false;
-
-				//UpdateMyselfContact(myInfo);
-			}
-			finally
-			{
-				Dispose();
-			}
-		}
-		#endregion
 
 
-		#region Diagnostic
-		public bool TryConnect(out Exception error)
-		{
-			Initialize();
 
-			if (_database.TryConnect(out ConnectionException ex))
-			{
-				error = null;
-				this.Status.Online = true;
-				return true;
-			}
-			else
-			{
-				error = ex;
-				this.Status.Online = false;
-				return false;
-			}
-		}
-
-		/// <summary>
-		/// Запустить диагностику канала.
-		/// </summary>
-		public void CheckState()
-		{
-			Initialize();
-
-			using DbContext dbContext = _database.ValidateSchema();
-		}
-
-		/// <summary>
-		/// Восстановить работоспособность канала.
-		/// </summary>
-		public void Repair()
-		{
-			Initialize();
-
-			if (_databaseSettings.RepairSPEnabled)
-			{
-				try
-				{
-					string repairSP = _databaseSettings.RepairSP;
-					if (String.IsNullOrWhiteSpace(repairSP))
-						throw new InvalidOperationException("Не указано имя хранимой процедуры восстановления БД.");
-
-					_logger.LogTrace($"Вызов хранимой процедуры \"{repairSP}\".");
-					_dataAdapter.CallRepairSP(repairSP);
-				}
-				catch (Exception ex)
-				{
-					SetError(ex);
-					_logger.LogError(ex);
-				}
-			}
-
-			using DbContext dbContext = _database.CreateOrUpdateSchema();
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public void Ping()
-		{
-			Initialize();
-
-			Exception error;
-			if (!TryConnect(out error))
-				throw error;
-
-			if (_databaseSettings.PingSPEnabled)
-			{
-				string pingSP = _databaseSettings.PingSP;
-				if (String.IsNullOrWhiteSpace(pingSP))
-					throw new InvalidOperationException("Не указано имя хранимой процедуры пинга БД.");
-
-				_logger.LogTrace($"Вызов хранимой процедуры \"{pingSP}\".");
-				_dataAdapter.CallPingSP(pingSP);
-			}
-		}
-		#endregion
-
-
-		#region Error
-		/// <summary>
-		/// Сбросить ошибку.
-		/// </summary>
-		public void ClearError()
-		{
-		}
-
-		/// <summary>
-		/// Запомнить ошибку.
-		/// </summary>
-		/// <param name="error"></param>
-		public void SetError(Exception error)
-		{
-		}
-
-		/// <summary>
-		/// Вызвать ошибку.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <returns></returns>
-		public ChannelException ThrowError(string text)
-		{
-			return new ChannelException(this, text);
-		}
-		#endregion
 
 
 		#region Messages
@@ -634,50 +376,46 @@ namespace MSSQL.Microservice
 
 
 		#region IHostedService  
-		Task IHostedService.StartAsync(CancellationToken cancellationToken)
+		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-			return Task.Run(() =>
-				{
-					if (_channelSettings.AutoOpen)
-					{
-						Open();
-						if (_channelSettings.AutoRun)
-							Run();
-					}
-				}, cancellationToken);
+			_status.Created = true;
+
+			if (_channelSettings.AutoOpen)
+			{
+				await _control.OpenChannelAsync(cancellationToken);
+				if (_channelSettings.AutoRun)
+					await _control.RunChannelAsync(cancellationToken);
+			}
 		}
 
-		Task IHostedService.StopAsync(CancellationToken cancellationToken)
+		public async Task StopAsync(CancellationToken cancellationToken)
 		{
-			return Task.Run(() =>
-				{
-					Close();
-				}, cancellationToken);
+			await _control.CloseChannelAsync(cancellationToken);
 		}
 		#endregion
 
 
 		#region Helper
-		private void Initialize()
-		{
-			if (_initialized)
-				return;
+		//private void Initialize()
+		//{
+		//	if (_initialized)
+		//		return;
 
-			lock (this)
-			{
-				if (_initialized)
-					return;
+		//	lock (this)
+		//	{
+		//		if (_initialized)
+		//			return;
 
-				if (_cancellationSource.IsCancellationRequested)
-					_cancellationSource = new CancellationTokenSource();
+		//		if (_cancellationSource.IsCancellationRequested)
+		//			_cancellationSource = new CancellationTokenSource();
 
-				_database.Schema = _databaseSettings.Schema;
-				_database.ConnectionString = _mainSettings.RealAddress;
-				_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
+		//		_database.Schema = _databaseSettings.Schema;
+		//		_database.ConnectionString = _mainSettings.RealAddress;
+		//		_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
 
-				_initialized = true;
-			}
-		}
+		//		_initialized = true;
+		//	}
+		//}
 
 		private void PrepareSaveMessage(Message msg)
 		{
@@ -698,33 +436,33 @@ namespace MSSQL.Microservice
 
 		private void CheckOpened()
 		{
-			if (!this.Status.Opened)
+			if (!_status.Opened)
 				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
 
-		private bool Scanner_NewMessages(Message[] messages)
-		{
-			if (this.SendMessages != null)
-				return this.SendMessages.Invoke(messages);
-			else
-				return false;
-		}
+		//private bool Scanner_NewMessages(Message[] messages)
+		//{
+		//	if (this.SendMessages != null)
+		//		return this.SendMessages.Invoke(messages);
+		//	else
+		//		return false;
+		//}
 
-		private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
-			switch (e.PropertyName)
-			{
-				case nameof(this.Status.Opened):
-					this.StatusChanged?.Invoke(e.PropertyName, this.Status.Opened);
-					break;
-				case nameof(this.Status.Running):
-					this.StatusChanged?.Invoke(e.PropertyName, this.Status.Running);
-					break;
-				case nameof(this.Status.Online):
-					this.StatusChanged?.Invoke(e.PropertyName, this.Status.Online);
-					break;
-			}
-		}
+		//private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		//{
+		//	switch (e.PropertyName)
+		//	{
+		//		case nameof(_status.Opened):
+		//			this.StatusChanged?.Invoke(e.PropertyName, _status.Opened);
+		//			break;
+		//		case nameof(_status.Running):
+		//			this.StatusChanged?.Invoke(e.PropertyName, _status.Running);
+		//			break;
+		//		case nameof(_status.Online):
+		//			this.StatusChanged?.Invoke(e.PropertyName, _status.Online);
+		//			break;
+		//	}
+		//}
 		#endregion
 
 
@@ -739,13 +477,27 @@ namespace MSSQL.Microservice
 			if (disposing)
 			{
 				// TODO: dispose managed state (managed objects).
-				_cancellationSource.Cancel();
+				try
+				{
+					if (_cancellationSource != null && !_cancellationSource.IsCancellationRequested)
+						_cancellationSource.Cancel(false);
+				}
+				catch (Exception ex)
+				{
+					if (_logger != null)
+						_logger.LogError(ex);
+				}
 
-				_database.Close();
+				if (_database != null)
+					_database.Close();
 
-				this.Status.Opened = false;
-				this.Status.Running = false;
-				this.Status.Online = null;
+				if (_status != null)
+				{
+					_status.Created = false;
+					_status.Opened = false;
+					_status.Running = false;
+					_status.Online = null;
+				}
 			}
 
 			// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

@@ -172,8 +172,8 @@ namespace Microservices.Channels
 		/// </summary>
 		protected virtual void OnCancel()
 		{
-			_queryTimer.Stop();
 			_started = false;
+			_queryTimer.Stop();
 		}
 		#endregion
 

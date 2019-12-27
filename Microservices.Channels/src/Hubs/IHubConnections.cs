@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microservices.Channels.Hubs
 {
@@ -10,10 +11,10 @@ namespace Microservices.Channels.Hubs
 
 		bool TryRemove(string connectionId, out IHubConnection connection);
 
-		bool SendLogToClient(IDictionary<string, object> record);
+		bool SendLogToClient(IDictionary<string, object> logRecord);
 
 		bool SendMessagesToClient(Message[] messages);
 
-		void SendStatusToClient(string statusName, object statusValue);
+		void SendStatusToClient(IDictionary<string, object> statuses);
 	}
 }

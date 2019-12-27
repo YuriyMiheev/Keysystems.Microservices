@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microservices.Bus.Addins;
@@ -56,18 +57,19 @@ namespace Microservices.Bus.Channels
 
 
 		#region Channels
-		public async Task LoadChannelsAsync()
+		public async Task LoadChannelsAsync(CancellationToken cancellationToken = default)
 		{
 			var errors = new List<Exception>();
 
-			List<ChannelInfo> allChannels = await _dataAdapter.GetChannelsAsync();
+			List<ChannelInfo> allChannels = await _dataAdapter.GetChannelsAsync(cancellationToken);
 
-			void LoadGroups()
+			async Task LoadGroups()
 			{
 				GroupInfo deafaultGroup = GetOrCreateDefaultGroup();
-				List<GroupInfo> allGroups = _dataAdapter.GetGroupsAsync().Result;
+				List<GroupInfo> allGroups = await _dataAdapter.GetGroupsAsync(cancellationToken);
 
-				allChannels.ForEach(channelInfo =>
+				foreach (ChannelInfo channelInfo in allChannels)
+				//allChannels.ForEach(channelInfo =>
 				//allChannels.AsParallel().ForAll(channelInfo =>
 				{
 					try
@@ -86,14 +88,15 @@ namespace Microservices.Bus.Channels
 							errors.Add(ex);
 						}
 					}
-				});
+				}
 
 				RefreshGroups();
 			}
 
 			void CreateChannels()
 			{
-				allChannels.ForEach(channelInfo =>
+				foreach (ChannelInfo channelInfo in allChannels)
+				//allChannels.ForEach(channelInfo =>
 				//allChannels.AsParallel().ForAll(channelInfo =>
 				{
 					try
@@ -126,12 +129,13 @@ namespace Microservices.Bus.Channels
 							errors.Add(ex);
 						}
 					}
-				});
+				}
 			}
 
-			void OpenChannels()
+			async Task OpenChannels()
 			{
-				_channels.Values.ToList().ForEach(async channelContext =>
+				foreach (IChannelContext channelContext in _channels.Values)
+				//_channels.Values.ToList().ForEach(channelContext =>
 				//_channels.Values.AsParallel().ForAll(channelContext =>
 				{
 					ChannelSettings channelSettings = channelContext.Info.ChannelSettings();
@@ -160,12 +164,13 @@ namespace Microservices.Bus.Channels
 							}
 						}
 					}
-				});
+				}
 			}
 
-			void RunChannels()
+			async Task RunChannels()
 			{
-				_channels.Values.ToList().ForEach(async channelContext =>
+				foreach (IChannelContext channelContext in _channels.Values)
+				//_channels.Values.ToList().ForEach(async channelContext =>
 				//_channels.Values.AsParallel().ForAll(channelContext =>
 				{
 					if (channelContext.Status.Created)
@@ -186,14 +191,13 @@ namespace Microservices.Bus.Channels
 							}
 						}
 					}
-				});
+				}
 			}
 
-			LoadGroups();
+			await LoadGroups();
 			CreateChannels();
-			OpenChannels();
-			//System.Threading.Thread.Sleep(1000);
-			RunChannels();
+			await OpenChannels();
+			await RunChannels();
 
 			if (errors.Count > 0)
 				throw new AggregateException(errors);

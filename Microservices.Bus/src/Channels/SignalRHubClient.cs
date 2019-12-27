@@ -83,8 +83,6 @@ namespace Microservices.Bus.Channels
 			if (this.IsConnected)
 				throw new InvalidOperationException($"Подключение к хабу {_hubUrl} уже выполнено.");
 
-			this._info.Clear();
-
 			var uri = new UriBuilder(_hubUrl.Uri);
 			uri.Path += "ChannelHub";
 
@@ -335,7 +333,7 @@ namespace Microservices.Bus.Channels
 			hubConnection.Reconnecting += (error) => this.Reconnecting?.Invoke(this, error);
 			hubConnection.Reconnected += (connectionId) =>
 				{
-					this._info["ConnectionId"] = connectionId;
+					_info["ConnectionId"] = connectionId;
 					return this.Reconnected?.Invoke(this, connectionId);
 				};
 			return hubConnection;

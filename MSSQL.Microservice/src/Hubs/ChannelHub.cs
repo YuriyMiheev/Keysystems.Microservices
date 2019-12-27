@@ -20,7 +20,11 @@ namespace MSSQL.Microservice.Hubs
 {
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
-		private readonly IChannelService _channelService;
+		private CancellationTokenSource _cancellationSource;
+		private readonly IChannelService _channel;
+		private readonly IChannelControl _control;
+		private readonly ChannelStatus _status;
+		private readonly IMessageScanner _scanner;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly IChannelDataAdapter _dataAdapter;
 		private readonly IHubConnections _connections;
@@ -28,10 +32,13 @@ namespace MSSQL.Microservice.Hubs
 
 
 		#region Ctor
-		public ChannelHub(IChannelService channelService, IAppSettingsConfig appConfig, IChannelDataAdapter dataAdapter, ILogger logger, IHubConnections connections)
+		public ChannelHub(IAppSettingsConfig appConfig, IChannelService channel, IChannelControl control, ChannelStatus status, IMessageScanner scanner, IChannelDataAdapter dataAdapter, ILogger logger, IHubConnections connections)
 		{
-			_channelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
+			_channel = channel ?? throw new ArgumentNullException(nameof(channel));
+			_control = control ?? throw new ArgumentNullException(nameof(control));
+			_status = status ?? throw new ArgumentNullException(nameof(status));
+			_scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -55,22 +62,20 @@ namespace MSSQL.Microservice.Hubs
 						connection = new HubConnection(connectionId, client);
 						_connections.Add(connection);
 
-						_channelService.SendMessages += SendMessages;
-						_channelService.StatusChanged += StatusChanged;
+						_scanner.NewMessages += Scanner_NewMessages;
+						_status.PropertyChanged += Status_Changed;
 					}
 
 					return GetCurrentInfo();
 				}
 				else
 				{
-					//this.Context.Abort();
 					return null;
 				}
 			}
 			catch (Exception ex)
 			{
 				LogError(ex);
-				//this.Context.Abort();
 				return null;
 			}
 		}
@@ -79,12 +84,12 @@ namespace MSSQL.Microservice.Hubs
 
 		#region Control
 		//[Authorize]
-		public void OpenChannel()
+		public async Task OpenChannel()
 		{
 			try
 			{
 				LogTrace("Opening");
-				_channelService.Open();
+				await _control.OpenChannelAsync();
 				LogTrace("Opened");
 			}
 			catch (Exception ex)
@@ -93,13 +98,12 @@ namespace MSSQL.Microservice.Hubs
 			}
 		}
 
-		public void CloseChannel()
+		public async Task CloseChannel()
 		{
 			try
 			{
 				LogTrace("Closing");
-				//await (_channelService as IHostedService)?.StopAsync(CancellationToken.None);
-				_channelService.Close();
+				await _control.CloseChannelAsync();
 				LogTrace("Closed");
 			}
 			catch (Exception ex)
@@ -108,12 +112,12 @@ namespace MSSQL.Microservice.Hubs
 			}
 		}
 
-		public void RunChannel()
+		public async Task RunChannel()
 		{
 			try
 			{
 				LogTrace("Running");
-				_channelService.Run();
+				await _control.RunChannelAsync();
 				LogTrace("Runned");
 			}
 			catch (Exception ex)
@@ -122,12 +126,12 @@ namespace MSSQL.Microservice.Hubs
 			}
 		}
 
-		public void StopChannel()
+		public async Task StopChannel()
 		{
 			try
 			{
 				LogTrace("Stopping");
-				_channelService.Stop();
+				await _control.StopChannelAsync();
 				LogTrace("Stopped");
 			}
 			catch (Exception ex)
@@ -139,9 +143,9 @@ namespace MSSQL.Microservice.Hubs
 
 
 		#region Diagnostic
-		public Exception TryConnect()
+		public async Task<Exception> TryConnect()
 		{
-			if (_channelService.TryConnect(out Exception error))
+			if (await _control.TryConnectAsync(out Exception error))
 				return null;
 			else
 				return error;
@@ -151,7 +155,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			try
 			{
-				_channelService.CheckState();
+				_control.CheckState();
 				return null;
 			}
 			catch (Exception ex)
@@ -165,7 +169,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			try
 			{
-				_channelService.Repair();
+				_control.Repair();
 			}
 			catch (Exception ex)
 			{
@@ -177,7 +181,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			try
 			{
-				_channelService.Ping();
+				_control.Ping();
 			}
 			catch (Exception ex)
 			{
@@ -365,7 +369,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			try
 			{
-				return _channelService.ReceiveMessage(msgLink);
+				return _channel.ReceiveMessage(msgLink);
 			}
 			catch (Exception ex)
 			{
@@ -378,7 +382,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			try
 			{
-				_channelService.SendMessage(msgLink);
+				_channel.SendMessage(msgLink);
 			}
 			catch (Exception ex)
 			{
@@ -454,22 +458,30 @@ namespace MSSQL.Microservice.Hubs
 		{
 			var result = new Dictionary<string, object>();
 			result.Add("MachineName", Environment.MachineName);
-			result.Add("ProcessId", _channelService.ProcessId);
+			result.Add("ProcessId", _channel.ProcessId);
 			result.Add("ConnectionId", this.Context.ConnectionId);
-			result.Add("VirtAddress", _channelService.VirtAddress);
+			result.Add("VirtAddress", _channel.VirtAddress);
 			return result;
 		}
 
-		private bool SendMessages(Message[] messages)
+		private bool Scanner_NewMessages(Message[] messages)
 		{
 			_logger.LogTrace($"SendMessages: {messages.Length}");
 			return _connections.SendMessagesToClient(messages);
 		}
 
-		private void StatusChanged(string statusName, object statusValue)
+		private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
-			_logger.LogTrace($"SendStatus: {statusName}={statusValue}");
-			_connections.SendStatusToClient(statusName, statusValue);
+			var statuses = new Dictionary<string, object>
+			{
+				{ nameof(_status.Created), _status.Created },
+				{ nameof(_status.Opened), _status.Opened },
+				{ nameof(_status.Running), _status.Running },
+				{ nameof(_status.Online), _status.Online }
+			};
+
+			//_logger.LogTrace($"SendStatus: {statusName}={statusValue}");
+			_connections.SendStatusToClient(statuses);
 		}
 		#endregion
 

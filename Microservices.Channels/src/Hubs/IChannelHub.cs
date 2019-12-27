@@ -18,18 +18,18 @@ namespace Microservices.Channels.Hubs
 
 
 		#region Control
-		void OpenChannel();
+		Task OpenChannel();
 
-		void CloseChannel();
+		Task CloseChannel();
 
-		void RunChannel();
+		Task RunChannel();
 
-		void StopChannel();
+		Task StopChannel();
 		#endregion
 
 
 		#region Diagnostic
-		Exception TryConnect();
+		Task<Exception> TryConnect();
 
 		Exception CheckState();
 

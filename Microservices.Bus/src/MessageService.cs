@@ -92,61 +92,58 @@ namespace Microservices.Bus
 
 
 		#region IHostedService
-		public Task StartAsync(CancellationToken cancellationToken)
+		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-			return Task.Run(async () =>
+			_logger.LogTrace("Старт сервиса.");
+
+			bool isSchemaValid = false;
+
+			try
+			{
+				_serviceInfo.StartTime = DateTime.Now;
+
+				_database.Schema = _busSettings.Database.Schema;
+				_database.ConnectionString = _busSettings.Database.ConnectionString;
+				//_database.ConnectionTimeout = (int)_databaseSettings.ConnectionTimeout.TotalSeconds;
+				//_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
+
+				while (!_database.TryConnect(out ConnectionException error))
 				{
-					_logger.LogTrace("Старт сервиса.");
+					_serviceInfo.StartupError = error;
+					System.Threading.Thread.Sleep(1000);
+				}
 
-					bool isSchemaValid = false;
+				using DbContext dbContext = _database.ValidateSchema();
+				//using DbContext dbContext = _database.CreateOrUpdateSchema();
+				isSchemaValid = true;
 
-					try
-					{
-						_serviceInfo.StartTime = DateTime.Now;
+				List<DAO.ServiceInfo> instances = _dataAdapter.GetServiceInstances();
+				if (instances.Count > 0)
+				{
+					DAO.ServiceInfo service = instances[0];
+					_serviceInfo.LINK = service.LINK;
+					if (service.InstanceID != _serviceInfo.InstanceID && _busSettings.CheckInstanceID)
+						throw new ApplicationException("База данных принадлежит другому интеграционному сервису.");
+				}
 
-						_database.Schema = _busSettings.Database.Schema;
-						_database.ConnectionString = _busSettings.Database.ConnectionString;
-						//_database.ConnectionTimeout = (int)_databaseSettings.ConnectionTimeout.TotalSeconds;
-						//_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
+				_addinManager.LoadAddins();
 
-						while (!_database.TryConnect(out ConnectionException error))
-						{
-							_serviceInfo.StartupError = error;
-							System.Threading.Thread.Sleep(1000);
-						}
+				//_licManager.LoadLicenses();
+				await _channelManager.LoadChannelsAsync(cancellationToken);
 
-						using DbContext dbContext = _database.ValidateSchema();
-						//using DbContext dbContext = _database.CreateOrUpdateSchema();
-						isSchemaValid = true;
-
-						List<DAO.ServiceInfo> instances = _dataAdapter.GetServiceInstances();
-						if (instances.Count > 0)
-						{
-							DAO.ServiceInfo service = instances[0];
-							_serviceInfo.LINK = service.LINK;
-							if (service.InstanceID != _serviceInfo.InstanceID && _busSettings.CheckInstanceID)
-								throw new ApplicationException("База данных принадлежит другому интеграционному сервису.");
-						}
-
-						_addinManager.LoadAddins();
-
-						//_licManager.LoadLicenses();
-						await _channelManager.LoadChannelsAsync();
-
-						_serviceInfo.StartupError = null;
-						_serviceInfo.Running = true;
-					}
-					catch (Exception ex)
-					{
-						_logger.LogError(ex);
-						_serviceInfo.StartupError = ex;
-					}
-					finally
-					{
-						if (isSchemaValid)
-							_dataAdapter.SaveServiceInfo(_serviceInfo);
-					}
-				}, cancellationToken);
+				_serviceInfo.StartupError = null;
+				_serviceInfo.Running = true;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex);
+				_serviceInfo.StartupError = ex;
+			}
+			finally
+			{
+				if (isSchemaValid)
+					_dataAdapter.SaveServiceInfo(_serviceInfo);
+			}
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken)

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microservices.Bus.Channels
 {
@@ -9,7 +10,7 @@ namespace Microservices.Bus.Channels
 		IChannelContext[] RuntimeChannels { get; }
 
 
-		Task LoadChannelsAsync();
+		Task LoadChannelsAsync(CancellationToken cancellationToken = default);
 
 		void TerminateChannel(string virtAddress);
 	}
