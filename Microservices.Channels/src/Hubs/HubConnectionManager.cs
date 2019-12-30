@@ -7,13 +7,13 @@ using Microservices.Channels.Logging;
 
 namespace Microservices.Channels.Hubs
 {
-	public class HubConnections : IHubConnections
+	public class HubConnectionManager : IHubConnectionManager
 	{
 		private readonly ILogger _logger;
 		private ConcurrentDictionary<string, IHubConnection> _connections;
 
 
-		public HubConnections(ILogger logger)
+		public HubConnectionManager(ILogger logger)
 		{
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = new ConcurrentDictionary<string, IHubConnection>();

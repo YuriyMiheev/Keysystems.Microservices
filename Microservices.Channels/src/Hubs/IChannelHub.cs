@@ -122,9 +122,9 @@ namespace Microservices.Channels.Hubs
 		#endregion
 
 
-		int? ReceiveMessage(int msgLink);
+		//int? ReceiveMessage(int msgLink);
 
-		void SendMessage(int msgLink);
+		//void SendMessage(int msgLink);
 		#endregion
 
 	}

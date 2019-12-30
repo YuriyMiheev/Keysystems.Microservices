@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Microservices.Channels.Hubs
 {
-	public interface IHubConnections
+	public interface IHubConnectionManager
 	{
 		void Add(IHubConnection connection);
 

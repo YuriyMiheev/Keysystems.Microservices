@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
@@ -21,7 +19,6 @@ namespace Microservices.Channels
 		private readonly MainSettings _mainSettings;
 		private readonly DatabaseSettings _databaseSettings;
 		private readonly MessageSettings _messageSettings;
-		//private CancellationTokenSource _cancellationSource;
 		private bool _initialized;
 
 
@@ -37,7 +34,6 @@ namespace Microservices.Channels
 			_mainSettings = _appConfig.MainSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();
 			_messageSettings = _appConfig.MessageSettings();
-			//_cancellationSource = new CancellationTokenSource();
 
 
 			//new SemaphoreSlim(1, 1);
@@ -111,7 +107,7 @@ namespace Microservices.Channels
 			}
 			catch (Exception ex)
 			{
-				SetError(ex);
+				_status.Error = ex;
 				_logger.LogError(ex);
 				throw;
 			}
@@ -201,7 +197,7 @@ namespace Microservices.Channels
 			}
 			catch (Exception ex)
 			{
-				SetError(ex);
+				_status.Error = ex;
 				_logger.LogError(ex);
 				throw;
 			}
@@ -220,7 +216,7 @@ namespace Microservices.Channels
 			}
 			catch (Exception ex)
 			{
-				SetError(ex);
+				_status.Error = ex;
 				_logger.LogError(ex);
 				throw;
 			}
@@ -250,7 +246,7 @@ namespace Microservices.Channels
 			}
 			else
 			{
-				SetError(ex);
+				_status.Error = ex;
 				error = ex;
 				_status.Online = false;
 				return false;
@@ -270,7 +266,7 @@ namespace Microservices.Channels
 			}
 			catch (Exception ex)
 			{
-				SetError(ex);
+				_status.Error = ex;
 				_logger.LogError(ex);
 				throw;
 			}
@@ -296,7 +292,7 @@ namespace Microservices.Channels
 				}
 				catch (Exception ex)
 				{
-					SetError(ex);
+					_status.Error = ex;
 					_logger.LogError(ex);
 				}
 			}
@@ -327,7 +323,7 @@ namespace Microservices.Channels
 				}
 				catch (Exception ex)
 				{
-					SetError(ex);
+					_status.Error = ex;
 					_logger.LogError(ex);
 				}
 			}
@@ -335,13 +331,14 @@ namespace Microservices.Channels
 		#endregion
 
 
-		//#region Error
-		///// <summary>
-		///// Сбросить ошибку.
-		///// </summary>
-		//public void ClearError()
-		//{
-		//}
+		#region Error
+		/// <summary>
+		/// Сбросить ошибку.
+		/// </summary>
+		public void ClearError()
+		{
+			_status.Error = null;
+		}
 
 		/// <summary>
 		/// Запомнить ошибку.
@@ -349,6 +346,7 @@ namespace Microservices.Channels
 		/// <param name="error"></param>
 		public void SetError(Exception error)
 		{
+			_status.Error = error;
 		}
 
 		///// <summary>
@@ -360,7 +358,7 @@ namespace Microservices.Channels
 		//{
 		//	return new ChannelException(this, text);
 		//}
-		//#endregion
+		#endregion
 
 
 
@@ -375,9 +373,6 @@ namespace Microservices.Channels
 					return;
 
 				_logger.LogTrace("Initializing...");
-
-				//if (_cancellationSource.IsCancellationRequested)
-				//	_cancellationSource = new CancellationTokenSource();
 
 				_database.Schema = _databaseSettings.Schema;
 				_database.ConnectionString = _mainSettings.RealAddress;

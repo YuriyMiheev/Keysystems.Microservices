@@ -15,27 +15,27 @@ namespace Microservices.Channels
 
 
 
-		#region Messages
+		//#region Messages
+		/////// <summary>
+		/////// Опубликовать сообщение.
+		/////// </summary>
+		/////// <param name="msgLink"></param>
+		////void PublishMessage(int msgLink);
+
 		///// <summary>
-		///// Опубликовать сообщение.
+		///// Принять сообщение.
 		///// </summary>
 		///// <param name="msgLink"></param>
-		//void PublishMessage(int msgLink);
+		///// <returns></returns>
+		//int? ReceiveMessage(int msgLink);
 
-		/// <summary>
-		/// Принять сообщение.
-		/// </summary>
-		/// <param name="msgLink"></param>
-		/// <returns></returns>
-		int? ReceiveMessage(int msgLink);
-
-		/// <summary>
-		/// Отправить сообщение.
-		/// </summary>
-		/// <param name="msgLink"></param>
-		/// <returns></returns>
-		void SendMessage(int msgLink);
-		#endregion
+		///// <summary>
+		///// Отправить сообщение.
+		///// </summary>
+		///// <param name="msgLink"></param>
+		///// <returns></returns>
+		//void SendMessage(int msgLink);
+		//#endregion
 
 	}
 }

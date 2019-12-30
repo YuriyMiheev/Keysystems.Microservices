@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,19 +21,18 @@ namespace MSSQL.Microservice.Hubs
 {
 	public class ChannelHub : Hub<IChannelHubClient>, IChannelHub
 	{
-		private CancellationTokenSource _cancellationSource;
 		private readonly IChannelService _channel;
 		private readonly IChannelControl _control;
 		private readonly ChannelStatus _status;
 		private readonly IMessageScanner _scanner;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly IChannelDataAdapter _dataAdapter;
-		private readonly IHubConnections _connections;
+		private readonly IHubConnectionManager _connectionManager;
 		private readonly ILogger _logger;
 
 
 		#region Ctor
-		public ChannelHub(IAppSettingsConfig appConfig, IChannelService channel, IChannelControl control, ChannelStatus status, IMessageScanner scanner, IChannelDataAdapter dataAdapter, ILogger logger, IHubConnections connections)
+		public ChannelHub(IAppSettingsConfig appConfig, IChannelService channel, IChannelControl control, ChannelStatus status, IMessageScanner scanner, IChannelDataAdapter dataAdapter, ILogger logger, IHubConnectionManager connectionManager)
 		{
 			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
 			_channel = channel ?? throw new ArgumentNullException(nameof(channel));
@@ -41,7 +41,7 @@ namespace MSSQL.Microservice.Hubs
 			_scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
+			_connectionManager = connectionManager ?? throw new ArgumentNullException(nameof(connectionManager));
 		}
 		#endregion
 
@@ -56,11 +56,11 @@ namespace MSSQL.Microservice.Hubs
 				if ((accessKey ?? "") == settings.PasswordIn)
 				{
 					string connectionId = this.Context.ConnectionId;
-					if (!_connections.TryGet(connectionId, out IHubConnection connection))
+					if (!_connectionManager.TryGet(connectionId, out IHubConnection connection))
 					{
 						IChannelHubClient client = this.Clients.Client(connectionId);
 						connection = new HubConnection(connectionId, client);
-						_connections.Add(connection);
+						_connectionManager.Add(connection);
 
 						_scanner.NewMessages += Scanner_NewMessages;
 						_status.PropertyChanged += Status_Changed;
@@ -137,10 +137,15 @@ namespace MSSQL.Microservice.Hubs
 		#region Diagnostic
 		public Exception TryConnect()
 		{
-			if (_control.TryConnect(out Exception error))
+			if (_control.TryConnect(out Exception ex))
+			{
 				return null;
+			}
 			else
-				return error;
+			{
+				LogError(ex);
+				return ex;
+			}
 		}
 
 		public Exception CheckState()
@@ -159,7 +164,7 @@ namespace MSSQL.Microservice.Hubs
 
 		public void Repair()
 		{
-		
+
 			try
 			{
 				_control.Repair();
@@ -187,17 +192,39 @@ namespace MSSQL.Microservice.Hubs
 		#region Settings
 		public IDictionary<string, AppConfigSetting> GetSettings()
 		{
-			return _appConfig.GetAppSettings();
+			try
+			{
+				return _appConfig.GetAppSettings();
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+				return null;
+			}
 		}
 
 		public void SetSettings(IDictionary<string, string> settings)
 		{
-			_appConfig.SetAppSettings(settings);
+			try
+			{
+				_appConfig.SetAppSettings(settings);
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+			}
 		}
 
 		public void SaveSettings()
 		{
-			_appConfig.SaveAppSettings();
+			try
+			{
+				_appConfig.SaveAppSettings();
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+			}
 		}
 		#endregion
 
@@ -358,31 +385,31 @@ namespace MSSQL.Microservice.Hubs
 		#endregion
 
 
-		public int? ReceiveMessage(int msgLink)
-		{
-			try
-			{
-				return _channel.ReceiveMessage(msgLink);
-			}
-			catch (Exception ex)
-			{
-				LogError(ex);
-				throw;
-			}
-		}
+		//public int? ReceiveMessage(int msgLink)
+		//{
+		//	try
+		//	{
+		//		return _channel.ReceiveMessage(msgLink);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		LogError(ex);
+		//		throw;
+		//	}
+		//}
 
-		public void SendMessage(int msgLink)
-		{
-			try
-			{
-				_channel.SendMessage(msgLink);
-			}
-			catch (Exception ex)
-			{
-				LogError(ex);
-				throw;
-			}
-		}
+		//public void SendMessage(int msgLink)
+		//{
+		//	try
+		//	{
+		//		_channel.SendMessage(msgLink);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		LogError(ex);
+		//		throw;
+		//	}
+		//}
 		#endregion
 
 
@@ -396,7 +423,7 @@ namespace MSSQL.Microservice.Hubs
 		{
 			try
 			{
-				if (_connections.TryRemove(this.Context.ConnectionId, out IHubConnection connection))
+				if (_connectionManager.TryRemove(this.Context.ConnectionId, out IHubConnection connection))
 					connection.Dispose();
 
 				return base.OnDisconnectedAsync(exception);
@@ -444,27 +471,28 @@ namespace MSSQL.Microservice.Hubs
 			record.Add("LogLevel", logLevel);
 			record.Add("Text", text);
 
-			return _connections.SendLogToClient(record);
+			return _connectionManager.SendLogToClient(record);
 		}
 
 		private IDictionary<string, object> GetCurrentInfo()
 		{
-			var result = new Dictionary<string, object>();
-			result.Add("MachineName", Environment.MachineName);
-			result.Add("ProcessId", _channel.ProcessId);
-			result.Add("ConnectionId", this.Context.ConnectionId);
-			result.Add("VirtAddress", _channel.VirtAddress);
-			return result;
+			return new Dictionary<string, object>
+				{
+					{ "MachineName", Environment.MachineName },
+					{ "ProcessId", _channel.ProcessId },
+					{ "ConnectionId", this.Context.ConnectionId },
+					{ "VirtAddress", _channel.VirtAddress }
+				};
 		}
 
 		private bool Scanner_NewMessages(Message[] messages)
 		{
-			return _connections.SendMessagesToClient(messages);
+			return _connectionManager.SendMessagesToClient(messages);
 		}
 
-		private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void Status_Changed(object sender, PropertyChangedEventArgs e)
 		{
-			_connections.SendStatusToClient(_status);
+			_connectionManager.SendStatusToClient(_status);
 		}
 		#endregion
 

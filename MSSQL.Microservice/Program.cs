@@ -51,7 +51,7 @@ namespace MSSQL.Microservice
 							services.AddSingleton<IDatabase, ChannelDatabase>();
 							services.AddSingleton<IChannelDataAdapter, ChannelDataAdapter>();
 							services.AddSingleton<ILogger, ChannelLogger>();
-							services.AddSingleton<IHubConnections, HubConnections>();
+							services.AddSingleton<IHubConnectionManager, HubConnectionManager>();
 							services.AddSingleton<IMessageScanner, MessageScanner>();
 							services.AddSingleton<IMessageReceiver, MessageReceiver>();
 							services.AddSingleton<ChannelStatus>();

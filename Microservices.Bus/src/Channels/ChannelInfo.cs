@@ -17,6 +17,11 @@ namespace Microservices.Bus.Channels
 
 
 		/// <summary>
+		/// Id канала.
+		/// </summary>
+		public string Id => $"#{this.LINK} ({this.VirtAddress})";
+
+		/// <summary>
 		/// Доп. св-ва канала.
 		/// </summary>
 		public IDictionary<string, ChannelInfoProperty> Properties => _properties;

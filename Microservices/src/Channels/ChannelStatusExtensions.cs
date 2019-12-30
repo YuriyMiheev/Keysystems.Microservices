@@ -15,7 +15,8 @@ namespace Microservices.Channels
 				{ nameof(status.Created), status.Created },
 				{ nameof(status.Opened), status.Opened },
 				{ nameof(status.Running), status.Running },
-				{ nameof(status.Online), status.Online }
+				{ nameof(status.Online), status.Online },
+				{ nameof(status.Error), status.Error }
 			};
 		}
 	}

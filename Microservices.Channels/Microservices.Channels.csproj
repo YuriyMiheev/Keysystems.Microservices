@@ -14,6 +14,7 @@
     <Compile Remove="ChannelServiceBase.cs" />
     <Compile Remove="CommonHubClient.cs" />
     <Compile Remove="src\AsyncStreamTextReader.cs" />
+    <Compile Remove="src\ChannelException.cs" />
     <Compile Remove="src\ChannelServiceBase.cs" />
     <Compile Remove="src\ChannelStatus.cs" />
     <Compile Remove="src\Configuration\ConfigFileSetting.cs" />
@@ -31,6 +32,7 @@
     <Compile Remove="IHubClient.cs" />
     <Compile Remove="src\MessageExtensions.cs" />
     <Compile Remove="src\MessageSender.cs" />
+    <Compile Remove="src\MessageValidator.cs" />
     <Compile Remove="src\OrderableMessageQueue.cs" />
     <Compile Remove="src\Parser.cs" />
   </ItemGroup>

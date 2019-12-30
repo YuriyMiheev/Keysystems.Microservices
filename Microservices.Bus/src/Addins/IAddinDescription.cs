@@ -59,12 +59,12 @@ namespace Microservices.Bus.Addins
 		string SID { get; }
 
 		/// <summary>
-		/// Таймаут подключения по умолчанию.
+		/// Таймаут подключения по-умолчанию.
 		/// </summary>
 		int Timeout { get; }
 
 		/// <summary>
-		/// Путь к каталогу с исполняемыми файлами.
+		/// Путь к каталогу с файлами дополнения.
 		/// </summary>
 		string AddinPath { get; }
 

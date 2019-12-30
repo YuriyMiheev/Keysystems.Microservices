@@ -44,7 +44,7 @@ namespace Microservices.Bus.Channels
 		public Exception LastError { get; set; }
 
 
-		public async Task ActivateAsync(CancellationToken cancellationToken = default)
+		public async Task ActivateChannelAsync(CancellationToken cancellationToken = default)
 		{
 			await Task.Run(() =>
 				{
@@ -84,7 +84,7 @@ namespace Microservices.Bus.Channels
 
 		private void Process_Exited(object sender, EventArgs e)
 		{
-			_logger.LogTrace($"Process #{_process.Id} exit with code {_process.ExitCode}.");
+			_logger.LogTrace($"Процесс {_process.Id} канала {this.Info.Id} завершил работу.");
 
 			try
 			{
@@ -103,6 +103,8 @@ namespace Microservices.Bus.Channels
 
 		public async Task TerminateChannelAsync(CancellationToken cancellationToken = default)
 		{
+			_logger.LogTrace($"Прерывание работы канала {this.Info.Id}.");
+
 			try
 			{
 				await this.Channel.CloseAsync(cancellationToken);

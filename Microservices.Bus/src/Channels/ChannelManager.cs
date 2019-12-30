@@ -9,20 +9,19 @@ using Microservices.Bus.Addins;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
 using Microservices.Bus.Logging;
-using Microservices.Channels;
 using Microservices.Channels.Configuration;
 
 namespace Microservices.Bus.Channels
 {
 	public class ChannelManager : IChannelManager
 	{
+		private readonly IAddinManager _addinManager;
+		private readonly IChannelFactory _channelFactory;
+		private readonly BusSettings _busSettings;
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly ILogger _logger;
-		private readonly IChannelFactory _channelFactory;
 		private readonly ConcurrentDictionary<string, GroupInfo> _groups;
 		private readonly ConcurrentDictionary<string, IChannelContext> _channels;
-		private readonly IAddinManager _addinManager;
-		private readonly BusSettings _busSettings;
 
 
 		public ChannelManager(IAddinManager addinManager, IChannelFactory channelFactory, BusSettings busSettings, IBusDataAdapter dataAdapter, ILogger logger)
@@ -39,7 +38,7 @@ namespace Microservices.Bus.Channels
 
 		#region Properties
 		/// <summary>
-		/// {Get} Список групп каналов.
+		/// Список групп каналов.
 		/// </summary>
 		public GroupInfo[] ChannelsGroups
 		{
@@ -47,7 +46,7 @@ namespace Microservices.Bus.Channels
 		}
 
 		/// <summary>
-		/// {Get} Список созданных каналов.
+		/// Список созданных каналов.
 		/// </summary>
 		public IChannelContext[] RuntimeChannels
 		{
@@ -68,9 +67,9 @@ namespace Microservices.Bus.Channels
 				GroupInfo deafaultGroup = GetOrCreateDefaultGroup();
 				List<GroupInfo> allGroups = await _dataAdapter.GetGroupsAsync(cancellationToken);
 
-				foreach (ChannelInfo channelInfo in allChannels)
+				//foreach (ChannelInfo channelInfo in allChannels)
 				//allChannels.ForEach(channelInfo =>
-				//allChannels.AsParallel().ForAll(channelInfo =>
+				allChannels.AsParallel().ForAll(channelInfo =>
 				{
 					try
 					{
@@ -88,16 +87,16 @@ namespace Microservices.Bus.Channels
 							errors.Add(ex);
 						}
 					}
-				}
+				});
 
 				RefreshGroups();
 			}
 
 			void CreateChannels()
 			{
-				foreach (ChannelInfo channelInfo in allChannels)
+				//foreach (ChannelInfo channelInfo in allChannels)
 				//allChannels.ForEach(channelInfo =>
-				//allChannels.AsParallel().ForAll(channelInfo =>
+				allChannels.AsParallel().ForAll(channelInfo =>
 				{
 					try
 					{
@@ -129,7 +128,7 @@ namespace Microservices.Bus.Channels
 							errors.Add(ex);
 						}
 					}
-				}
+				});
 			}
 
 			async Task OpenChannels()
@@ -143,13 +142,14 @@ namespace Microservices.Bus.Channels
 					{
 						try
 						{
-							await channelContext.ActivateAsync();
+							await channelContext.ActivateChannelAsync();
 							await channelContext.Client.ConnectAsync(channelContext.Info.PasswordIn);
 
 							var microserviceSettings = await channelContext.Client.GetChannelSettingsAsync();
 
 							var newSettings = new Dictionary<string, string>
 								{
+									{ ".VirtAddress", channelContext.Info.VirtAddress },
 									{ ".RealAddress", channelContext.Info.RealAddress }
 								};
 							await channelContext.Client.SetChannelSettingsAsync(newSettings, cancellationToken);
@@ -217,9 +217,10 @@ namespace Microservices.Bus.Channels
 		//	return _channelFactory.CreateChannel(channelInfo);
 		//}
 
-		public void TerminateChannel(string virtAddress)
+		public async Task TerminateChannelAsync(string virtAddress, CancellationToken cancellationToken = default)
 		{
-			//_channels[
+			IChannelContext channelContext = _channels[virtAddress];
+			await channelContext.TerminateChannelAsync(cancellationToken);
 		}
 		#endregion
 

@@ -1,12 +1,11 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using System;
+using System.ComponentModel;
 
 namespace Microservices.Channels
 {
 	/// <summary>
 	/// Статус канала.
 	/// </summary>
-	//[DebuggerDisplay("{this.Created|this.Opened|this.Running|this.Online}")]
 	public class ChannelStatus : INotifyPropertyChanged
 	{
 		/// <summary>
@@ -16,7 +15,7 @@ namespace Microservices.Channels
 
 		private bool _created;
 		/// <summary>
-		/// {Get}
+		/// 
 		/// </summary>
 		public bool Created
 		{
@@ -33,7 +32,7 @@ namespace Microservices.Channels
 
 		private bool _opened;
 		/// <summary>
-		/// {Get}
+		/// 
 		/// </summary>
 		public bool Opened
 		{
@@ -67,7 +66,7 @@ namespace Microservices.Channels
 
 		private bool? _online;
 		/// <summary>
-		/// {Get}
+		/// 
 		/// </summary>
 		public bool? Online
 		{
@@ -82,10 +81,27 @@ namespace Microservices.Channels
 			}
 		}
 
+		private Exception _lastError;
+		/// <summary>
+		/// 
+		/// </summary>
+		public Exception Error
+		{
+			get { return _lastError; }
+			set
+			{
+				if (_lastError != value)
+				{
+					_lastError = value;
+					this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Error)));
+				}
+			}
+		}
+
 
 		public override string ToString()
 		{
-			return $"{this.Created}|{this.Opened}|{this.Running}|{this.Online}";
+			return $"{this.Created}|{this.Opened}|{this.Running}|{this.Online}|{this.Error?.Message}";
 		}
 	}
 }

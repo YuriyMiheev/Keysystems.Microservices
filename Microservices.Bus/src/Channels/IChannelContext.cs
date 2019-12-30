@@ -27,22 +27,22 @@ namespace Microservices.Bus.Channels
 		IChannel Channel { get; }
 
 		/// <summary>
-		/// Клиент микросервиса.
+		/// Клиент канала.
 		/// </summary>
 		IChannelClient Client { get; }
 
 		/// <summary>
-		/// Ошибка.
+		/// Последняя зафиксированная ошибка.
 		/// </summary>
 		Exception LastError { get; set; }
 
 
 		/// <summary>
-		/// Активировать канал/контекст.
+		/// Активировать канал.
 		/// </summary>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
-		Task ActivateAsync(CancellationToken cancellationToken = default);
+		Task ActivateChannelAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		/// Разрушить канал.
