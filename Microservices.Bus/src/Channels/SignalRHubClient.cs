@@ -28,7 +28,7 @@ namespace Microservices.Bus.Channels
 		private IDisposable _statusHandler;
 		private ActionBlock<IDictionary<string, object>> _logAction;
 		private ActionBlock<Message[]> _messagesAction;
-		private ActionBlock<(string, object)> _statusAction;
+		private ActionBlock<IDictionary<string, object>> _statusAction;
 
 
 		#region Ctor
@@ -104,8 +104,8 @@ namespace Microservices.Bus.Channels
 			_messagesAction = new ActionBlock<Message[]>(ReceiveMessagesAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
 			_messagesHandler = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages);
 
-			_statusAction = new ActionBlock<(string, object)>(ReceiveStatusAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
-			_statusHandler = _hubConnection.On<string, object>("ReceiveStatus", OnReceiveStatus);
+			_statusAction = new ActionBlock<IDictionary<string, object>>(ReceiveStatusAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+			_statusHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveStatus", OnReceiveStatus);
 		}
 
 		public async Task DisconnectAsync(CancellationToken cancellationToken = default)
@@ -365,27 +365,27 @@ namespace Microservices.Bus.Channels
 			this.LogReceived?.Invoke(this, logRecord);
 		}
 
-		void OnReceiveStatus(string statusName, object statusValue)
+		void OnReceiveStatus(IDictionary<string, object> statuses)
 		{
-			_statusAction.Post((statusName, statusValue));
+			_statusAction.Post(statuses);
 		}
 
-		void ReceiveStatusAction((string, object) status)
+		void ReceiveStatusAction(IDictionary<string, object> statuses)
 		{
-			string statusName = status.Item1;
-			object statusValue = status.Item2;
-
-			switch (statusName)
+			foreach (string status in statuses.Keys)
 			{
-				case nameof(this.Status.Opened):
-					this.Status.Opened = (bool)statusValue;
-					break;
-				case nameof(this.Status.Running):
-					this.Status.Running = (bool)statusValue;
-					break;
-				case nameof(this.Status.Online):
-					this.Status.Online = (bool?)statusValue;
-					break;
+				switch (status)
+				{
+					case nameof(this.Status.Opened):
+						this.Status.Opened = (bool)statuses[status];
+						break;
+					case nameof(this.Status.Running):
+						this.Status.Running = (bool)statuses[status];
+						break;
+					case nameof(this.Status.Online):
+						this.Status.Online = (bool?)statuses[status];
+						break;
+				}
 			}
 		}
 		#endregion

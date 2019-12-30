@@ -40,8 +40,8 @@ namespace MSSQL.Microservice.Hubs
 			_status = status ?? throw new ArgumentNullException(nameof(status));
 			_scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
-			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_connections = connections ?? throw new ArgumentNullException(nameof(connections));
 		}
 		#endregion
 
@@ -84,13 +84,11 @@ namespace MSSQL.Microservice.Hubs
 
 		#region Control
 		//[Authorize]
-		public async Task OpenChannel()
+		public void OpenChannel()
 		{
 			try
 			{
-				LogTrace("Opening");
-				await _control.OpenChannelAsync();
-				LogTrace("Opened");
+				_control.OpenChannel();
 			}
 			catch (Exception ex)
 			{
@@ -98,13 +96,11 @@ namespace MSSQL.Microservice.Hubs
 			}
 		}
 
-		public async Task CloseChannel()
+		public void CloseChannel()
 		{
 			try
 			{
-				LogTrace("Closing");
-				await _control.CloseChannelAsync();
-				LogTrace("Closed");
+				_control.CloseChannel();
 			}
 			catch (Exception ex)
 			{
@@ -112,13 +108,11 @@ namespace MSSQL.Microservice.Hubs
 			}
 		}
 
-		public async Task RunChannel()
+		public void RunChannel()
 		{
 			try
 			{
-				LogTrace("Running");
-				await _control.RunChannelAsync();
-				LogTrace("Runned");
+				_control.RunChannel();
 			}
 			catch (Exception ex)
 			{
@@ -126,13 +120,11 @@ namespace MSSQL.Microservice.Hubs
 			}
 		}
 
-		public async Task StopChannel()
+		public void StopChannel()
 		{
 			try
 			{
-				LogTrace("Stopping");
-				await _control.StopChannelAsync();
-				LogTrace("Stopped");
+				_control.StopChannel();
 			}
 			catch (Exception ex)
 			{
@@ -143,9 +135,9 @@ namespace MSSQL.Microservice.Hubs
 
 
 		#region Diagnostic
-		public async Task<Exception> TryConnect()
+		public Exception TryConnect()
 		{
-			if (await _control.TryConnectAsync(out Exception error))
+			if (_control.TryConnect(out Exception error))
 				return null;
 			else
 				return error;
@@ -167,6 +159,7 @@ namespace MSSQL.Microservice.Hubs
 
 		public void Repair()
 		{
+		
 			try
 			{
 				_control.Repair();
@@ -466,22 +459,12 @@ namespace MSSQL.Microservice.Hubs
 
 		private bool Scanner_NewMessages(Message[] messages)
 		{
-			_logger.LogTrace($"SendMessages: {messages.Length}");
 			return _connections.SendMessagesToClient(messages);
 		}
 
 		private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
-			var statuses = new Dictionary<string, object>
-			{
-				{ nameof(_status.Created), _status.Created },
-				{ nameof(_status.Opened), _status.Opened },
-				{ nameof(_status.Running), _status.Running },
-				{ nameof(_status.Online), _status.Online }
-			};
-
-			//_logger.LogTrace($"SendStatus: {statusName}={statusValue}");
-			_connections.SendStatusToClient(statuses);
+			_connections.SendStatusToClient(_status);
 		}
 		#endregion
 

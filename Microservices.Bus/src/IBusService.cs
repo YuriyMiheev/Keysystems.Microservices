@@ -6,7 +6,7 @@ namespace Microservices.Bus
 	/// <summary>
 	/// Сервис сообщений.
 	/// </summary>
-	public interface IMessageService : IHostedService
+	public interface IBusService : IHostedService
 	{
 
 		#region Properties

@@ -1,17 +1,21 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+
+using Microservices.Channels.Logging;
 
 namespace Microservices.Channels.Hubs
 {
 	public class HubConnections : IHubConnections
 	{
+		private readonly ILogger _logger;
 		private ConcurrentDictionary<string, IHubConnection> _connections;
 
 
-		public HubConnections()
+		public HubConnections(ILogger logger)
 		{
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_connections = new ConcurrentDictionary<string, IHubConnection>();
 		}
 
@@ -51,6 +55,8 @@ namespace Microservices.Channels.Hubs
 			if (_connections.Count == 0)
 				return false;
 
+			_logger.LogTrace($"Send-> Messages={messages.Length}");
+
 			//_connections.Values.AsParallel().ForAll(async conn => 
 			_connections.Values.ToList().ForEach(async conn =>
 				{
@@ -59,12 +65,14 @@ namespace Microservices.Channels.Hubs
 			return true;
 		}
 
-		public void SendStatusToClient(string statusName, object statusValue)
+		public void SendStatusToClient(ChannelStatus status)
 		{
+			_logger.LogTrace($"Send-> Status={status}");
+
 			//_connections.Values.AsParallel().ForAll(async conn =>
 			_connections.Values.ToList().ForEach(async conn =>
 				{
-					await conn.Client.ReceiveStatus(statusName, statusValue);
+					await conn.Client.ReceiveStatus(status.ToDict());
 				});
 		}
 

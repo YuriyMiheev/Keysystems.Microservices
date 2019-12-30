@@ -18,10 +18,9 @@ namespace Microservices.Channels.Hubs
 		/// <summary>
 		/// Отправка статуса клиенту.
 		/// </summary>
-		/// <param name="statusName"></param>
-		/// <param name="statusValue"></param>
+		/// <param name="statuses"></param>
 		/// <returns></returns>
-		Task ReceiveStatus(string statusName, object statusValue);
+		Task ReceiveStatus(IDictionary<string, object> statuses);
 		
 		/// <summary>
 		/// Отправка лога клиенту.

@@ -77,6 +77,11 @@ namespace Microservices.Channels
 			_queryTimer.Interval = interval.TotalMilliseconds;
 			_queryTimer.Start();
 		}
+
+		public virtual void StopScan()
+		{
+			OnCancel();
+		}
 		#endregion
 
 

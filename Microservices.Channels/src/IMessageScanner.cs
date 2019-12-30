@@ -11,5 +11,7 @@ namespace Microservices.Channels
 
 		void StartScan(TimeSpan interval, int portion, CancellationToken cancellationToken = default);
 
+		void StopScan();
+
 	}
 }

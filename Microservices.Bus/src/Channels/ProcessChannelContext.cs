@@ -44,9 +44,9 @@ namespace Microservices.Bus.Channels
 		public Exception LastError { get; set; }
 
 
-		public Task ActivateAsync(CancellationToken cancellationToken = default)
+		public async Task ActivateAsync(CancellationToken cancellationToken = default)
 		{
-			return Task.Run(() =>
+			await Task.Run(() =>
 				{
 					ChannelInfoProperty prop = this.Info.FindProperty("X.ProcessId");
 					if (prop != null && Int32.TryParse(prop.Value, out int processId))
@@ -64,6 +64,8 @@ namespace Microservices.Bus.Channels
 							WorkingDirectory = _description.AddinPath
 						};
 						_process = Process.Start(startInfo);
+						_process.EnableRaisingEvents = true;
+						_process.Exited += Process_Exited;
 
 						if (prop == null)
 						{
@@ -78,6 +80,25 @@ namespace Microservices.Bus.Channels
 					this.Channel = CreateChannel(this.Info, this.Client, _logger);
 					this.Status.Created = true;
 				}, cancellationToken);
+		}
+
+		private void Process_Exited(object sender, EventArgs e)
+		{
+			_logger.LogTrace($"Process #{_process.Id} exit with code {_process.ExitCode}.");
+
+			try
+			{
+				this.Channel.Dispose();
+			}
+			finally
+			{
+				this.Status.Online = null;
+				this.Status.Running = false;
+				this.Status.Opened = false;
+				this.Status.Created = false;
+
+				_process.Dispose();
+			}
 		}
 
 		public async Task TerminateChannelAsync(CancellationToken cancellationToken = default)

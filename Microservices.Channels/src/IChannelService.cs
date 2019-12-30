@@ -1,71 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
+
 using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels
 {
-	public interface IChannelService : IHostedService, IDisposable
+	public interface IChannelService : IHostedService//, IDisposable
 	{
-
-		//#region Events
-		//event Func<Message[], bool> SendMessages;
-
-		//event Action<string, object> StatusChanged;
-		//#endregion
-
 
 		#region Properties
 		int ProcessId { get; }
 
 		string VirtAddress { get; }
-
-		//ChannelStatus Status { get; }
 		#endregion
 
-
-		//void Initialize();
-
-		//#region Control
-		//void Open();
-
-		//void Close();
-
-		//void Run();
-
-		//void Stop();
-		//#endregion
-
-
-		//#region Diagnostic
-		//bool TryConnect(out Exception error);
-
-		//void CheckState();
-
-		//void Repair();
-
-		//void Ping();
-		//#endregion
-
-
-		//#region Error
-		///// <summary>
-		///// Сбросить ошибку.
-		///// </summary>
-		//void ClearError();
-
-		///// <summary>
-		///// Запомнить ошибку.
-		///// </summary>
-		///// <param name="error"></param>
-		//void SetError(Exception error);
-
-		///// <summary>
-		///// Вызвать ошибку.
-		///// </summary>
-		///// <param name="text"></param>
-		///// <returns></returns>
-		//ChannelException ThrowError(string text);
-		//#endregion
 
 
 		#region Messages

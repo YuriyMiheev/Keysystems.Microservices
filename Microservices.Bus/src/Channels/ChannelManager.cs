@@ -152,7 +152,7 @@ namespace Microservices.Bus.Channels
 								{
 									{ ".RealAddress", channelContext.Info.RealAddress }
 								};
-							//await channelContext.Client.SetSettingsAsync(newSettings, cancellationToken);
+							await channelContext.Client.SetChannelSettingsAsync(newSettings, cancellationToken);
 
 							await channelContext.Channel.OpenAsync();
 						}

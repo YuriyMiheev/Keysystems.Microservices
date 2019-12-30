@@ -6,7 +6,7 @@ namespace Microservices.Channels
 	/// <summary>
 	/// Статус канала.
 	/// </summary>
-	[DebuggerDisplay("{this.Created|this.Opened|this.Running|this.Online}")]
+	//[DebuggerDisplay("{this.Created|this.Opened|this.Running|this.Online}")]
 	public class ChannelStatus : INotifyPropertyChanged
 	{
 		/// <summary>
@@ -82,5 +82,10 @@ namespace Microservices.Channels
 			}
 		}
 
+
+		public override string ToString()
+		{
+			return $"{this.Created}|{this.Opened}|{this.Running}|{this.Online}";
+		}
 	}
 }

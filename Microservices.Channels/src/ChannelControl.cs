@@ -12,8 +12,6 @@ namespace Microservices.Channels
 {
 	public class ChannelControl : IChannelControl
 	{
-		private readonly IChannelService _channel;
-		private CancellationTokenSource _cancellationSource;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly IDatabase _database;
 		private readonly IChannelDataAdapter _dataAdapter;
@@ -23,12 +21,13 @@ namespace Microservices.Channels
 		private readonly MainSettings _mainSettings;
 		private readonly DatabaseSettings _databaseSettings;
 		private readonly MessageSettings _messageSettings;
+		//private CancellationTokenSource _cancellationSource;
 		private bool _initialized;
 
 
-		public ChannelControl(IAppSettingsConfig appConfig, IChannelService channel, ChannelStatus status, IDatabase database, IChannelDataAdapter dataAdapter, IMessageScanner scanner, ILogger logger)
+		public ChannelControl(IAppSettingsConfig appConfig, ChannelStatus status, IDatabase database, IChannelDataAdapter dataAdapter, IMessageScanner scanner, ILogger logger)
 		{
-			_channel = channel ?? throw new ArgumentNullException(nameof(channel));
+			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
 			_status = status ?? throw new ArgumentNullException(nameof(status));
 			_database = database ?? throw new ArgumentNullException(nameof(database));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
@@ -38,136 +37,192 @@ namespace Microservices.Channels
 			_mainSettings = _appConfig.MainSettings();
 			_databaseSettings = _appConfig.DatabaseSettings();
 			_messageSettings = _appConfig.MessageSettings();
-			_cancellationSource = new CancellationTokenSource();
+			//_cancellationSource = new CancellationTokenSource();
+
+
+			//new SemaphoreSlim(1, 1);
+			//await semaphoreSlim.WaitAsync();
+			//semaphoreSlim.Release();
 		}
 
 
 		#region Control
-		public Task OpenChannelAsync(CancellationToken cancellationToken = default)
+		public void OpenChannel()
 		{
-			return Task.Run(() =>
-				{
-					Initialize();
+			if (_status.Opened)
+				return;
 
-					_status.Opened = true;
-					//_channel.UpdateMyselfContact(this.Info);
+			_logger.LogTrace("Opening...");
 
-					//ServiceInfo serviceInfo = this.MessageService.GetInfo();
-					//if (serviceInfo.ChannelsSettings.CheckDatabaseUsed)
-					//{
-					//	ChannelInfo existChannel;
-					//	if (TryCheckDatabaseUsedOtherChannel(out existChannel))
-					//	{
-					//		if (existChannel.LINK != this.LINK)
-					//		{
-					//			var error = new ChannelException(this, String.Format("БД уже используется другим каналом: {0}.", existChannel));
-					//			error.ErrorCode = ChannelException.DatabaseUsedOtherChannel;
-					//			error.Data.Add("OtherChannelInfo", existChannel.ToDto());
+			Initialize();
 
-					//			throw error;
-					//		}
-					//	}
+			_status.Opened = true;
+			//_channel.UpdateMyselfContact(this.Info);
 
-					//	Uri rmsUri;
-					//	Contact contact;
-					//	if (TryCheckDatabaseUsedOtherRms(out rmsUri, out contact))
-					//	{
-					//		var error = new ChannelException(this, String.Format("БД уже используется другим RMS сервисом: {0}.", rmsUri.Host));
-					//		error.ErrorCode = ChannelException.DatabaseUsedOtherRms;
-					//		error.Data.Add("OtherRmsUri", rmsUri);
-					//		if (contact != null)
-					//			error.Data.Add("OtherRmsContact", contact.ToDto());
-
-					//		throw error;
-					//	}
-					//}
-				});
-		}
-
-		public async Task RunChannelAsync(CancellationToken cancellationToken = default)
-		{
-			CheckOpened();
-
-			//if (_cancellationSource.IsCancellationRequested)
-			//	_cancellationSource = new CancellationTokenSource();
-
-			if (await TryConnectAsync(out Exception error) == false)
-				throw error;
-
-			//_channel.DeleteDeletedMessages();
-
-			//void DeleteDeletedMessages()
+			//ServiceInfo serviceInfo = this.MessageService.GetInfo();
+			//if (serviceInfo.ChannelsSettings.CheckDatabaseUsed)
 			//{
-			//	if (_messageSettings.DeleteDeleted)
+			//	ChannelInfo existChannel;
+			//	if (TryCheckDatabaseUsedOtherChannel(out existChannel))
 			//	{
-			//		try
+			//		if (existChannel.LINK != this.LINK)
 			//		{
-			//			string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
-			//			int count = _dataAdapter.ExecuteUpdate(sql);
-			//			_logger.LogTrace($"Удалено сообщений: {count}");
-			//		}
-			//		catch (Exception ex)
-			//		{
-			//			_logger.LogError(ex);
+			//			var error = new ChannelException(this, String.Format("БД уже используется другим каналом: {0}.", existChannel));
+			//			error.ErrorCode = ChannelException.DatabaseUsedOtherChannel;
+			//			error.Data.Add("OtherChannelInfo", existChannel.ToDto());
+
+			//			throw error;
 			//		}
 			//	}
-			//}
 
-			//void ResetSendingMessages()
-			//{
-			//	try
+			//	Uri rmsUri;
+			//	Contact contact;
+			//	if (TryCheckDatabaseUsedOtherRms(out rmsUri, out contact))
 			//	{
-			//		string statusInfo = "Отправка сообщения была прервана.";
-			//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
-			//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
-			//		int count = _dataAdapter.ExecuteUpdate(sql);
-			//		_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		_logger.LogError(ex);
+			//		var error = new ChannelException(this, String.Format("БД уже используется другим RMS сервисом: {0}.", rmsUri.Host));
+			//		error.ErrorCode = ChannelException.DatabaseUsedOtherRms;
+			//		error.Data.Add("OtherRmsUri", rmsUri);
+			//		if (contact != null)
+			//			error.Data.Add("OtherRmsContact", contact.ToDto());
+
+			//		throw error;
 			//	}
 			//}
 
-			//void ResetReceivingMessages()
-			//{
-			//	try
-			//	{
-			//		string statusInfo = "Прием сообщения был прерван.";
-			//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
-			//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
-			//		int count = _dataAdapter.ExecuteUpdate(sql);
-			//		_logger.LogTrace($"Найдено непринятых сообщений: {count}");
-			//	}
-			//	catch (Exception ex)
-			//	{
-			//		_logger.LogError(ex);
-			//	}
-			//}
-
-			//DeleteDeletedMessages();
-			//ResetSendingMessages();
-			//ResetReceivingMessages();
-
-			if (_messageSettings.ScanEnabled)
-			{
-				_scanner.StartScan(_messageSettings.ScanInterval, _messageSettings.ScanPortion, _cancellationSource.Token);
-			}
-
-			_status.Running = true;
-
-			//UpdateMyselfContact(this.Info);
+			_logger.LogTrace("Opened");
 		}
 
-		public Task StopChannelAsync(CancellationToken cancellationToken = default)
+		public void CloseChannel()
 		{
+			StopChannel();
+
+			_logger.LogTrace("Closing...");
+
 			try
 			{
-				_cancellationSource.Cancel(false); //_scanner.StopScan();
+				//_scanner.StopScan();
+				//_cancellationSource.Cancel(false);
+
+				//_status.Running = false;
+				//_status.Online = null;
+				_status.Opened = false;
+
+				//UpdateMyselfContact(myInfo);
 			}
 			catch (Exception ex)
 			{
+				SetError(ex);
 				_logger.LogError(ex);
+				throw;
+			}
+			finally
+			{
+				_initialized = false;
+			}
+
+			_logger.LogTrace("Closed");
+		}
+
+		public void RunChannel()
+		{
+			if (_status.Running)
+				return;
+
+			_logger.LogTrace("Running...");
+
+			try
+			{
+				CheckOpened();
+
+				if (!TryConnect(out Exception error))
+					throw error;
+
+				//_channel.DeleteDeletedMessages();
+
+				//void DeleteDeletedMessages()
+				//{
+				//	if (_messageSettings.DeleteDeleted)
+				//	{
+				//		try
+				//		{
+				//			string sql = $"DELETE FROM {Database.Tables.MESSAGES} WHERE STATUS='{MessageStatus.DELETED}'";
+				//			int count = _dataAdapter.ExecuteUpdate(sql);
+				//			_logger.LogTrace($"Удалено сообщений: {count}");
+				//		}
+				//		catch (Exception ex)
+				//		{
+				//			_logger.LogError(ex);
+				//		}
+				//	}
+				//}
+
+				//void ResetSendingMessages()
+				//{
+				//	try
+				//	{
+				//		string statusInfo = "Отправка сообщения была прервана.";
+				//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+				//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.OUT}' AND STATUS='{MessageStatus.SENDING}'";
+				//		int count = _dataAdapter.ExecuteUpdate(sql);
+				//		_logger.LogTrace($"Найдено недоставленных сообщений: {count}");
+				//	}
+				//	catch (Exception ex)
+				//	{
+				//		_logger.LogError(ex);
+				//	}
+				//}
+
+				//void ResetReceivingMessages()
+				//{
+				//	try
+				//	{
+				//		string statusInfo = "Прием сообщения был прерван.";
+				//		string statusDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:sss");
+				//		string sql = $"UPDATE {Database.Tables.MESSAGES} SET STATUS='{MessageStatus.ERROR}', STATUS_INFO='{statusInfo}', STATUS_DATE='{statusDate}' WHERE DIRECTION='{MessageDirection.IN}' AND STATUS='{MessageStatus.RECEIVING}'";
+				//		int count = _dataAdapter.ExecuteUpdate(sql);
+				//		_logger.LogTrace($"Найдено непринятых сообщений: {count}");
+				//	}
+				//	catch (Exception ex)
+				//	{
+				//		_logger.LogError(ex);
+				//	}
+				//}
+
+				//DeleteDeletedMessages();
+				//ResetSendingMessages();
+				//ResetReceivingMessages();
+
+				if (_messageSettings.ScanEnabled)
+				{
+					_scanner.StartScan(_messageSettings.ScanInterval, _messageSettings.ScanPortion);
+				}
+
+				_status.Running = true;
+			}
+			catch (Exception ex)
+			{
+				SetError(ex);
+				_logger.LogError(ex);
+				throw;
+			}
+
+			//UpdateMyselfContact(this.Info);
+			_logger.LogTrace("Runned");
+		}
+
+		public void StopChannel()
+		{
+			_logger.LogTrace("Stopping...");
+
+			try
+			{
+				_scanner.StopScan();
+			}
+			catch (Exception ex)
+			{
+				SetError(ex);
+				_logger.LogError(ex);
+				throw;
 			}
 			finally
 			{
@@ -176,36 +231,14 @@ namespace Microservices.Channels
 
 				//UpdateMyselfContact(this.Info);
 			}
-		}
 
-		public Task CloseChannelAsync(CancellationToken cancellationToken = default)
-		{
-			try
-			{
-				//_channel.Dispose();
-				//Stop();
-				_cancellationSource.Cancel(false);
-
-				_status.Running = false;
-				_status.Online = null;
-				_status.Opened = false;
-
-				//UpdateMyselfContact(myInfo);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex);
-			}
-			//finally
-			//{
-			//	Dispose();
-			//}
+			_logger.LogTrace("Stopped");
 		}
 		#endregion
 
 
 		#region Diagnostic
-		public Task<bool> TryConnectAsync(out Exception error)
+		public bool TryConnect(out Exception error)
 		{
 			Initialize();
 
@@ -217,6 +250,7 @@ namespace Microservices.Channels
 			}
 			else
 			{
+				SetError(ex);
 				error = ex;
 				_status.Online = false;
 				return false;
@@ -230,7 +264,16 @@ namespace Microservices.Channels
 		{
 			Initialize();
 
-			using DbContext dbContext = _database.ValidateSchema();
+			try
+			{
+				using DbContext dbContext = _database.ValidateSchema();
+			}
+			catch (Exception ex)
+			{
+				SetError(ex);
+				_logger.LogError(ex);
+				throw;
+			}
 		}
 
 		/// <summary>
@@ -253,7 +296,7 @@ namespace Microservices.Channels
 				}
 				catch (Exception ex)
 				{
-					//SetError(ex);
+					SetError(ex);
 					_logger.LogError(ex);
 				}
 			}
@@ -331,14 +374,17 @@ namespace Microservices.Channels
 				if (_initialized)
 					return;
 
-				if (_cancellationSource.IsCancellationRequested)
-					_cancellationSource = new CancellationTokenSource();
+				_logger.LogTrace("Initializing...");
+
+				//if (_cancellationSource.IsCancellationRequested)
+				//	_cancellationSource = new CancellationTokenSource();
 
 				_database.Schema = _databaseSettings.Schema;
 				_database.ConnectionString = _mainSettings.RealAddress;
 				_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
 
 				_initialized = true;
+				_logger.LogTrace("Initialized");
 			}
 		}
 

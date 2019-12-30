@@ -60,10 +60,10 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<IAddinManager, AddinManager>();
 						services.AddSingleton<ILicenseManager, LicenseManager>();
 						services.AddSingleton<ServiceInfo>();
-						services.AddSingleton<IMessageService, MessageService>();
+						services.AddSingleton<IBusService, BusService>();
 						services.AddHostedService(serviceProvider =>
 							{
-								return serviceProvider.GetRequiredService<IMessageService>();
+								return serviceProvider.GetRequiredService<IBusService>();
 							});
 					});
 

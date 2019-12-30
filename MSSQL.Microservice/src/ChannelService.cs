@@ -20,63 +20,35 @@ namespace MSSQL.Microservice
 	/// <summary>
 	/// 
 	/// </summary>
-	public class ChannelService : IChannelService, IDisposable
+	public class ChannelService : IChannelService//, IDisposable
 	{
-		private bool _initialized;
 		private CancellationTokenSource _cancellationSource;
 		private readonly IChannelControl _control;
 		private readonly IAppSettingsConfig _appConfig;
 		private readonly ILogger _logger;
-		private readonly IDatabase _database;
 		private readonly IChannelDataAdapter _dataAdapter;
-		private readonly IMessageScanner _scanner;
 		private readonly IMessageReceiver _receiver;
 		private readonly ChannelStatus _status;
-		private readonly MainSettings _mainSettings;
-		private readonly ChannelSettings _channelSettings;
-		private readonly DatabaseSettings _databaseSettings;
-		private readonly MessageSettings _messageSettings;
 
 
 		#region Ctor
-		public ChannelService(IChannelControl control)
+		public ChannelService(IAppSettingsConfig appConfig, IChannelControl control, ILogger logger, ChannelStatus status, IChannelDataAdapter dataAdapter, IMessageReceiver receiver)
 		{
+			_appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
 			_control = control ?? throw new ArgumentNullException(nameof(control));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_status = status ?? throw new ArgumentNullException(nameof(status));
+			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
+			_receiver = receiver ?? throw new ArgumentNullException(nameof(receiver));
 			_cancellationSource = new CancellationTokenSource();
 
-			//_logger = sp.GetRequiredService<ILogger>() ?? throw new ArgumentNullException(nameof(ILogger));
-			//_database = sp.GetRequiredService<IDatabase>() ?? throw new ArgumentNullException(nameof(IDatabase));
-			//_dataAdapter = sp.GetRequiredService<IChannelDataAdapter>() ?? throw new ArgumentNullException(nameof(IChannelDataAdapter));
-			//_scanner = sp.GetRequiredService<IMessageScanner>() ?? throw new ArgumentNullException(nameof(IMessageScanner));
-			//_receiver = sp.GetRequiredService<IMessageReceiver>() ?? throw new ArgumentNullException(nameof(IMessageReceiver));
-			//_status = sp.GetRequiredService<ChannelStatus>() ?? throw new ArgumentNullException(nameof(ChannelStatus));
-
-			//_scanner.NewMessages += Scanner_NewMessages;
-			//_status.PropertyChanged += Status_Changed;
-
-			//_appConfig = sp.GetRequiredService<IAppSettingsConfig>() ?? throw new ArgumentNullException(nameof(IAppSettingsConfig));
-			//_mainSettings = _appConfig.MainSettings();
-			//_channelSettings = _appConfig.ChannelSettings();
-			//_databaseSettings = _appConfig.DatabaseSettings();
-			//_messageSettings = _appConfig.MessageSettings();
+			MainSettings mainSettings = _appConfig.MainSettings();
 
 			this.ProcessId = Process.GetCurrentProcess().Id;
-			this.VirtAddress = _mainSettings.VirtAddress;
+			this.VirtAddress = mainSettings.VirtAddress;
 		}
 		#endregion
 
-
-		//#region Events
-		///// <summary>
-		///// 
-		///// </summary>
-		//public event Func<Message[], bool> SendMessages;
-
-		///// <summary>
-		///// 
-		///// </summary>
-		//public event Action<string, object> StatusChanged;
-		//#endregion
 
 
 		#region Properties
@@ -90,11 +62,6 @@ namespace MSSQL.Microservice
 		/// </summary>
 		public string VirtAddress { get; }
 		#endregion
-
-
-
-
-
 
 
 		#region Messages
@@ -333,7 +300,8 @@ namespace MSSQL.Microservice
 			Message inMsg = GetMessage(msgLink);
 			Message resMsg = _receiver.ReceiveMessage(inMsg);
 
-			if (_messageSettings.DeleteAfterReceive)
+			MessageSettings messageSettings = _appConfig.MessageSettings();
+			if (messageSettings.DeleteAfterReceive)
 			{
 				try
 				{
@@ -376,47 +344,39 @@ namespace MSSQL.Microservice
 
 
 		#region IHostedService  
-		public async Task StartAsync(CancellationToken cancellationToken)
+		public Task StartAsync(CancellationToken cancellationToken)
 		{
+			Console.Title = $"#{this.ProcessId} ({this.VirtAddress})";
 			_status.Created = true;
 
-			if (_channelSettings.AutoOpen)
-			{
-				await _control.OpenChannelAsync(cancellationToken);
-				if (_channelSettings.AutoRun)
-					await _control.RunChannelAsync(cancellationToken);
-			}
+			return Task.Run(() =>
+				{
+					_logger.LogTrace("Starting...");
+
+					ChannelSettings channelSettings = _appConfig.ChannelSettings();
+					if (channelSettings.AutoOpen)
+					{
+						_control.OpenChannel();
+						if (channelSettings.AutoRun)
+							_control.RunChannel();
+					}
+
+					_logger.LogTrace("Started");
+				}, cancellationToken);
 		}
 
-		public async Task StopAsync(CancellationToken cancellationToken)
+		public Task StopAsync(CancellationToken cancellationToken)
 		{
-			await _control.CloseChannelAsync(cancellationToken);
+			return Task.Run(() =>
+				{
+					_control.CloseChannel();
+					_logger.LogTrace("Shutdown");
+				}, cancellationToken);
 		}
 		#endregion
 
 
 		#region Helper
-		//private void Initialize()
-		//{
-		//	if (_initialized)
-		//		return;
-
-		//	lock (this)
-		//	{
-		//		if (_initialized)
-		//			return;
-
-		//		if (_cancellationSource.IsCancellationRequested)
-		//			_cancellationSource = new CancellationTokenSource();
-
-		//		_database.Schema = _databaseSettings.Schema;
-		//		_database.ConnectionString = _mainSettings.RealAddress;
-		//		_dataAdapter.ExecuteTimeout = (int)_databaseSettings.ExecuteTimeout.TotalSeconds;
-
-		//		_initialized = true;
-		//	}
-		//}
-
 		private void PrepareSaveMessage(Message msg)
 		{
 			msg.Channel = this.VirtAddress;
@@ -439,88 +399,64 @@ namespace MSSQL.Microservice
 			if (!_status.Opened)
 				throw new InvalidOperationException("Сервис-канал закрыт.");
 		}
+		#endregion
 
-		//private bool Scanner_NewMessages(Message[] messages)
-		//{
-		//	if (this.SendMessages != null)
-		//		return this.SendMessages.Invoke(messages);
-		//	else
-		//		return false;
-		//}
 
-		//private void Status_Changed(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		//#region IDisposable
+		//private bool _disposed = false;
+
+		//protected virtual void Dispose(bool disposing)
 		//{
-		//	switch (e.PropertyName)
+		//	if (_disposed)
+		//		return;
+
+		//	if (disposing)
 		//	{
-		//		case nameof(_status.Opened):
-		//			this.StatusChanged?.Invoke(e.PropertyName, _status.Opened);
-		//			break;
-		//		case nameof(_status.Running):
-		//			this.StatusChanged?.Invoke(e.PropertyName, _status.Running);
-		//			break;
-		//		case nameof(_status.Online):
-		//			this.StatusChanged?.Invoke(e.PropertyName, _status.Online);
-		//			break;
+		//		// TODO: dispose managed state (managed objects).
+		//		try
+		//		{
+		//			if (_cancellationSource != null && !_cancellationSource.IsCancellationRequested)
+		//				_cancellationSource.Cancel(false);
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			if (_logger != null)
+		//				_logger.LogError(ex);
+		//		}
+
+		//		if (_database != null)
+		//			_database.Close();
+
+		//		if (_status != null)
+		//		{
+		//			_status.Created = false;
+		//			_status.Opened = false;
+		//			_status.Running = false;
+		//			_status.Online = null;
+		//		}
 		//	}
+
+		//	// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+		//	// TODO: set large fields to null.
+		//	_disposed = true;
 		//}
-		#endregion
 
+		//// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+		//// ~ChannelService()
+		//// {
+		////   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		////   Dispose(false);
+		//// }
 
-		#region IDisposable
-		private bool _disposed = false;
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (_disposed)
-				return;
-
-			if (disposing)
-			{
-				// TODO: dispose managed state (managed objects).
-				try
-				{
-					if (_cancellationSource != null && !_cancellationSource.IsCancellationRequested)
-						_cancellationSource.Cancel(false);
-				}
-				catch (Exception ex)
-				{
-					if (_logger != null)
-						_logger.LogError(ex);
-				}
-
-				if (_database != null)
-					_database.Close();
-
-				if (_status != null)
-				{
-					_status.Created = false;
-					_status.Opened = false;
-					_status.Running = false;
-					_status.Online = null;
-				}
-			}
-
-			// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-			// TODO: set large fields to null.
-			_disposed = true;
-		}
-
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~ChannelService()
-		// {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
-		}
-		#endregion
+		//// This code added to correctly implement the disposable pattern.
+		//public void Dispose()
+		//{
+		//	// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		//	Dispose(true);
+		//	// TODO: uncomment the following line if the finalizer is overridden above.
+		//	// GC.SuppressFinalize(this);
+		//}
+		//#endregion
 
 	}
 }

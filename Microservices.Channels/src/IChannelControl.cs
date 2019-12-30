@@ -1,24 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microservices.Channels
 {
 	public interface IChannelControl
 	{
-		Task OpenChannelAsync(CancellationToken cancellationToken = default);
+		void OpenChannel();
 
-		Task CloseChannelAsync(CancellationToken cancellationToken = default);
+		void CloseChannel();
 
-		Task RunChannelAsync(CancellationToken cancellationToken = default);
+		void RunChannel();
 
-		Task StopChannelAsync(CancellationToken cancellationToken = default);
+		void StopChannel();
 
 
 		#region Diagnostic
-		Task<bool> TryConnectAsync(out Exception error);
+		bool TryConnect(out Exception error);
 
 		void CheckState();
 

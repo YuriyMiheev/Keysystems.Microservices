@@ -12,7 +12,7 @@ namespace MSSQL.Microservice
 	/// <summary>
 	/// 
 	/// </summary>
-	public class MessageScanner : DatabaseMessageScanner, IMessageScanner
+	public class MessageScanner : DatabaseMessageScanner
 	{
 
 		#region Ctor

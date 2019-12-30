@@ -21,7 +21,7 @@ using DAO = Microservices.Bus.Data.DAO;
 
 namespace Microservices.Bus
 {
-	public class MessageService : IMessageService
+	public class BusService : IBusService
 	{
 		private CancellationTokenSource _cancellationSource;
 		private readonly IAppSettingsConfig _appConfig;
@@ -38,7 +38,7 @@ namespace Microservices.Bus
 
 
 		#region Ctor
-		public MessageService(IServiceProvider serviceProvider)
+		public BusService(IServiceProvider serviceProvider)
 		{
 			_cancellationSource = new CancellationTokenSource();
 
