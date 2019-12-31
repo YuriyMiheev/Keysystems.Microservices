@@ -4,8 +4,8 @@ using System.Linq;
 using System.Timers;
 
 using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
 using Microservices.Data;
+using Microservices.Logging;
 
 using NHibernate.Criterion;
 

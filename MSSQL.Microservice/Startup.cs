@@ -46,7 +46,7 @@ namespace MSSQL.Microservice
 					{
 						await context.Response.WriteAsync("Hello World!");
 					});
-				endpoints.MapHub<ChannelHub>("/ChannelHub");
+				endpoints.MapHub<ChannelHub>("/ChannelHub", options => { });
 				endpoints.MapControllerRoute(name: "default", pattern: "{controller=Channel}/{action=Info}");
 			});
 

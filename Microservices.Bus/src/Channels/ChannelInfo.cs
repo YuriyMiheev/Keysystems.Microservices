@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Microservices.Bus.Channels
 {
 	/// <summary>
 	/// Информация о канале.
 	/// </summary>
+	[DebuggerDisplay("{this.Id}")]
 	public class ChannelInfo
 	{
 		private readonly IDictionary<string, ChannelInfoProperty> _properties;

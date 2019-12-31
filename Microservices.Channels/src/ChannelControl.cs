@@ -2,9 +2,9 @@
 
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
 using Microservices.Configuration;
 using Microservices.Data;
+using Microservices.Logging;
 
 namespace Microservices.Channels
 {
@@ -48,75 +48,71 @@ namespace Microservices.Channels
 			if (_status.Opened)
 				return;
 
-			_logger.LogTrace("Opening...");
-
 			Initialize();
 
-			_status.Opened = true;
-			//_channel.UpdateMyselfContact(this.Info);
+			_logger.LogTrace("Opening...");
 
-			//ServiceInfo serviceInfo = this.MessageService.GetInfo();
-			//if (serviceInfo.ChannelsSettings.CheckDatabaseUsed)
-			//{
-			//	ChannelInfo existChannel;
-			//	if (TryCheckDatabaseUsedOtherChannel(out existChannel))
-			//	{
-			//		if (existChannel.LINK != this.LINK)
-			//		{
-			//			var error = new ChannelException(this, String.Format("БД уже используется другим каналом: {0}.", existChannel));
-			//			error.ErrorCode = ChannelException.DatabaseUsedOtherChannel;
-			//			error.Data.Add("OtherChannelInfo", existChannel.ToDto());
+			try
+			{
+				//ServiceInfo serviceInfo = this.MessageService.GetInfo();
+				//if (serviceInfo.ChannelsSettings.CheckDatabaseUsed)
+				//{
+				//	ChannelInfo existChannel;
+				//	if (TryCheckDatabaseUsedOtherChannel(out existChannel))
+				//	{
+				//		if (existChannel.LINK != this.LINK)
+				//		{
+				//			var error = new ChannelException(this, String.Format("БД уже используется другим каналом: {0}.", existChannel));
+				//			error.ErrorCode = ChannelException.DatabaseUsedOtherChannel;
+				//			error.Data.Add("OtherChannelInfo", existChannel.ToDto());
 
-			//			throw error;
-			//		}
-			//	}
+				//			throw error;
+				//		}
+				//	}
 
-			//	Uri rmsUri;
-			//	Contact contact;
-			//	if (TryCheckDatabaseUsedOtherRms(out rmsUri, out contact))
-			//	{
-			//		var error = new ChannelException(this, String.Format("БД уже используется другим RMS сервисом: {0}.", rmsUri.Host));
-			//		error.ErrorCode = ChannelException.DatabaseUsedOtherRms;
-			//		error.Data.Add("OtherRmsUri", rmsUri);
-			//		if (contact != null)
-			//			error.Data.Add("OtherRmsContact", contact.ToDto());
+				//	Uri rmsUri;
+				//	Contact contact;
+				//	if (TryCheckDatabaseUsedOtherRms(out rmsUri, out contact))
+				//	{
+				//		var error = new ChannelException(this, String.Format("БД уже используется другим RMS сервисом: {0}.", rmsUri.Host));
+				//		error.ErrorCode = ChannelException.DatabaseUsedOtherRms;
+				//		error.Data.Add("OtherRmsUri", rmsUri);
+				//		if (contact != null)
+				//			error.Data.Add("OtherRmsContact", contact.ToDto());
 
-			//		throw error;
-			//	}
-			//}
+				//		throw error;
+				//	}
+				//}
+			}
+			finally
+			{
+				_status.Opened = true;
 
-			_logger.LogTrace("Opened");
+				_logger.LogTrace("Opened");
+
+				//UpdateMyselfContact(myInfo);
+			}
 		}
 
 		public void CloseChannel()
 		{
-			StopChannel();
-
 			_logger.LogTrace("Closing...");
 
 			try
 			{
-				//_scanner.StopScan();
-				//_cancellationSource.Cancel(false);
-
-				//_status.Running = false;
-				//_status.Online = null;
-				_status.Opened = false;
-
-				//UpdateMyselfContact(myInfo);
-			}
-			catch (Exception ex)
-			{
-				_status.Error = ex;
-				_logger.LogError(ex);
-				throw;
+				_scanner.StopScan();
 			}
 			finally
 			{
-				_initialized = false;
-			}
+				_status.Running = false;
+				_status.Online = null;
+				_status.Opened = false;
 
-			_logger.LogTrace("Closed");
+				_initialized = false;
+
+				_logger.LogTrace("Closed");
+				//UpdateMyselfContact(myInfo);
+			}
 		}
 
 		public void RunChannel()
@@ -192,18 +188,14 @@ namespace Microservices.Channels
 				{
 					_scanner.StartScan(_messageSettings.ScanInterval, _messageSettings.ScanPortion);
 				}
-
-				_status.Running = true;
 			}
-			catch (Exception ex)
+			finally
 			{
-				_status.Error = ex;
-				_logger.LogError(ex);
-				throw;
-			}
+				_status.Running = true;
 
-			//UpdateMyselfContact(this.Info);
-			_logger.LogTrace("Runned");
+				_logger.LogTrace("Runned");
+				//UpdateMyselfContact(this.Info);
+			}
 		}
 
 		public void StopChannel()
@@ -214,21 +206,14 @@ namespace Microservices.Channels
 			{
 				_scanner.StopScan();
 			}
-			catch (Exception ex)
-			{
-				_status.Error = ex;
-				_logger.LogError(ex);
-				throw;
-			}
 			finally
 			{
 				_status.Running = false;
 				_status.Online = null;
 
+				_logger.LogTrace("Stopped");
 				//UpdateMyselfContact(this.Info);
 			}
-
-			_logger.LogTrace("Stopped");
 		}
 		#endregion
 
@@ -246,7 +231,6 @@ namespace Microservices.Channels
 			}
 			else
 			{
-				_status.Error = ex;
 				error = ex;
 				_status.Online = false;
 				return false;
@@ -260,16 +244,7 @@ namespace Microservices.Channels
 		{
 			Initialize();
 
-			try
-			{
-				using DbContext dbContext = _database.ValidateSchema();
-			}
-			catch (Exception ex)
-			{
-				_status.Error = ex;
-				_logger.LogError(ex);
-				throw;
-			}
+			using DbContext dbContext = _database.ValidateSchema();
 		}
 
 		/// <summary>
@@ -281,20 +256,12 @@ namespace Microservices.Channels
 
 			if (_databaseSettings.RepairSPEnabled)
 			{
-				try
-				{
-					string repairSP = _databaseSettings.RepairSP;
-					if (String.IsNullOrWhiteSpace(repairSP))
-						throw new InvalidOperationException("Не указано имя хранимой процедуры восстановления БД.");
+				string repairSP = _databaseSettings.RepairSP;
+				if (String.IsNullOrWhiteSpace(repairSP))
+					throw new InvalidOperationException("Не указано имя хранимой процедуры восстановления БД.");
 
-					_logger.LogTrace($"Вызов хранимой процедуры \"{repairSP}\".");
-					_dataAdapter.CallRepairSP(repairSP);
-				}
-				catch (Exception ex)
-				{
-					_status.Error = ex;
-					_logger.LogError(ex);
-				}
+				_logger.LogTrace($"Вызов хранимой процедуры \"{repairSP}\".");
+				_dataAdapter.CallRepairSP(repairSP);
 			}
 
 			using DbContext dbContext = _database.CreateOrUpdateSchema();
@@ -312,53 +279,45 @@ namespace Microservices.Channels
 
 			if (_databaseSettings.PingSPEnabled)
 			{
-				try
-				{
-					string pingSP = _databaseSettings.PingSP;
-					if (String.IsNullOrWhiteSpace(pingSP))
-						throw new InvalidOperationException("Не указано имя хранимой процедуры пинга БД.");
+				string pingSP = _databaseSettings.PingSP;
+				if (String.IsNullOrWhiteSpace(pingSP))
+					throw new InvalidOperationException("Не указано имя хранимой процедуры пинга БД.");
 
-					_logger.LogTrace($"Вызов хранимой процедуры \"{pingSP}\".");
-					_dataAdapter.CallPingSP(pingSP);
-				}
-				catch (Exception ex)
-				{
-					_status.Error = ex;
-					_logger.LogError(ex);
-				}
+				_logger.LogTrace($"Вызов хранимой процедуры \"{pingSP}\".");
+				_dataAdapter.CallPingSP(pingSP);
 			}
 		}
 		#endregion
 
 
-		#region Error
-		/// <summary>
-		/// Сбросить ошибку.
-		/// </summary>
-		public void ClearError()
-		{
-			_status.Error = null;
-		}
-
-		/// <summary>
-		/// Запомнить ошибку.
-		/// </summary>
-		/// <param name="error"></param>
-		public void SetError(Exception error)
-		{
-			_status.Error = error;
-		}
+		//#region Error
+		///// <summary>
+		///// Сбросить ошибку.
+		///// </summary>
+		//public void ClearError()
+		//{
+		//	_status.Error = null;
+		//}
 
 		///// <summary>
-		///// Вызвать ошибку.
+		///// Запомнить ошибку.
 		///// </summary>
-		///// <param name="text"></param>
-		///// <returns></returns>
-		//public ChannelException ThrowError(string text)
+		///// <param name="error"></param>
+		//public void SetError(Exception error)
 		//{
-		//	return new ChannelException(this, text);
+		//	_status.Error = error;
 		//}
-		#endregion
+
+		/////// <summary>
+		/////// Вызвать ошибку.
+		/////// </summary>
+		/////// <param name="text"></param>
+		/////// <returns></returns>
+		////public ChannelException ThrowError(string text)
+		////{
+		////	return new ChannelException(this, text);
+		////}
+		//#endregion
 
 
 

@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
-using Microservices.Bus.Logging;
 using Microservices.Channels;
+using Microservices.Logging;
 
 namespace Microservices.Bus.Channels
 {
@@ -84,7 +84,7 @@ namespace Microservices.Bus.Channels
 
 		private void Process_Exited(object sender, EventArgs e)
 		{
-			_logger.LogTrace($"Процесс {_process.Id} канала {this.Info.Id} завершил работу.");
+			_logger.LogTrace($"Процесс #{_process.Id} канала {this.Info.Id} завершил работу.");
 
 			try
 			{

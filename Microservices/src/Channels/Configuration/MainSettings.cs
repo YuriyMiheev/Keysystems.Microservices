@@ -27,6 +27,14 @@ namespace Microservices.Channels.Configuration
 		/// <summary>
 		/// {Get} Провайдер.
 		/// </summary>
+		public int LINK
+		{
+			get => Parser.ParseInt(GetValue(".LINK"), 0);
+		}
+
+		/// <summary>
+		/// {Get} Провайдер.
+		/// </summary>
 		public string Provider
 		{
 			get => Parser.ParseString(GetValue(".Provider"), "");

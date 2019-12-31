@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microservices.Bus.Logging;
 using Microservices.Data;
 using Microservices.Data.DAO;
+using Microservices.Logging;
 
 namespace Microservices.Bus.Channels
 {

@@ -7,7 +7,7 @@ using Microservices.Channels.Hubs;
 using Microservices.Channels.Logging;
 using Microservices.Configuration;
 using Microservices.Data;
-
+using Microservices.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +50,7 @@ namespace MSSQL.Microservice
 							services.AddSingleton<IAppSettingsConfig>(appConfig);
 							services.AddSingleton<IDatabase, ChannelDatabase>();
 							services.AddSingleton<IChannelDataAdapter, ChannelDataAdapter>();
+							services.AddSingleton<IConsoleLogger, ConsoleLogger>();
 							services.AddSingleton<ILogger, ChannelLogger>();
 							services.AddSingleton<IHubConnectionManager, HubConnectionManager>();
 							services.AddSingleton<IMessageScanner, MessageScanner>();

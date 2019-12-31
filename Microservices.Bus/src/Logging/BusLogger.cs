@@ -1,34 +1,43 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+using Microservices.Logging;
 
 namespace Microservices.Bus.Logging
 {
 	public class BusLogger : ILogger
 	{
+		private readonly IConsoleLogger _consoleLogger;
+
+
+		public BusLogger(IConsoleLogger consoleLogger)
+		{
+			_consoleLogger = consoleLogger ?? throw new ArgumentNullException(nameof(consoleLogger));
+		}
+
+
 		public void InitializeLogger()
 		{
+			_consoleLogger.InitializeLogger();
 		}
 
 		public void LogError(Exception error)
 		{
-			Console.WriteLine($"[ERROR] [{DateTime.Now}] {error}");
+			_consoleLogger.LogError(error);
 		}
 
 		public void LogError(string text, Exception error)
 		{
-			Console.WriteLine($"[ERROR] [{DateTime.Now}] {text} {Environment.NewLine} {error}");
+			_consoleLogger.LogError(text, error);
 		}
 
 		public void LogInfo(string text)
 		{
-			Console.WriteLine($"[INFO]  [{DateTime.Now}] {text}");
+			_consoleLogger.LogInfo(text);
 		}
 
 		public void LogTrace(string text)
 		{
-			Console.WriteLine($"[TRACE] [{DateTime.Now}] {text}");
+			_consoleLogger.LogTrace(text);
 		}
 	}
 }

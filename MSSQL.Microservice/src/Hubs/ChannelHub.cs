@@ -11,9 +11,9 @@ using Microservices.Channels;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
 using Microservices.Channels.Hubs;
-using Microservices.Channels.Logging;
 using Microservices.Configuration;
 using Microservices.Data;
+using Microservices.Logging;
 
 using Microsoft.AspNetCore.SignalR;
 
@@ -93,6 +93,7 @@ namespace MSSQL.Microservice.Hubs
 			catch (Exception ex)
 			{
 				LogError(ex);
+				throw;
 			}
 		}
 
@@ -208,6 +209,7 @@ namespace MSSQL.Microservice.Hubs
 			try
 			{
 				_appConfig.SetAppSettings(settings);
+				_channel.WindowTitle();
 			}
 			catch (Exception ex)
 			{
@@ -437,16 +439,18 @@ namespace MSSQL.Microservice.Hubs
 		#endregion
 
 
-		#region Logging
+		#region Helper
 		void LogError(Exception error)
 		{
 			_logger.LogError(error);
+			_status.Error = error;
 			SendLog("ERROR", error.ToString());
 		}
 
 		void LogError(string text, Exception error)
 		{
 			_logger.LogError(text, error);
+			_status.Error = error;
 			SendLog("ERROR", text + Environment.NewLine + error);
 		}
 
@@ -461,10 +465,7 @@ namespace MSSQL.Microservice.Hubs
 			_logger.LogTrace(text);
 			SendLog("TRACE", text);
 		}
-		#endregion
 
-
-		#region Helper
 		private bool SendLog(string logLevel, string text)
 		{
 			IDictionary<string, object> record = GetCurrentInfo();

@@ -24,25 +24,25 @@ namespace Microservices.Channels
 		#endregion
 
 
-		#region Error
-		/// <summary>
-		/// Сбросить ошибку.
-		/// </summary>
-		void ClearError();
-
-		/// <summary>
-		/// Запомнить ошибку.
-		/// </summary>
-		/// <param name="error"></param>
-		void SetError(Exception error);
+		//#region Error
+		///// <summary>
+		///// Сбросить ошибку.
+		///// </summary>
+		//void ClearError();
 
 		///// <summary>
-		///// Вызвать ошибку.
+		///// Запомнить ошибку.
 		///// </summary>
-		///// <param name="text"></param>
-		///// <returns></returns>
-		//ChannelException ThrowError(string text);
-		#endregion
+		///// <param name="error"></param>
+		//void SetError(Exception error);
+
+		/////// <summary>
+		/////// Вызвать ошибку.
+		/////// </summary>
+		/////// <param name="text"></param>
+		/////// <returns></returns>
+		////ChannelException ThrowError(string text);
+		//#endregion
 
 	}
 }

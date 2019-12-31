@@ -10,7 +10,7 @@ using Microservices.Bus.Data.MSSQL;
 using Microservices.Bus.Licensing;
 using Microservices.Bus.Logging;
 using Microservices.Configuration;
-
+using Microservices.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +48,7 @@ namespace Microservices.IntegrationServiceBus
 						services.AddSingleton<BusSettings>();
 						services.AddSingleton<IBusDatabase, BusDatabase>();
 						services.AddSingleton<IBusDataAdapter, BusDataAdapter>();
+						services.AddSingleton<IConsoleLogger, ConsoleLogger>();
 						services.AddSingleton<ILogger, BusLogger>();
 						services.AddSingleton<IAuthManager, AuthManager>();
 						services.AddSingleton<IChannelManager, ChannelManager>();

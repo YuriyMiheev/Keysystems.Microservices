@@ -14,6 +14,8 @@ namespace Microservices.Channels
 		#endregion
 
 
+		void WindowTitle();
+
 
 		//#region Messages
 		/////// <summary>

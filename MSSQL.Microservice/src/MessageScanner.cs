@@ -1,7 +1,7 @@
 ﻿using Microservices;
 using Microservices.Channels;
 using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
+using Microservices.Logging;
 
 using NHibernate.Criterion;
 

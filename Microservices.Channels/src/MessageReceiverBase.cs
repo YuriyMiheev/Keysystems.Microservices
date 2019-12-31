@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
+using Microservices.Logging;
 
 namespace Microservices.Channels
 {

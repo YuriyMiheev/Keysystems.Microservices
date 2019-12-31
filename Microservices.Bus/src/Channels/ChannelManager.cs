@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microservices.Bus.Addins;
 using Microservices.Bus.Configuration;
 using Microservices.Bus.Data;
-using Microservices.Bus.Logging;
 using Microservices.Channels.Configuration;
+using Microservices.Logging;
 
 namespace Microservices.Bus.Channels
 {
@@ -145,16 +145,17 @@ namespace Microservices.Bus.Channels
 							await channelContext.ActivateChannelAsync();
 							await channelContext.Client.ConnectAsync(channelContext.Info.PasswordIn);
 
-							var microserviceSettings = await channelContext.Client.GetChannelSettingsAsync();
+							var serviceSettings = await channelContext.Client.GetChannelSettingsAsync();
 
 							var newSettings = new Dictionary<string, string>
 								{
+									{ ".LINK", $"{channelContext.Info.LINK}" },
 									{ ".VirtAddress", channelContext.Info.VirtAddress },
 									{ ".RealAddress", channelContext.Info.RealAddress }
 								};
 							await channelContext.Client.SetChannelSettingsAsync(newSettings, cancellationToken);
 
-							await channelContext.Channel.OpenAsync();
+							channelContext.Channel.OpenAsync().Wait();
 						}
 						catch (Exception ex)
 						{

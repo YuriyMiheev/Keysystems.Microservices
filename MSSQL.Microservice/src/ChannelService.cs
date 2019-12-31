@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Microservices;
 using Microservices.Channels;
 using Microservices.Channels.Configuration;
-using Microservices.Channels.Logging;
 using Microservices.Configuration;
+using Microservices.Logging;
 
 namespace MSSQL.Microservice
 {
@@ -32,8 +32,6 @@ namespace MSSQL.Microservice
 			_status = status ?? throw new ArgumentNullException(nameof(status));
 			_receiver = receiver ?? throw new ArgumentNullException(nameof(receiver));
 
-			MainSettings mainSettings = _appConfig.MainSettings();
-			this.VirtAddress = mainSettings.VirtAddress;
 			this.ProcessId = Process.GetCurrentProcess().Id;
 		}
 		#endregion
@@ -41,16 +39,23 @@ namespace MSSQL.Microservice
 
 		#region Properties
 		/// <summary>
-		/// {Get}
+		/// 
 		/// </summary>
 		public int ProcessId { get; }
 
+		public int LINK => _appConfig.MainSettings().LINK;
+
 		/// <summary>
-		/// {Get} Виртуальный адрес канала.
+		/// Виртуальный адрес канала.
 		/// </summary>
-		public string VirtAddress { get; }
+		public string VirtAddress => _appConfig.MainSettings().VirtAddress;
 		#endregion
 
+
+		public void WindowTitle()
+		{
+			Console.Title = $"#{this.ProcessId} | #{this.LINK} ({this.VirtAddress})";
+		}
 
 		//#region Messages
 		///// <summary>
@@ -334,7 +339,8 @@ namespace MSSQL.Microservice
 		#region IHostedService  
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
-			Console.Title = $"#{this.ProcessId} ({this.VirtAddress})";
+			WindowTitle();
+
 			_status.Created = true;
 
 			return Task.Run(() =>
@@ -342,10 +348,12 @@ namespace MSSQL.Microservice
 					_logger.LogTrace("Starting...");
 
 					ChannelSettings channelSettings = _appConfig.ChannelSettings();
+					_logger.LogTrace($"AutoOpen={channelSettings.AutoOpen}");
 					if (channelSettings.AutoOpen)
 					{
 						_control.OpenChannel();
 
+						_logger.LogTrace($"AutoRun={channelSettings.AutoRun}");
 						if (channelSettings.AutoRun)
 							_control.RunChannel();
 					}

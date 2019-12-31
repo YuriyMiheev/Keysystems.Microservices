@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microservices.Channels.Logging;
+using Microservices.Logging;
 
 namespace Microservices.Channels.Hubs
 {
@@ -40,6 +40,8 @@ namespace Microservices.Channels.Hubs
 		{
 			if (_connections.Count == 0)
 				return false;
+
+			_logger.LogTrace($"Send-> Log");
 
 			//foreach (IHubConnection conn in _connections.Values)
 			//_connections.Values.AsParallel().ForAll(async conn =>

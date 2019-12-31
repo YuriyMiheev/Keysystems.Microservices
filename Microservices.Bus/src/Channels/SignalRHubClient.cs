@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-using Microservices.Bus.Logging;
 using Microservices.Channels;
 using Microservices.Configuration;
 using Microservices.Data;
@@ -20,7 +19,6 @@ namespace Microservices.Bus.Channels
 	public class SignalRHubClient : IChannelClient
 	{
 		private readonly UriBuilder _hubUrl;
-		private readonly ILogger _logger;
 
 		private IDictionary<string, object> _info;
 		private HubConnection _hubConnection;
@@ -33,11 +31,10 @@ namespace Microservices.Bus.Channels
 
 
 		#region Ctor
-		public SignalRHubClient(string url, ChannelStatus status, ILogger logger)
+		public SignalRHubClient(string url, ChannelStatus status)
 		{
 			_hubUrl = new UriBuilder(url);
 			this.Status = status ?? throw new ArgumentNullException(nameof(status));
-			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 		#endregion
 
@@ -118,10 +115,17 @@ namespace Microservices.Bus.Channels
 
 
 		#region Control
-		public Task OpenChannelAsync(CancellationToken cancellationToken = default)
+		public async Task OpenChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			return _hubConnection.InvokeAsync("OpenChannel", cancellationToken);
+			try
+			{
+				await _hubConnection.InvokeAsync("OpenChannel", cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				throw;
+			}
 		}
 
 		public Task CloseChannelAsync(CancellationToken cancellationToken = default)

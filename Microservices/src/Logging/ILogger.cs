@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microservices.Bus.Logging
+namespace Microservices.Logging
 {
 	public interface ILogger
 	{

@@ -4,8 +4,8 @@ using Microservices;
 using Microservices.Channels;
 using Microservices.Channels.Configuration;
 using Microservices.Channels.Data;
-using Microservices.Channels.Logging;
 using Microservices.Configuration;
+using Microservices.Logging;
 
 namespace MSSQL.Microservice
 {

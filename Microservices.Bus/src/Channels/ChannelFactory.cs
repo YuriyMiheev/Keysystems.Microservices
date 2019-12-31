@@ -2,8 +2,8 @@
 
 using Microservices.Bus.Addins;
 using Microservices.Bus.Data;
-using Microservices.Bus.Logging;
 using Microservices.Channels;
+using Microservices.Logging;
 
 namespace Microservices.Bus.Channels
 {
@@ -36,8 +36,8 @@ namespace Microservices.Bus.Channels
 				throw new ArgumentNullException(nameof(channelInfo));
 
 			var channelStatus = new ChannelStatus();
-			IChannelClient client = new SignalRHubClient(channelInfo.SID, channelStatus, _logger);
-			//IMicroserviceClient client = new GrpcClient(channelInfo.SID, channelStatus, _logger);
+			IChannelClient client = new SignalRHubClient(channelInfo.SID, channelStatus);
+			//IMicroserviceClient client = new GrpcClient(channelInfo.SID, channelStatus);
 			IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
 			return new ProcessChannelContext(description, channelInfo, client, _dataAdapter, _logger, CreateChannel);
 		}
