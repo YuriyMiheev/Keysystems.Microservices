@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microservices;
 using Microservices.Channels;
 using Microservices.Channels.Configuration;
 using Microservices.Configuration;
@@ -43,6 +42,9 @@ namespace MSSQL.Microservice
 		/// </summary>
 		public int ProcessId { get; }
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public int LINK => _appConfig.MainSettings().LINK;
 
 		/// <summary>
@@ -51,11 +53,6 @@ namespace MSSQL.Microservice
 		public string VirtAddress => _appConfig.MainSettings().VirtAddress;
 		#endregion
 
-
-		public void WindowTitle()
-		{
-			Console.Title = $"#{this.ProcessId} | #{this.LINK} ({this.VirtAddress})";
-		}
 
 		//#region Messages
 		///// <summary>
@@ -339,21 +336,20 @@ namespace MSSQL.Microservice
 		#region IHostedService  
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
-			WindowTitle();
+			Console.Title = $"#{this.ProcessId}";
 
 			_status.Created = true;
 
 			return Task.Run(() =>
 				{
 					_logger.LogTrace("Starting...");
+					_logger.LogTrace($"Конфиг.файл {_appConfig.ConfigFile}" + Environment.NewLine + _appConfig.ToLoggerString());
 
 					ChannelSettings channelSettings = _appConfig.ChannelSettings();
-					_logger.LogTrace($"AutoOpen={channelSettings.AutoOpen}");
 					if (channelSettings.AutoOpen)
 					{
 						_control.OpenChannel();
 
-						_logger.LogTrace($"AutoRun={channelSettings.AutoRun}");
 						if (channelSettings.AutoRun)
 							_control.RunChannel();
 					}
@@ -377,22 +373,22 @@ namespace MSSQL.Microservice
 
 
 		#region Helper
-		private void PrepareSaveMessage(Message msg)
-		{
-			msg.Channel = this.VirtAddress;
+		//private void PrepareSaveMessage(Message msg)
+		//{
+		//	msg.Channel = this.VirtAddress;
 
-			if (String.IsNullOrWhiteSpace(msg.Version))
-				msg.Version = MessageVersion.Current;
+		//	if (String.IsNullOrWhiteSpace(msg.Version))
+		//		msg.Version = MessageVersion.Current;
 
-			if (String.IsNullOrWhiteSpace(msg.Type))
-				msg.Type = MessageType.DOCUMENT;
+		//	if (String.IsNullOrWhiteSpace(msg.Type))
+		//		msg.Type = MessageType.DOCUMENT;
 
-			if (msg.Date == null)
-				msg.Date = DateTime.Now;
+		//	if (msg.Date == null)
+		//		msg.Date = DateTime.Now;
 
-			if (msg.LINK == 0)
-				msg.SetStatus(MessageStatus.NULL);
-		}
+		//	if (msg.LINK == 0)
+		//		msg.SetStatus(MessageStatus.NULL);
+		//}
 
 		private void CheckOpened()
 		{

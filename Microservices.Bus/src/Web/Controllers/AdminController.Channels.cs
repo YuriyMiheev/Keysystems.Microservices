@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
+
 using Microservices.Bus.Addins;
 using Microservices.Bus.Channels;
 using Microservices.Channels;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Microservices.Bus.Web.Controllers
@@ -21,31 +24,32 @@ namespace Microservices.Bus.Web.Controllers
 				groupLink = GetGroupLink();
 
 			var channels = runtimeChannels.Select(context =>
-			{
-				ChannelInfo channelInfo = context.Info;
-				ChannelStatus channelStatus = context.Status;
-				IChannel channel = context.Channel;
-				ExceptionWrapper error = context.LastError.Wrap();
-				IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
-				return new
 				{
-					channelInfo.LINK,
-					channelInfo.Name,
-					channelInfo.Provider,
-					channelInfo.VirtAddress,
-					channelInfo.SID,
-					channelInfo.RealAddress,
-					channelInfo.Timeout,
-					IsSystem = channelInfo.IsSystem(),
-					channelInfo.Enabled,
-					channelInfo.Comment,
-					channelStatus.Opened,
-					channelStatus.Running,
-					channelStatus.Online,
-					CanSyncContacts = description.CanSyncContacts,
-					LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
-				};
-			}).ToList();
+					ChannelInfo channelInfo = context.Info;
+					ChannelStatus channelStatus = context.Status;
+					IChannel channel = context.Channel;
+					ExceptionWrapper error = context.Status.Error.Wrap();
+					IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+					return new
+					{
+						channelInfo.LINK,
+						channelInfo.Name,
+						channelInfo.Provider,
+						channelInfo.VirtAddress,
+						channelInfo.SID,
+						channelInfo.RealAddress,
+						channelInfo.Timeout,
+						IsSystem = channelInfo.IsSystem(),
+						channelInfo.Enabled,
+						channelInfo.Comment,
+						channelStatus.Opened,
+						channelStatus.Running,
+						channelStatus.Online,
+						description.CanSyncContacts,
+						LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
+						//IconCss
+					};
+				}).ToList();
 
 			var groups = channelGroups.Select(group =>
 					new
@@ -88,6 +92,66 @@ namespace Microservices.Bus.Web.Controllers
 				this.ViewBag.RegisteredChannels = registeredChannels;
 				return View("Channels");
 			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		[AcceptVerbs("GET")]
+		//[AdminAccess]
+		//[NoCache]
+		public IActionResult RegisteredChannels()
+		{
+			try
+			{
+				IChannelContext[] runtimeChannels = _channelManager.RuntimeChannels;
+				bool systemExist = runtimeChannels.Any(context => context.Info.IsSystem());
+
+				var registeredChannels = _addinManager.RegisteredChannels.Select(desc =>
+						new
+						{
+							desc.Provider,
+							//IconCss
+							IconName = desc.Icon,
+							//desc.IsolatedDomain,
+							desc.Comment,
+							Disabled = (desc.Provider == "SYSTEM" && systemExist || desc.Provider != "SYSTEM" && !systemExist)
+						}
+					).ToList();
+				return Json(registeredChannels);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode((int)HttpStatusCode.InternalServerError, ex.AllMessages());
+			}
+		}
+
+		/// <summary>
+		/// Просмотр канала.
+		/// </summary>
+		/// <param name="channelLink"></param>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		[AcceptVerbs("GET")]
+		//[AdminAccess]
+		//[NoCache]
+		public IActionResult Channel(int? channelLink, string provider)
+		{
+			ChannelInfo channelInfo;
+
+			if (channelLink == null || channelLink == 0)
+			{
+				channelInfo = _channelManager.NewChannelTemplate(provider);
+			}
+			else
+			{
+				IChannelContext channel = _channelManager.GetChannel(channelLink.Value);
+				channelInfo = channel.Info;
+			}
+
+			this.ViewBag.Channel = channelInfo.ToVmo();
+			return View("Channel");
 		}
 
 		[AcceptVerbs("GET", "POST")]

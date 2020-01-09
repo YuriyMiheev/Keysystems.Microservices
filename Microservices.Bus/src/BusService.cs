@@ -124,10 +124,32 @@ namespace Microservices.Bus
 						throw new ApplicationException("База данных принадлежит другому интеграционному сервису.");
 				}
 
-				_addinManager.LoadAddins();
+				try
+				{
+					_addinManager.LoadAddins();
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex);
+				}
 
-				//_licManager.LoadLicenses();
-				await _channelManager.LoadChannelsAsync(cancellationToken);
+				//try
+				//{
+				//	_licManager.LoadLicenses();
+				//}
+				//catch (Exception ex)
+				//{
+				//	_logger.LogError(ex);
+				//}
+
+				try
+				{
+					await _channelManager.LoadChannelsAsync(cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex);
+				}
 
 				_serviceInfo.StartupError = null;
 				_serviceInfo.Running = true;

@@ -24,18 +24,13 @@ namespace Microservices.Channels.Configuration
 
 
 		#region Properties
-		//public string AccessKey
-		//{
-		//	get => Parser.ParseString(PropertyValue("X.AccessKey"), "");
-		//}
-
 		public int BufferSize
 		{
 			get => Parser.ParseInt(GetValue("X.BufferSize"), 4096) * 1024;
 		}
 
 		/// <summary>
-		/// {Get}
+		/// 
 		/// </summary>
 		public bool LogHttpRequest
 		{
@@ -43,17 +38,22 @@ namespace Microservices.Channels.Configuration
 		}
 
 		/// <summary>
-		/// {Get}
+		/// 
 		/// </summary>
 		public bool DebugEnabled
 		{
 			get => Parser.ParseBool(GetValue("X.Debug.Enabled"), false);
 		}
 
-		//public int ProcessId
-		//{
-		//	get => Parser.ParseInt(PropertyValue("X.ProcessId"), 0);
-		//}
+		public int ProcessId
+		{
+			get => Parser.ParseInt(GetValue("X.ProcessId"), 0);
+		}
+
+		public bool ShowWindow
+		{
+			get => Parser.ParseBool(GetValue("X.ShowWindow"), true);
+		}
 		#endregion
 
 	}

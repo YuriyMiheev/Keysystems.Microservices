@@ -30,5 +30,20 @@ namespace Microservices.Bus.Channels
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		Task TerminateChannelAsync(string virtAddress, CancellationToken cancellationToken = default);
+
+		/// <summary>
+		/// Шаблон нового канала.
+		/// </summary>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		ChannelInfo NewChannelTemplate(string provider);
+
+		IChannelContext GetChannel(int channelLink);
+
+		IChannelContext GetChannel(string virtAddress);
+
+		IChannelContext FindChannel(int channelLink);
+
+		IChannelContext FindChannel(string virtAddress);
 	}
 }

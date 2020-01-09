@@ -39,6 +39,9 @@ namespace Microservices.Channels.Hubs
 		#endregion
 
 
+		void SetWindowTitle(string text);
+
+
 		#region Settings
 		IDictionary<string, AppConfigSetting> GetSettings();
 

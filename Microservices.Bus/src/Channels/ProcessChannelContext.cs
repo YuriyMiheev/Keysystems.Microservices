@@ -16,7 +16,7 @@ namespace Microservices.Bus.Channels
 	public class ProcessChannelContext : IChannelContext, IDisposable
 	{
 		private readonly IAddinDescription _description;
-		private readonly Func<ChannelInfo, IChannelClient, ILogger, IChannel> CreateChannel;
+		private readonly Func<ChannelInfo, IChannelClient, ILogger, IChannel> _createChannel;
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly ILogger _logger;
 		private Process _process;
@@ -29,7 +29,7 @@ namespace Microservices.Bus.Channels
 			this.Client = channelClient ?? throw new ArgumentNullException(nameof(channelClient));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.CreateChannel = createChannel ?? throw new ArgumentNullException(nameof(createChannel));
+			_createChannel = createChannel ?? throw new ArgumentNullException(nameof(createChannel));
 		}
 
 
@@ -44,42 +44,50 @@ namespace Microservices.Bus.Channels
 		public Exception LastError { get; set; }
 
 
-		public async Task ActivateChannelAsync(CancellationToken cancellationToken = default)
+		public async Task<IChannel> ActivateChannelAsync(CancellationToken cancellationToken = default)
 		{
-			await Task.Run(() =>
-				{
-					ChannelInfoProperty prop = this.Info.FindProperty("X.ProcessId");
-					if (prop != null && Int32.TryParse(prop.Value, out int processId))
-						_process = Process.GetProcesses().FindProcessById(processId);
+			//await Task.Run(async () => 
+			//	{
+			ChannelInfoProperty prop = this.Info.FindProperty("X.ProcessId");
+			if (prop != null && Int32.TryParse(prop.Value, out int processId))
+				_process = Process.GetProcesses().FindProcessById(processId);
 
-					if (_process == null)
+			if (_process == null)
+			{
+				bool showWindow = this.Info.XSettings().ShowWindow;
+				var startInfo = new ProcessStartInfo()
 					{
-						var startInfo = new ProcessStartInfo()
-						{
-							FileName = System.IO.Path.Combine(_description.AddinPath, _description.Type),
-							UseShellExecute = true,
-							//CreateNoWindow = true,
-							//WindowStyle = ProcessWindowStyle.Normal,
-							Arguments = $"--Urls {this.Info.SID}",
-							WorkingDirectory = _description.AddinPath
-						};
-						_process = Process.Start(startInfo);
-						_process.EnableRaisingEvents = true;
-						_process.Exited += Process_Exited;
+						FileName = System.IO.Path.Combine(_description.AddinPath, _description.Type),
+						UseShellExecute = showWindow,
+						CreateNoWindow = !showWindow,
+						WindowStyle = (showWindow ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal),
+						Arguments = $"--Urls {this.Info.SID}",
+						WorkingDirectory = _description.AddinPath
+					};
+				_process = Process.Start(startInfo);
+				_process.EnableRaisingEvents = true;
+				_process.Exited += Process_Exited;
 
-						if (prop == null)
-						{
-							prop = new ChannelInfoProperty() { Name = "X.ProcessId" };
-							this.Info.AddNewProperty(prop);
-						}
+				if (prop == null)
+				{
+					prop = new ChannelInfoProperty() { Name = "X.ProcessId" };
+					this.Info.AddNewProperty(prop);
+				}
 
-						prop.Value = _process.Id.ToString();
-						_dataAdapter.SaveChannelInfo(this.Info);
-					}
+				prop.Value = _process.Id.ToString();
+				_dataAdapter.SaveChannelInfo(this.Info);
+			}
 
-					this.Channel = CreateChannel(this.Info, this.Client, _logger);
-					this.Status.Created = true;
-				}, cancellationToken);
+			this.Channel = _createChannel(this.Info, this.Client, _logger);
+			await this.Client.ConnectAsync(this.Info.PasswordIn, cancellationToken);
+
+
+			string title = $"#{_process.Id} | #{this.Info.LINK} ({this.Info.VirtAddress})";
+			await this.Client.SetWindowTitleAsync(title, cancellationToken);
+
+			this.Status.Created = true;
+			return this.Channel;
+			//}, cancellationToken);
 		}
 
 		private void Process_Exited(object sender, EventArgs e)
@@ -88,7 +96,8 @@ namespace Microservices.Bus.Channels
 
 			try
 			{
-				this.Channel.Dispose();
+				if (this.Channel != null)
+					this.Channel.Dispose();
 			}
 			finally
 			{
@@ -107,11 +116,14 @@ namespace Microservices.Bus.Channels
 
 			try
 			{
-				await this.Channel.CloseAsync(cancellationToken);
+				if (this.Channel != null && this.Status.Created)
+					await this.Channel.CloseAsync(cancellationToken);
 			}
 			finally
 			{
-				this.Channel.Dispose();
+				if (this.Channel != null)
+					this.Channel.Dispose();
+
 				this.Status.Created = false;
 
 				if (_process != null)
@@ -134,7 +146,9 @@ namespace Microservices.Bus.Channels
 			if (disposing)
 			{
 				// TODO: dispose managed state (managed objects).
-				this.Channel.Dispose();
+				if (this.Channel != null)
+					this.Channel.Dispose();
+
 				this.Status.Created = false;
 
 				if (_process != null)

@@ -79,6 +79,15 @@ namespace Microservices.Bus.Channels
 			channelInfo.Properties.Add(prop.Name, prop);
 		}
 
+		public static void ClearProperties(this ChannelInfo channelInfo)
+		{
+			if (channelInfo == null)
+				throw new ArgumentNullException(nameof(channelInfo));
+
+			channelInfo.Properties.Clear();
+		}
+
+
 		public static ChannelSettings ChannelSettings(this ChannelInfo channelInfo)
 		{
 			var appConfigSettings = new Dictionary<string, AppConfigSetting>();
@@ -90,6 +99,19 @@ namespace Microservices.Bus.Channels
 
 			return new ChannelSettings(appConfigSettings);
 		}
+
+		public static XSettings XSettings(this ChannelInfo channelInfo)
+		{
+			var appConfigSettings = new Dictionary<string, AppConfigSetting>();
+			foreach (ChannelInfoProperty channelProp in channelInfo.Properties.Values)
+			{
+				AppConfigSetting appConfigSetting = channelProp.ToAppConfigSetting();
+				appConfigSettings.Add(appConfigSetting.Name, appConfigSetting);
+			}
+
+			return new XSettings(appConfigSettings);
+		}
+
 
 		public static DAO.ChannelInfo ToDao(this ChannelInfo obj)
 		{
@@ -168,5 +190,16 @@ namespace Microservices.Bus.Channels
 			else
 				return null;
 		}
+
+		public static VMO.ChannelInfo ToObj(this ChannelInfo obj)
+		{
+			if (obj == null)
+				return null;
+
+			var vmo = new VMO.ChannelInfo();
+
+			return vmo;
+		}
+
 	}
 }

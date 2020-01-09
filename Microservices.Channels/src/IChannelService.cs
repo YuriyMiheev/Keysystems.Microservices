@@ -1,20 +1,27 @@
-﻿using System;
-
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 
 namespace Microservices.Channels
 {
-	public interface IChannelService : IHostedService//, IDisposable
+	public interface IChannelService : IHostedService
 	{
 
 		#region Properties
+		/// <summary>
+		/// ИД процесса.
+		/// </summary>
 		int ProcessId { get; }
 
+		/// <summary>
+		/// ИД канала.
+		/// </summary>
+		int LINK { get; }
+
+		/// <summary>
+		/// Вирт.адрес канала.
+		/// </summary>
 		string VirtAddress { get; }
 		#endregion
 
-
-		void WindowTitle();
 
 
 		//#region Messages

@@ -17,6 +17,7 @@
     <Compile Remove="src\ChannelException.cs" />
     <Compile Remove="src\ChannelServiceBase.cs" />
     <Compile Remove="src\ChannelStatus.cs" />
+    <Compile Remove="src\Configuration\AppSettingsConfigExtensions.cs" />
     <Compile Remove="src\Configuration\ConfigFileSetting.cs" />
     <Compile Remove="src\Configuration\IAppSettingsConfig.cs" />
     <Compile Remove="src\Configuration\IXmlConfigFileSettings.cs" />
@@ -49,6 +50,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microservices\Microservices.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Configuration\" />
   </ItemGroup>
 
 </Project>

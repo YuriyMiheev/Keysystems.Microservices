@@ -23,5 +23,15 @@ namespace Microservices.Bus.Web.Controllers
 			_addinManager = addinManager ?? throw new ArgumentNullException(nameof(addinManager));
 			_channelManager = channelManager ?? throw new ArgumentNullException(nameof(channelManager));
 		}
+
+
+		[AcceptVerbs("GET")]
+		//[AdminAccess]
+		//[NoCache]
+		public ActionResult Home()
+		{
+			this.ViewBag.Service = _serviceInfo.ToVmo();
+			return View("Home");
+		}
 	}
 }

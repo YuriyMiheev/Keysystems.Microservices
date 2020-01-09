@@ -135,6 +135,12 @@ namespace MSSQL.Microservice.Hubs
 		#endregion
 
 
+		public void SetWindowTitle(string text)
+		{
+			Console.Title = text;
+		}
+
+
 		#region Diagnostic
 		public Exception TryConnect()
 		{
@@ -209,7 +215,6 @@ namespace MSSQL.Microservice.Hubs
 			try
 			{
 				_appConfig.SetAppSettings(settings);
-				_channel.WindowTitle();
 			}
 			catch (Exception ex)
 			{
@@ -482,6 +487,7 @@ namespace MSSQL.Microservice.Hubs
 					{ "MachineName", Environment.MachineName },
 					{ "ProcessId", _channel.ProcessId },
 					{ "ConnectionId", this.Context.ConnectionId },
+					{ "LINK", _channel.LINK },
 					{ "VirtAddress", _channel.VirtAddress }
 				};
 		}

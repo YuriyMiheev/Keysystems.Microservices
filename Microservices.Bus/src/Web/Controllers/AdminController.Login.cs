@@ -69,14 +69,5 @@ namespace Microservices.Bus.Web.Controllers
 			return RedirectToAction("Login");
 		}
 
-		[AcceptVerbs("GET")]
-		//[AdminAccess]
-		//[NoCache]
-		public ActionResult Home()
-		{
-			ServiceInfo serviceInfo = _serviceInfo;
-			this.ViewBag.Service = serviceInfo.ToVmo();
-			return View("Home");
-		}
 	}
 }

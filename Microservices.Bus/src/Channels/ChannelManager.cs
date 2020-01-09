@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,18 +18,16 @@ namespace Microservices.Bus.Channels
 	{
 		private readonly IAddinManager _addinManager;
 		private readonly IChannelFactory _channelFactory;
-		private readonly BusSettings _busSettings;
 		private readonly IBusDataAdapter _dataAdapter;
 		private readonly ILogger _logger;
 		private readonly ConcurrentDictionary<string, GroupInfo> _groups;
 		private readonly ConcurrentDictionary<string, IChannelContext> _channels;
 
 
-		public ChannelManager(IAddinManager addinManager, IChannelFactory channelFactory, BusSettings busSettings, IBusDataAdapter dataAdapter, ILogger logger)
+		public ChannelManager(IAddinManager addinManager, IChannelFactory channelFactory, IBusDataAdapter dataAdapter, ILogger logger)
 		{
 			_addinManager = addinManager ?? throw new ArgumentNullException(nameof(addinManager));
 			_channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
-			_busSettings = busSettings ?? throw new ArgumentNullException(nameof(addinManager));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			_groups = new ConcurrentDictionary<string, GroupInfo>();
@@ -107,7 +106,7 @@ namespace Microservices.Bus.Channels
 							channelInfo.SetDescription(description);
 
 						if (channelInfo.IsSystem())
-							channelInfo.RealAddress = _busSettings.Database.ConnectionString;
+							channelInfo.RealAddress = _dataAdapter.DbContext.ConnectionString;
 
 						_dataAdapter.SaveChannelInfo(channelInfo);
 
@@ -142,26 +141,31 @@ namespace Microservices.Bus.Channels
 					{
 						try
 						{
-							await channelContext.ActivateChannelAsync();
-							await channelContext.Client.ConnectAsync(channelContext.Info.PasswordIn);
-
-							var serviceSettings = await channelContext.Client.GetChannelSettingsAsync();
-
+							await channelContext.ActivateChannelAsync(cancellationToken);
 							var newSettings = new Dictionary<string, string>
 								{
 									{ ".LINK", $"{channelContext.Info.LINK}" },
 									{ ".VirtAddress", channelContext.Info.VirtAddress },
-									{ ".RealAddress", channelContext.Info.RealAddress }
-								};
+									{ ".RealAddress", channelContext.Info.RealAddress },
+									{ ".Timeout", $"{channelContext.Info.Timeout}" },
+							};
 							await channelContext.Client.SetChannelSettingsAsync(newSettings, cancellationToken);
-
-							channelContext.Channel.OpenAsync().Wait();
+							await channelContext.Channel.OpenAsync(cancellationToken);
 						}
 						catch (Exception ex)
 						{
 							lock (errors)
 							{
 								errors.Add(ex);
+							}
+
+							try
+							{
+								await channelContext.TerminateChannelAsync();
+							}
+							catch (Exception ex2)
+							{
+								errors.Add(ex2);
 							}
 						}
 					}
@@ -222,6 +226,123 @@ namespace Microservices.Bus.Channels
 		{
 			IChannelContext channelContext = _channels[virtAddress];
 			await channelContext.TerminateChannelAsync(cancellationToken);
+		}
+
+		/// <summary>
+		/// Шаблон нового канала.
+		/// </summary>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		public ChannelInfo NewChannelTemplate(string provider)
+		{
+			#region Validate parameters
+			if (String.IsNullOrWhiteSpace(provider))
+				throw new ArgumentException("provider");
+			#endregion
+
+			IAddinDescription description = _addinManager.FindDescription(provider);
+			var channelInfo = new ChannelInfo()
+			{
+				Enabled = true,
+				Timeout = description.Timeout,
+				Comment = description.Comment
+			};
+			channelInfo.SetDescription(description);
+
+			if (provider == "SYSTEM")
+			{
+				channelInfo.RealAddress = _dataAdapter.DbContext.ConnectionString;
+				channelInfo.Name = "SYSTEM";
+				channelInfo.VirtAddress = "system@" + Environment.MachineName;
+			}
+			else
+			{
+				channelInfo.RealAddress = description.RealAddress;
+
+				IChannelContext sysChannel = this.RuntimeChannels.SingleOrDefault(context => context.Info.IsSystem());
+				if (sysChannel == null)
+				{
+					channelInfo.VirtAddress = "name@" + Environment.MachineName;
+				}
+				else
+				{
+					string host = Environment.MachineName;
+					try
+					{
+						var mail = new MailAddress(sysChannel.Info.VirtAddress);
+						host = mail.Host;
+					}
+					catch (Exception ex)
+					{
+						_logger.LogTrace(ex.ToString());
+					}
+
+					channelInfo.VirtAddress = "name@" + host;
+				}
+			}
+
+			channelInfo.SID = "http://localhost:{port}";
+
+			// Сортировка св-в по имени
+			var channelProperties = new List<ChannelInfoProperty>(channelInfo.Properties.Values.OrderBy(prop => prop.Name));
+			channelInfo.ClearProperties();
+			channelProperties.ForEach(prop => channelInfo.AddNewProperty(prop));
+
+			return channelInfo;
+		}
+
+
+		/// <summary>
+		/// Получить ссылку на канал.
+		/// </summary>
+		/// <param name="channelLink"></param>
+		/// <returns></returns>
+		public IChannelContext GetChannel(int channelLink)
+		{
+			IChannelContext channel = FindChannel(channelLink);
+			if (channel == null)
+				throw new InvalidOperationException(String.Format("Канал #{0} не найден или не существует.", channelLink));
+
+			return channel;
+		}
+
+		/// <summary>
+		/// Получить ссылку на канал.
+		/// </summary>
+		/// <param name="virtAddress"></param>
+		/// <returns></returns>
+		public IChannelContext GetChannel(string virtAddress)
+		{
+			IChannelContext context = FindChannel(virtAddress);
+			if (context == null)
+				throw new InvalidOperationException(String.Format("Канал '{0}' не найден.", virtAddress));
+
+			return context;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="channelLink"></param>
+		/// <returns></returns>
+		public IChannelContext FindChannel(int channelLink)
+		{
+			return _channels.Values.SingleOrDefault(context => context.Info.LINK == channelLink);
+		}
+
+		/// <summary>
+		/// Найти канал.
+		/// </summary>
+		/// <param name="virtAddress"></param>
+		/// <returns></returns>
+		public IChannelContext FindChannel(string virtAddress)
+		{
+			#region Validate parameters
+			if (virtAddress == null)
+				throw new ArgumentNullException("virtAddress");
+			#endregion
+
+			return _channels.Values.SingleOrDefault(context => (context.Info.VirtAddress.Equals(virtAddress, StringComparison.InvariantCultureIgnoreCase)));
 		}
 		#endregion
 

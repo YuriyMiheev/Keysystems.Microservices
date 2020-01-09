@@ -80,6 +80,9 @@ namespace Microservices.Bus.Channels
 		#endregion
 
 
+		Task SetWindowTitleAsync(string title, CancellationToken cancellationToken = default);
+
+
 		#region Diagnostic
 		Task<Exception> TryConnectToChannelAsync(CancellationToken cancellationToken = default);
 

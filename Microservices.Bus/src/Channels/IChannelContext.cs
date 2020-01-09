@@ -31,18 +31,13 @@ namespace Microservices.Bus.Channels
 		/// </summary>
 		IChannelClient Client { get; }
 
-		/// <summary>
-		/// Последняя зафиксированная ошибка.
-		/// </summary>
-		Exception LastError { get; set; }
-
 
 		/// <summary>
 		/// Активировать канал.
 		/// </summary>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
-		Task ActivateChannelAsync(CancellationToken cancellationToken = default);
+		Task<IChannel> ActivateChannelAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		/// Разрушить канал.

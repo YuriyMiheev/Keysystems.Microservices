@@ -81,35 +81,44 @@ namespace Microservices.Bus.Channels
 			if (this.IsConnected)
 				throw new InvalidOperationException($"Подключение к хабу {_hubUrl} уже выполнено.");
 
-			var uri = new UriBuilder(_hubUrl.Uri);
-			uri.Path += "ChannelHub";
-
-			_hubConnection = CreateConnection(uri.Uri);
-			await _hubConnection.StartAsync(cancellationToken);
-
-			_info = await _hubConnection.InvokeAsync<IDictionary<string, object>>("Login", accessKey, cancellationToken);
-			if (_info == null)
+			try
 			{
-				await _hubConnection.StopAsync();
-				throw new InvalidOperationException("Неверный ключ доступа.");
+				var uri = new UriBuilder(_hubUrl.Uri);
+				uri.Path += "ChannelHub";
+
+				_hubConnection = CreateConnection(uri.Uri);
+				await _hubConnection.StartAsync(cancellationToken);
+
+				_info = await _hubConnection.InvokeAsync<IDictionary<string, object>>("Login", accessKey, cancellationToken);
+				if (_info == null)
+				{
+					await _hubConnection.StopAsync();
+					throw new InvalidOperationException("Неверный ключ доступа.");
+				}
+
+				this.Connected?.Invoke(this);
+
+				_logAction = new ActionBlock<IDictionary<string, object>>(ReceiveLogAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+				_logHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveLog", OnReceiveLog);
+
+				_messagesAction = new ActionBlock<Message[]>(ReceiveMessagesAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+				_messagesHandler = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages);
+
+				_statusAction = new ActionBlock<IDictionary<string, object>>(ReceiveStatusAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
+				_statusHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveStatus", OnReceiveStatus);
 			}
-
-			this.Connected?.Invoke(this);
-
-			_logAction = new ActionBlock<IDictionary<string, object>>(ReceiveLogAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
-			_logHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveLog", OnReceiveLog);
-
-			_messagesAction = new ActionBlock<Message[]>(ReceiveMessagesAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
-			_messagesHandler = _hubConnection.On<Message[]>("ReceiveMessages", OnReceiveMessages);
-
-			_statusAction = new ActionBlock<IDictionary<string, object>>(ReceiveStatusAction, new ExecutionDataflowBlockOptions() { CancellationToken = cancellationToken });
-			_statusHandler = _hubConnection.On<IDictionary<string, object>>("ReceiveStatus", OnReceiveStatus);
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException($"Ошибка подключения к хабу {_hubUrl}", ex);
+			}
 		}
 
 		public async Task DisconnectAsync(CancellationToken cancellationToken = default)
 		{
 			if (this.IsConnected)
+			{
 				await _hubConnection.StopAsync(cancellationToken);
+			}
 		}
 		#endregion
 
@@ -118,14 +127,7 @@ namespace Microservices.Bus.Channels
 		public async Task OpenChannelAsync(CancellationToken cancellationToken = default)
 		{
 			CheckConnected();
-			try
-			{
-				await _hubConnection.InvokeAsync("OpenChannel", cancellationToken);
-			}
-			catch (Exception ex)
-			{
-				throw;
-			}
+			await _hubConnection.InvokeAsync("OpenChannel", cancellationToken);
 		}
 
 		public Task CloseChannelAsync(CancellationToken cancellationToken = default)
@@ -146,6 +148,13 @@ namespace Microservices.Bus.Channels
 			return _hubConnection.InvokeAsync("StopChannel", cancellationToken);
 		}
 		#endregion
+
+
+		public Task SetWindowTitleAsync(string title, CancellationToken cancellationToken = default)
+		{
+			CheckConnected();
+			return _hubConnection.InvokeAsync("SetWindowTitle", title, cancellationToken);
+		}
 
 
 		#region Diagnostic
