@@ -140,6 +140,11 @@ namespace MSSQL.Microservice.Hubs
 			Console.Title = text;
 		}
 
+		public IDictionary<string, object> GetStatus()
+		{
+			return _status.ToDict();
+		}
+
 
 		#region Diagnostic
 		public Exception TryConnect()

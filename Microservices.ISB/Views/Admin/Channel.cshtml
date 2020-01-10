@@ -1,0 +1,296 @@
+﻿@using Microservices.Bus.Web.VMO;
+@{
+   //this.Page.Title += "Channel";
+
+   ChannelInfo channel = this.ViewBag.Channel;
+   ChannelDescription description = this.ViewBag.Description;
+   ChannelStatus status = this.ViewBag.Status;
+}
+@section Page{
+   <script type="text/javascript">
+   Ext.onReady(function() {
+      var channel = @Html.Raw(Json.Serialize(channel));
+      var description = @Html.Raw(Json.Serialize(description));
+      var status = @Html.Raw(Json.Serialize(status));
+
+      var formChannel = new Ext.form.FormPanel({
+         id: 'formChannel',
+         title: 'Info',
+         iconCls: 'ico_parameters',
+         bodyStyle: 'padding: 5px 10px 5px 10px',
+         bodyCssClass: 'ico_background1',
+         autoHeight: true,
+         labelWidth: 120,
+         standardSubmit: true,
+         items: [
+            { xtype: 'numberfield', id: 'txtChannelLink', name: 'LINK', fieldLabel: 'LINK', readOnly: true, width: 75 },
+            { xtype: 'textfield', id: 'txtName', name: 'Name', fieldLabel: 'Name', width: 305 },
+            { xtype: 'textfield', id: 'txtVirtAddress', name: 'VirtAddress', fieldLabel: 'Virtual Address *', width: 305 },
+            { xtype: 'textfield', id: 'txtSid', name: 'SID', fieldLabel: 'SID', width: 150 },
+            { xtype: 'textfield', id: 'txtProvider', name: 'Provider', fieldLabel: 'Provider *', readOnly: true, width: 150 },
+            { xtype: 'textfield', id: 'txtType', fieldLabel: 'Type *', readOnly: true, anchor: '0' },
+            { xtype: 'textfield', id: 'txtRealAddress', name: 'RealAddress', fieldLabel: 'Real Address', anchor: '0' },
+            {
+               xtype: 'compositefield', fieldLabel: 'Password ↓ , ↑',
+               items: [
+                  { xtype: 'textfield', id: 'txtPasswordIn', name: 'PasswordIn', width: 150 },
+                  { xtype: 'textfield', id: 'txtPasswordOut', name: 'PasswordOut', width: 150 }
+               ]
+            },
+            { xtype: 'numberfield', id: 'txtTimeout', name: 'Timeout', fieldLabel: 'Timeout (sec)', allowNegative: false, width: 75 },
+            { xtype: 'checkbox', id: 'chbEnabled', name: 'Enabled', fieldLabel: 'Enabled', inputValue: 'True' },
+            { xtype: 'textarea', id: 'txtComment', name: 'Comment', fieldLabel: 'Comment', height: 50, anchor: '0' },
+            { xtype: 'textarea', id:'txtError', fieldLabel: 'Error', readOnly: true, anchor: '0' }
+         ]
+      });
+
+      var gridChannelProperties = new Ext.grid.GridPanel({
+         id: 'gridChannelProperties',
+         title: 'Settings',
+         iconCls: 'ico_properties',
+         autoHeight: true,
+         viewConfig: {
+            forceFit: true,
+            scrollOffset: 0
+         },
+         store: new Ext.data.JsonStore({
+            fields: [
+               { name: 'LINK', type: 'int' },
+               { name: 'ChannelLINK', type: 'int' },
+               { name: 'Name' },
+               { name: 'Value' },
+               { name: 'Type' },
+               { name: 'Format' },
+               { name: 'Comment' }
+            ]
+         }),
+         columns: [
+            { header: '#', dataIndex: 'LINK', width: 50 },
+            { header: 'Name', dataIndex: 'Name', width: 150 },
+            { header: 'Value', dataIndex: 'Value', width: 100 },
+            { header: 'Type', dataIndex: 'Type', width: 50 },
+            { header: 'Format', dataIndex: 'Format', width: 75 },
+            { header: 'Comment', dataIndex: 'Comment', width: 200 }
+         ],
+         tbar: {
+            items: [
+               { id: 'btnViewEditProp', iconCls: 'ico_viewedit', text: 'View/Edit', Url: '@Url.Action("ChannelProperty", new { channelLink = channel.LINK })', handler: btnViewEditProp_Click }
+            ]
+         },
+         listeners: {
+            rowclick: gridChannelProperties_RowClick,
+            rowdblclick: gridChannelProperties_RowDblClick
+         }
+      });
+
+      new Ext.Panel({
+         id: 'panelChannel',
+         title: 'Channel',
+         renderTo: 'div-channel',
+         iconCls: 'ico_channel',
+         frame: true,
+         border: true,
+         style: 'padding: 5px',
+         bodyStyle: 'padding: 0 5px 5px 5px',
+         autoHeight: true,
+         monitorResize: true,
+         items: [
+            {
+               xtype: 'toolbar',
+               items: [
+                  { id: 'btnOpen', text: 'Open', iconCls: 'ico_open', Url: '@Url.Action("OpenChannel", new { channelLink = channel.LINK })', handler: btnOpen_Click },
+                  { id: 'btnClose', text: 'Close', iconCls: 'ico_close', Url: '@Url.Action("CloseChannel", new { channelLink = channel.LINK })', handler: btnClose_Click },
+                  '-',
+                  { id: 'btnRun', text: 'Run', iconCls: 'ico_run', Url: '@Url.Action("RunChannel", new { channelLink = channel.LINK })', handler: btnRun_Click },
+                  { id: 'btnStop', text: 'Stop', iconCls: 'ico_stop', Url: '@Url.Action("StopChannel", new { channelLink = channel.LINK })', handler: btnStop_Click },
+                  '-',
+                  { id: 'btnMessages', text: 'Messages', iconCls: 'ico_messages', Url: '@Url.Action("Messages", new { channelLink = channel.LINK })', handler: btnMessages_Click }
+               ]
+            },
+            {
+               xtype: 'tabpanel', activeTab: 0, plain: true, style: 'padding: 5px 0',
+               items: [
+                  formChannel,
+                  gridChannelProperties
+               ]
+            },
+            { xtype: 'panel', id: 'panelUpdater', hidden: true }
+         ],
+         buttonAlign: 'center',
+         buttons: [
+            { id: 'btnDiagnostic', text: 'Diagnostic', iconCls: 'ico_diagnostic', Url: '@Url.Action("ChannelDiagnostic")', handler: btnDiagnostic_Click },
+               { id: 'btnSave', text: 'Save', iconCls: 'ico_save', Url: '@Url.Action("SaveChannel")', handler: btnSave_Click }
+            ]
+      });
+
+      Page.LoadChannelData(channel, description, status);
+
+
+      @*-- Event Handlers --*@
+      function btnSave_Click(button, e) {
+         var progress = new Ext.LoadMask('panelChannel', { msg: "Please wait..." });
+         progress.show();
+
+         var form = Ext.getCmp('formChannel').getForm();
+         form.el.dom.action = button.Url;
+         form.submit();
+      }
+
+      function btnOpen_Click(button, e) {
+         ControlChannel('OPEN', button.Url);
+      }
+
+      function btnClose_Click(button, e) {
+         ControlChannel('CLOSE', button.Url);
+      }
+
+      function btnRun_Click(button, e) {
+         ControlChannel('RUN', button.Url);
+      }
+
+      function btnStop_Click(button, e) {
+         ControlChannel('STOP', button.Url);
+      }
+
+      function btnMessages_Click(button, e) {
+         location = button.Url;
+      }
+
+      function btnDiagnostic_Click(button, e) {
+         var progress = new Ext.LoadMask('panelChannel', { msg: "Please wait..." });
+         progress.show();
+
+         var updater = Ext.getCmp('panelUpdater').getUpdater();
+         updater.update({
+            url: button.Url,
+            method: 'POST',
+            params: GetFormChannelValues(),
+            nocache: true,
+            scripts: true,
+            callback: function(el, success, response, options) {
+               progress.hide();
+               if (!success)
+                  Page.ShowAjaxError(response);
+            }
+         });
+      }
+
+      function gridChannelProperties_RowClick(grid, rowIndex, e) {
+         Ext.getCmp('btnViewEditProp').setDisabled(channel.LINK == 0);
+      }
+
+      function gridChannelProperties_RowDblClick(grid, rowIndex, e) {
+         if (channel.LINK != 0)
+            ViewEditProp();
+      }
+
+      function btnViewEditProp_Click(button, e) {
+         ViewEditProp();
+      }
+
+
+      @*-- Helpers --*@
+      function GetFormChannelValues() {
+         var params = Ext.getCmp('formChannel').getForm().getValues();
+         delete params.txtError;
+         return params;
+      }
+
+      function ViewEditProp(propLink) {
+         var progress = new Ext.LoadMask('panelChannel', { msg: "Please wait..." });
+         progress.show();
+
+         var updater = Ext.getCmp('panelUpdater').getUpdater();
+         updater.update({
+            url: Ext.getCmp('btnViewEditProp').Url,
+            method: 'GET',
+            params: { propName: GetSelectedProp().Name },
+            nocache: true,
+            scripts: true,
+            callback: function(el, success, response, options) {
+               progress.hide();
+               if (!success)
+                  Page.ShowAjaxError(response);
+            }
+         });
+      }
+
+      function GetSelectedProp() {
+         return Ext.getCmp('gridChannelProperties').getSelectionModel().getSelected().json;
+      }
+
+      function ControlChannel(command, url, params) {
+         var progress = new Ext.LoadMask('panelChannel', { msg: 'Please wait...' });
+         progress.show();
+
+         var timeout = 30000;
+         if (command === 'OPEN' || command === 'CLOSE')
+            timeout = 0;
+
+         var request = Ext.Ajax.request({
+            url: url,
+            method: 'POST',
+            timeout: timeout,
+            params: params,
+            success: function(response, options) {
+               progress.hide();
+               var result = Ext.decode(response.responseText);
+               if (result.success) {
+                  Page.LoadChannelData(result.Channel, result.Description, result.Status);
+               } else {
+                  Page.ShowErrorMsg(result.Error);
+               }
+            },
+            failure: function(response, options) {
+               progress.hide();
+               Page.ShowAjaxError(response);
+            }
+         });
+      }
+   });
+
+   Page.LoadChannelData = function(channel, description, status) {
+      Ext.getCmp('panelChannel').setTitle('Channel ' + (channel.LINK == 0 ? '- New' : String.format('#{0} - {1}', channel.LINK, (status.Opened || status.Running ? 'View' : 'Edit'))) + String.format(' - [{0}]', (status.Opened ? 'OPENED' : 'CLOSED')));
+      Ext.getCmp('txtChannelLink').setValue(channel.LINK);
+      Ext.getCmp('txtName').setValue(channel.Name);
+      Ext.getCmp('txtProvider').setValue(channel.Provider);
+      Ext.getCmp('txtType').setValue(description ? description.Type : 'Type is unknown');
+      Ext.getCmp('txtVirtAddress').setValue(channel.VirtAddress);
+      Ext.getCmp('txtSid').setValue(channel.SID);
+      Ext.getCmp('txtRealAddress').setValue(channel.RealAddress);
+      Ext.getCmp('txtPasswordIn').setValue(channel.PasswordIn);
+      Ext.getCmp('txtPasswordOut').setValue(channel.PasswordOut);
+      Ext.getCmp('txtTimeout').setValue(channel.Timeout);
+      Ext.getCmp('chbEnabled').setValue(channel.Enabled);
+      Ext.getCmp('txtComment').setValue(channel.Comment);
+      Ext.getCmp('txtError').setValue(status.Error ? '[' + Date.parseDate(channel.Error.Time, 'M$').format('d.m.Y H:i:s') + ']\n' + channel.Error.FullMessage : '');
+
+      Ext.getCmp('btnOpen').setDisabled(!channel.Enabled || status.Opened || channel.LINK == 0);
+      Ext.getCmp('btnClose').setDisabled(!channel.Enabled || !status.Opened || channel.LINK == 0);
+      Ext.getCmp('btnRun').setDisabled(!channel.Enabled || !status.Opened || status.Running || channel.LINK == 0);
+      Ext.getCmp('btnStop').setDisabled(!channel.Enabled || !status.Opened || !status.Running || channel.LINK == 0);
+      Ext.getCmp('btnMessages').setDisabled(!channel.Enabled || !status.Opened || channel.LINK == 0);
+      Ext.getCmp('btnDiagnostic').setDisabled(!channel.Enabled);
+      Ext.getCmp('txtName').setReadOnly(status.Opened);
+      Ext.getCmp('txtVirtAddress').setReadOnly(status.Opened || channel.LINK != 0);
+      if (channel.Description) {
+         Ext.getCmp('txtSid').setReadOnly(status.Opened);
+      } else {
+         Ext.getCmp('txtSid').setDisabled(true);
+         Ext.getCmp('txtType').setDisabled(true);
+      }
+      Ext.getCmp('txtRealAddress').setReadOnly(channel.IsSystem || status.Opened);
+      Ext.getCmp('txtPasswordIn').setReadOnly(status.Opened);
+      Ext.getCmp('txtPasswordOut').setReadOnly(status.Opened);
+      Ext.getCmp('txtTimeout').setReadOnly(status.Opened);
+      Ext.getCmp('chbEnabled').setReadOnly(status.Opened);
+      Ext.getCmp('txtComment').setReadOnly(status.Opened);
+      Ext.getCmp('btnSave').setDisabled(status.Opened);
+      Ext.getCmp('btnViewEditProp').setDisabled(true);
+
+      var gridChannelProperties = Ext.getCmp('gridChannelProperties');
+      gridChannelProperties.store.loadData(channel.Properties, false);
+   }
+   </script>
+}
+<div id="div-channel"></div>

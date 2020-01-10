@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,8 +31,8 @@ namespace Microservices.Bus.Channels
 			_channelFactory = channelFactory ?? throw new ArgumentNullException(nameof(channelFactory));
 			_dataAdapter = dataAdapter ?? throw new ArgumentNullException(nameof(dataAdapter));
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			_groups = new ConcurrentDictionary<string, GroupInfo>();
-			_channels = new ConcurrentDictionary<string, IChannelContext>();
+			_groups = new ConcurrentDictionary<string, GroupInfo>(StringComparer.InvariantCultureIgnoreCase);
+			_channels = new ConcurrentDictionary<string, IChannelContext>(StringComparer.InvariantCultureIgnoreCase);
 		}
 
 
@@ -141,16 +142,7 @@ namespace Microservices.Bus.Channels
 					{
 						try
 						{
-							await channelContext.ActivateChannelAsync(cancellationToken);
-							var newSettings = new Dictionary<string, string>
-								{
-									{ ".LINK", $"{channelContext.Info.LINK}" },
-									{ ".VirtAddress", channelContext.Info.VirtAddress },
-									{ ".RealAddress", channelContext.Info.RealAddress },
-									{ ".Timeout", $"{channelContext.Info.Timeout}" },
-							};
-							await channelContext.Client.SetChannelSettingsAsync(newSettings, cancellationToken);
-							await channelContext.Channel.OpenAsync(cancellationToken);
+							await StartChannelAsync(channelContext);
 						}
 						catch (Exception ex)
 						{
@@ -222,9 +214,21 @@ namespace Microservices.Bus.Channels
 		//	return _channelFactory.CreateChannel(channelInfo);
 		//}
 
+		public async Task StartChannelAsync(int channelLink, CancellationToken cancellationToken = default)
+		{
+			IChannelContext channelContext = GetChannel(channelLink);
+			await StartChannelAsync(channelContext, cancellationToken);
+		}
+
+		public async Task StartChannelAsync(string virtAddress, CancellationToken cancellationToken = default)
+		{
+			IChannelContext channelContext = GetChannel(virtAddress);
+			await StartChannelAsync(channelContext, cancellationToken);
+		}
+
 		public async Task TerminateChannelAsync(string virtAddress, CancellationToken cancellationToken = default)
 		{
-			IChannelContext channelContext = _channels[virtAddress];
+			IChannelContext channelContext = GetChannel(virtAddress);
 			await channelContext.TerminateChannelAsync(cancellationToken);
 		}
 
@@ -285,7 +289,7 @@ namespace Microservices.Bus.Channels
 
 			// Сортировка св-в по имени
 			var channelProperties = new List<ChannelInfoProperty>(channelInfo.Properties.Values.OrderBy(prop => prop.Name));
-			channelInfo.ClearProperties();
+			channelInfo.Properties.Clear();
 			channelProperties.ForEach(prop => channelInfo.AddNewProperty(prop));
 
 			return channelInfo;
@@ -342,7 +346,26 @@ namespace Microservices.Bus.Channels
 				throw new ArgumentNullException("virtAddress");
 			#endregion
 
-			return _channels.Values.SingleOrDefault(context => (context.Info.VirtAddress.Equals(virtAddress, StringComparison.InvariantCultureIgnoreCase)));
+			if (_channels.ContainsKey(virtAddress))
+				return _channels[virtAddress];
+			else
+				return null;
+
+			//return _channels.Values.SingleOrDefault(context => (context.Info.VirtAddress.Equals(virtAddress, StringComparison.InvariantCultureIgnoreCase)));
+		}
+
+		private async Task StartChannelAsync(IChannelContext channelContext, CancellationToken cancellationToken = default)
+		{
+			await channelContext.ActivateChannelAsync(cancellationToken);
+			var newSettings = new Dictionary<string, string>
+				{
+					{ ".LINK", $"{channelContext.Info.LINK}" },
+					{ ".VirtAddress", channelContext.Info.VirtAddress },
+					{ ".RealAddress", channelContext.Info.RealAddress },
+					{ ".Timeout", $"{channelContext.Info.Timeout}" },
+			};
+			await channelContext.Client.SetChannelSettingsAsync(newSettings, cancellationToken);
+			await channelContext.Channel.OpenAsync(cancellationToken);
 		}
 		#endregion
 

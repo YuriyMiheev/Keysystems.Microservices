@@ -16,7 +16,7 @@ namespace Microservices.Bus.Channels
 		{
 			if (channelInfo == null)
 				throw new ArgumentNullException(nameof(channelInfo));
- 
+
 			if (description == null)
 				throw new ArgumentNullException(nameof(description));
 
@@ -28,28 +28,28 @@ namespace Microservices.Bus.Channels
 			List<string> newProps = description.Properties.Values.Select(p => p.Name).Where(prop => !properties.Values.Select(p => p.Name).Contains(prop)).ToList();
 
 			existProps.ForEach(p =>
-			{
-				AddinDescriptionProperty dp = description.GetProperty(p);
-				ChannelInfoProperty prop = channelInfo.GetProperty(p);
-				string value = prop.Value;
-				dp.CopyTo(prop);
-				prop.Value = value;
-			});
+				{
+					AddinDescriptionProperty dp = description.GetProperty(p);
+					ChannelInfoProperty prop = channelInfo.GetProperty(p);
+					string value = prop.Value;
+					dp.CopyTo(prop);
+					prop.Value = value;
+				});
 			delProps.ForEach(p => channelInfo.RemoveProperty(p));
 			newProps.ForEach(p =>
-			{
-				AddinDescriptionProperty dp = description.GetProperty(p);
-				var prop = new ChannelInfoProperty();
-				dp.CopyTo(prop);
-				channelInfo.AddNewProperty(prop);
-			});
+				{
+					AddinDescriptionProperty dp = description.GetProperty(p);
+					var prop = new ChannelInfoProperty();
+					dp.CopyTo(prop);
+					channelInfo.AddNewProperty(prop);
+				});
 		}
 
 		public static ChannelInfoProperty GetProperty(this ChannelInfo channelInfo, string propName)
 		{
 			if (channelInfo == null)
 				throw new ArgumentNullException(nameof(channelInfo));
-			
+
 			return channelInfo.Properties[propName];
 		}
 
@@ -57,7 +57,7 @@ namespace Microservices.Bus.Channels
 		{
 			if (channelInfo == null)
 				throw new ArgumentNullException(nameof(channelInfo));
-			
+
 			channelInfo.Properties.Remove(propName);
 		}
 
@@ -77,14 +77,6 @@ namespace Microservices.Bus.Channels
 
 			prop.ChannelLINK = channelInfo.LINK;
 			channelInfo.Properties.Add(prop.Name, prop);
-		}
-
-		public static void ClearProperties(this ChannelInfo channelInfo)
-		{
-			if (channelInfo == null)
-				throw new ArgumentNullException(nameof(channelInfo));
-
-			channelInfo.Properties.Clear();
 		}
 
 
@@ -190,16 +182,5 @@ namespace Microservices.Bus.Channels
 			else
 				return null;
 		}
-
-		public static VMO.ChannelInfo ToObj(this ChannelInfo obj)
-		{
-			if (obj == null)
-				return null;
-
-			var vmo = new VMO.ChannelInfo();
-
-			return vmo;
-		}
-
 	}
 }

@@ -1,4 +1,5 @@
-﻿namespace Microservices.Bus.Addins
+﻿
+namespace Microservices.Bus.Addins
 {
 	public static class AddinDescriptionExtensions
 	{

@@ -46,8 +46,6 @@ namespace Microservices.Bus.Channels
 
 		public async Task<IChannel> ActivateChannelAsync(CancellationToken cancellationToken = default)
 		{
-			//await Task.Run(async () => 
-			//	{
 			ChannelInfoProperty prop = this.Info.FindProperty("X.ProcessId");
 			if (prop != null && Int32.TryParse(prop.Value, out int processId))
 				_process = Process.GetProcesses().FindProcessById(processId);
@@ -65,8 +63,6 @@ namespace Microservices.Bus.Channels
 						WorkingDirectory = _description.AddinPath
 					};
 				_process = Process.Start(startInfo);
-				_process.EnableRaisingEvents = true;
-				_process.Exited += Process_Exited;
 
 				if (prop == null)
 				{
@@ -78,21 +74,24 @@ namespace Microservices.Bus.Channels
 				_dataAdapter.SaveChannelInfo(this.Info);
 			}
 
+			_process.EnableRaisingEvents = true;
+			_process.Exited += Process_Exited;
+
 			this.Channel = _createChannel(this.Info, this.Client, _logger);
 			await this.Client.ConnectAsync(this.Info.PasswordIn, cancellationToken);
-
+			
+			this.Status.Created = true;
+			await this.Client.GetStatusAsync(cancellationToken);
 
 			string title = $"#{_process.Id} | #{this.Info.LINK} ({this.Info.VirtAddress})";
 			await this.Client.SetWindowTitleAsync(title, cancellationToken);
 
-			this.Status.Created = true;
 			return this.Channel;
-			//}, cancellationToken);
 		}
 
 		private void Process_Exited(object sender, EventArgs e)
 		{
-			_logger.LogTrace($"Процесс #{_process.Id} канала {this.Info.Id} завершил работу.");
+			_logger.LogTrace($"Процесс канала #{_process.Id} {this.Info.Id} завершил работу.");
 
 			try
 			{
@@ -112,7 +111,7 @@ namespace Microservices.Bus.Channels
 
 		public async Task TerminateChannelAsync(CancellationToken cancellationToken = default)
 		{
-			_logger.LogTrace($"Прерывание работы канала {this.Info.Id}.");
+			_logger.LogTrace($"Прерывание работы канала #{_process.Id} {this.Info.Id}");
 
 			try
 			{
@@ -136,7 +135,7 @@ namespace Microservices.Bus.Channels
 
 
 		#region IDisposable
-		private bool _disposed = false; // To detect redundant calls
+		private bool _disposed = false;
 
 		protected virtual void Dispose(bool disposing)
 		{

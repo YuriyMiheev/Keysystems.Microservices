@@ -52,7 +52,7 @@ namespace Microservices.Bus.Addins
 			get => Parser.ParseString(GetValue(".Comment"), "");
 		}
 
-		public string Icon
+		public string IconName
 		{
 			get => Parser.ParseString(GetValue(".Icon"), "favicon.png");
 		}

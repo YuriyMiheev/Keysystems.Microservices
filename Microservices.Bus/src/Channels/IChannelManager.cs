@@ -24,14 +24,6 @@ namespace Microservices.Bus.Channels
 		Task LoadChannelsAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
-		/// Прервать работу канала.
-		/// </summary>
-		/// <param name="virtAddress"></param>
-		/// <param name="cancellationToken"></param>
-		/// <returns></returns>
-		Task TerminateChannelAsync(string virtAddress, CancellationToken cancellationToken = default);
-
-		/// <summary>
 		/// Шаблон нового канала.
 		/// </summary>
 		/// <param name="provider"></param>
@@ -45,5 +37,29 @@ namespace Microservices.Bus.Channels
 		IChannelContext FindChannel(int channelLink);
 
 		IChannelContext FindChannel(string virtAddress);
+
+		/// <summary>
+		/// Стартовать (активировать и открыть) канал.
+		/// </summary>
+		/// <param name="channelLink"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		Task StartChannelAsync(int channelLink, CancellationToken cancellationToken = default);
+
+		/// <summary>
+		/// Стартовать (активировать и открыть) канал.
+		/// </summary>
+		/// <param name="virtAddress"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		Task StartChannelAsync(string virtAddress, CancellationToken cancellationToken = default);
+
+		/// <summary>
+		/// Прервать работу канала.
+		/// </summary>
+		/// <param name="virtAddress"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		Task TerminateChannelAsync(string virtAddress, CancellationToken cancellationToken = default);
 	}
 }

@@ -41,6 +41,8 @@ namespace Microservices.Channels.Hubs
 
 		void SetWindowTitle(string text);
 
+		IDictionary<string, object> GetStatus();
+
 
 		#region Settings
 		IDictionary<string, AppConfigSetting> GetSettings();

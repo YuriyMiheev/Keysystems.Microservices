@@ -36,7 +36,7 @@ namespace Microservices.Bus.Addins
 		/// <summary>
 		/// Имя файла иконки.
 		/// </summary>
-		string Icon { get; }
+		string IconName { get; }
 
 		/// <summary>
 		/// Может обновлять список контактов.

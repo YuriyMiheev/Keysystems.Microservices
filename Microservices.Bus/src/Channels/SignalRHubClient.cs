@@ -156,6 +156,13 @@ namespace Microservices.Bus.Channels
 			return _hubConnection.InvokeAsync("SetWindowTitle", title, cancellationToken);
 		}
 
+		public async Task GetStatusAsync(CancellationToken cancellationToken = default)
+		{
+			CheckConnected();
+			var statuses = await _hubConnection.InvokeAsync<IDictionary<string, object>>("GetStatus", cancellationToken);
+			OnReceiveStatus(statuses);
+		}
+
 
 		#region Diagnostic
 		public Task<Exception> TryConnectToChannelAsync(CancellationToken cancellationToken = default)
@@ -386,18 +393,22 @@ namespace Microservices.Bus.Channels
 
 		void ReceiveStatusAction(IDictionary<string, object> statuses)
 		{
-			foreach (string status in statuses.Keys)
+			foreach (string statusName in statuses.Keys)
 			{
-				switch (status)
+				switch (statusName)
 				{
+					//case nameof(this.Status.Created):
 					case nameof(this.Status.Opened):
-						this.Status.Opened = (bool)statuses[status];
+						this.Status.Opened = (bool)statuses[statusName];
 						break;
 					case nameof(this.Status.Running):
-						this.Status.Running = (bool)statuses[status];
+						this.Status.Running = (bool)statuses[statusName];
 						break;
 					case nameof(this.Status.Online):
-						this.Status.Online = (bool?)statuses[status];
+						this.Status.Online = (bool?)statuses[statusName];
+						break;
+					case nameof(this.Status.Error):
+						this.Status.Error = (Exception)statuses[statusName];
 						break;
 				}
 			}
@@ -406,11 +417,11 @@ namespace Microservices.Bus.Channels
 
 
 		#region IDisposable
-		private bool disposedValue = false; // To detect redundant calls
+		private bool _disposed = false;
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!disposedValue)
+			if (!_disposed)
 			{
 				if (disposing)
 				{
@@ -436,7 +447,7 @@ namespace Microservices.Bus.Channels
 				this.LogReceived = null;
 				this.MessagesReceived = null;
 
-				disposedValue = true;
+				_disposed = true;
 			}
 		}
 

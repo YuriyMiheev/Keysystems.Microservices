@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-
+using System.Threading.Tasks;
 using Microservices.Bus.Addins;
 using Microservices.Bus.Channels;
 using Microservices.Channels;
@@ -27,9 +27,8 @@ namespace Microservices.Bus.Web.Controllers
 				{
 					ChannelInfo channelInfo = context.Info;
 					ChannelStatus channelStatus = context.Status;
-					IChannel channel = context.Channel;
-					ExceptionWrapper error = context.Status.Error.Wrap();
 					IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+					ExceptionWrapper error = channelStatus.Error.Wrap();
 					return new
 					{
 						channelInfo.LINK,
@@ -47,8 +46,8 @@ namespace Microservices.Bus.Web.Controllers
 						channelStatus.Online,
 						description.CanSyncContacts,
 						LastError = (error != null ? error.Time.Value.ToString("[dd.MM.yyyy HH:mm:ss]") + ' ' + error.Message.Split('\n')[0] : ""),
-						//IconCss
 					};
+
 				}).ToList();
 
 			var groups = channelGroups.Select(group =>
@@ -57,7 +56,7 @@ namespace Microservices.Bus.Web.Controllers
 						group.LINK,
 						group.Name,
 						group.Image,
-						Channels = channels.Where(channelInfo => group.Channels.Contains(channelInfo.LINK)).ToArray()
+						Channels = channels.Where(ch => group.Channels.Contains(ch.LINK)).ToArray()
 					}
 				).ToList();
 
@@ -83,6 +82,7 @@ namespace Microservices.Bus.Web.Controllers
 						new
 						{
 							desc.Provider,
+							desc.IconName,
 							desc.Comment,
 							Disabled = (desc.Provider == "SYSTEM" && systemExist || desc.Provider != "SYSTEM" && !systemExist)
 						}
@@ -112,9 +112,7 @@ namespace Microservices.Bus.Web.Controllers
 						new
 						{
 							desc.Provider,
-							//IconCss
-							IconName = desc.Icon,
-							//desc.IsolatedDomain,
+							desc.IconName,
 							desc.Comment,
 							Disabled = (desc.Provider == "SYSTEM" && systemExist || desc.Provider != "SYSTEM" && !systemExist)
 						}
@@ -138,19 +136,23 @@ namespace Microservices.Bus.Web.Controllers
 		//[NoCache]
 		public IActionResult Channel(int? channelLink, string provider)
 		{
-			ChannelInfo channelInfo;
-
 			if (channelLink == null || channelLink == 0)
 			{
-				channelInfo = _channelManager.NewChannelTemplate(provider);
+				ChannelInfo channelInfo = _channelManager.NewChannelTemplate(provider);
+				this.ViewBag.Channel = channelInfo.ToVmo();
 			}
 			else
 			{
-				IChannelContext channel = _channelManager.GetChannel(channelLink.Value);
-				channelInfo = channel.Info;
+				IChannelContext context = _channelManager.GetChannel(channelLink.Value);
+				ChannelStatus channelStatus = context.Status;
+				ChannelInfo channelInfo = context.Info;
+				IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+
+				this.ViewBag.Channel = channelInfo.ToVmo();
+				this.ViewBag.Description = description.ToVmo();
+				this.ViewBag.Status = channelStatus.ToVmo();
 			}
 
-			this.ViewBag.Channel = channelInfo.ToVmo();
 			return View("Channel");
 		}
 
@@ -163,10 +165,134 @@ namespace Microservices.Bus.Web.Controllers
 			if (data == null)
 				return null;
 
-			string contentType = MediaType.GetMimeByFileName(description.Icon);
+			string contentType = MediaType.GetMimeByFileName(description.IconName);
 			return File(data, contentType);
 		}
 
+		[AcceptVerbs("POST")]
+		//[AdminAccess]
+		//[NoAsyncTimeout]
+		public async Task<IActionResult> OpenChannelAsync(int channelLink)
+		{
+			try
+			{
+				IChannelContext channelContext = _channelManager.GetChannel(channelLink);
+				await _channelManager.StartChannelAsync(channelLink);
+
+				ChannelInfo channelInfo = channelContext.Info;
+				ChannelStatus channelStatus = channelContext.Status;
+				IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+
+				if (this.Request.IsAjaxRequest())
+					return Json(new { success = true, Channel = channelInfo.ToVmo(), Description = description.ToVmo(), Status = channelStatus.ToVmo() });
+				else
+					return RedirectToAction("Channels");
+			}
+			catch (Exception ex)
+			{
+				if (this.Request.IsAjaxRequest())
+					return Json(new { success = false, Error = ex.AllMessages() });
+
+				throw;
+			}
+		}
+
+		[AcceptVerbs("POST")]
+		//[AdminAccess]
+		//[NoAsyncTimeout]
+		public async Task<IActionResult> CloseChannelAsync(int channelLink)
+		{
+			try
+			{
+				IChannelContext channelContext = _channelManager.GetChannel(channelLink);
+				await channelContext.TerminateChannelAsync();
+
+				ChannelInfo channelInfo = channelContext.Info;
+				ChannelStatus channelStatus = channelContext.Status;
+				IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+
+				if (this.Request.IsAjaxRequest())
+					return Json(new { success = true, Channel = channelInfo.ToVmo(), Description = description.ToVmo(), Status = channelStatus.ToVmo() });
+				else
+					return RedirectToAction("Channels");
+			}
+			catch (Exception ex)
+			{
+				if (this.Request.IsAjaxRequest())
+					return Json(new { success = false, Error = ex.AllMessages() });
+
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="channelLink"></param>
+		/// <returns></returns>
+		[AcceptVerbs("POST")]
+		//[AdminAccess]
+		public async Task<IActionResult> RunChannelAsync(int channelLink)
+		{
+			IChannelContext channelContext = _channelManager.GetChannel(channelLink);
+			bool success;
+			Exception error = null;
+
+			try
+			{
+				await channelContext.Channel.RunAsync();
+				success = true;
+			}
+			catch (Exception ex)
+			{
+				success = false;
+				error = ex;
+			}
+
+			ChannelInfo channelInfo = channelContext.Info;
+			ChannelStatus channelStatus = channelContext.Status;
+			IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+
+			if (this.Request.IsAjaxRequest())
+				return Json(new { success, Error = error?.AllMessages(), Channel = channelInfo.ToVmo(), Description = description.ToVmo(), Status = channelStatus.ToVmo() });
+			else
+				return RedirectToAction("Channels");
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="channelLink"></param>
+		[AcceptVerbs("POST")]
+		//[AdminAccess]
+		public async Task<IActionResult> StopChannelAsync(int channelLink)
+		{
+			IChannelContext channelContext = _channelManager.GetChannel(channelLink);
+			bool success;
+			Exception error = null;
+
+			try
+			{
+				await channelContext.Channel.StopAsync();
+				success = true;
+			}
+			catch (Exception ex)
+			{
+				success = false;
+				error = ex;
+			}
+
+			ChannelInfo channelInfo = channelContext.Info;
+			ChannelStatus channelStatus = channelContext.Status;
+			IAddinDescription description = _addinManager.FindDescription(channelInfo.Provider);
+
+			if (this.Request.IsAjaxRequest())
+				return Json(new { success, Error = error?.AllMessages(), Channel = channelInfo.ToVmo(), Description = description.ToVmo(), Status = channelStatus.ToVmo() });
+			else
+				return RedirectToAction("Channels");
+		}
+
+		#region Helpers
 		private int? GetGroupLink()
 		{
 			int? result = null;
@@ -195,10 +321,10 @@ namespace Microservices.Bus.Web.Controllers
 			if (String.IsNullOrWhiteSpace(description.AddinPath))
 				return false;
 
-			if (String.IsNullOrWhiteSpace(description.Icon))
+			if (String.IsNullOrWhiteSpace(description.IconName))
 				return false;
 
-			string filePath = System.IO.Path.Combine(description.AddinPath, "wwwroot", description.Icon);
+			string filePath = System.IO.Path.Combine(description.AddinPath, "wwwroot", description.IconName);
 			return System.IO.File.Exists(filePath);
 		}
 
@@ -207,8 +333,10 @@ namespace Microservices.Bus.Web.Controllers
 			if (!IconFileExist(description))
 				return null;
 
-			string filePath = System.IO.Path.Combine(description.AddinPath, "wwwroot", description.Icon);
+			string filePath = System.IO.Path.Combine(description.AddinPath, "wwwroot", description.IconName);
 			return System.IO.File.ReadAllBytes(filePath);
 		}
+		#endregion
+
 	}
 }
